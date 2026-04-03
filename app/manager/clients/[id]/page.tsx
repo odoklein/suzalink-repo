@@ -395,7 +395,7 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
     const [newSessionForm, setNewSessionForm] = useState({
         type: "Kick-Off" as SessionType,
         leexiId: "",
-        notifyByEmail: false,
+        notifyByEmail: true,
         customTypeLabel: "",
     });
     const [sessionDateInput, setSessionDateInput] = useState("");
@@ -809,7 +809,7 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
                 success("Session enregistrée", msg);
                 setShowNewSessionModal(false);
                 setGeneratedCR(null);
-                setNewSessionForm({ type: "Kick-Off", leexiId: "", notifyByEmail: false, customTypeLabel: "" });
+                setNewSessionForm({ type: "Kick-Off", leexiId: "", notifyByEmail: true, customTypeLabel: "" });
                 setSessionDateInput("");
                 setManualTranscript("");
                 setManualCR("");
@@ -2583,7 +2583,7 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
                         setManualCR("");
                         setManualSummaryEmail("");
                         setSessionDateInput("");
-                        setNewSessionForm({ type: "Kick-Off", leexiId: "", notifyByEmail: false, customTypeLabel: "" });
+                        setNewSessionForm({ type: "Kick-Off", leexiId: "", notifyByEmail: true, customTypeLabel: "" });
                     }
                 }}
                 title="Nouvelle session"
@@ -2861,6 +2861,9 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
                                 onClick={() => {
                                     if (!isGeneratingCR) {
                                         setShowNewSessionModal(false);
+                                        setNewSessionForm({ type: "Kick-Off", leexiId: "", notifyByEmail: true, customTypeLabel: "" });
+                                        setManualTranscript("");
+                                        setManualCR("");
                                     }
                                 }}
                                 disabled={isGeneratingCR}

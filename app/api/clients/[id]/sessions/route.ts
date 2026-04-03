@@ -8,6 +8,7 @@ import {
   validateRequest,
 } from '@/lib/api-utils';
 import { z } from 'zod';
+import { sendTransactionalEmail } from '@/lib/email/transactional';
 
 // ============================================
 // GET /api/clients/[id]/sessions
@@ -205,33 +206,18 @@ export const POST = withErrorHandler(
 
     // Send summary email if requested and client has an email
     if (body.notifyByEmail && client.email && body.summaryEmail) {
-      try {
-        const nodemailer = (await import('nodemailer')).default;
-        const transporter = nodemailer.createTransport({
-          host: process.env.SYSTEM_SMTP_HOST,
-          port: Number(process.env.SYSTEM_SMTP_PORT ?? 587),
-          secure: false,
-          auth: {
-            user: process.env.SYSTEM_SMTP_USER,
-            pass: process.env.SYSTEM_SMTP_PASS,
-          },
-        });
+      emailSent = await sendTransactionalEmail({
+        to: client.email,
+        subject: `Synthèse de notre session ${body.type} — ${client.name}`,
+        html: `<pre style="font-family:sans-serif;white-space:pre-wrap">${body.summaryEmail}</pre>`,
+        text: body.summaryEmail,
+      });
 
-        await transporter.sendMail({
-          from: process.env.SYSTEM_SMTP_FROM ?? process.env.SYSTEM_SMTP_USER,
-          to: client.email,
-          subject: `Synthèse de notre session ${body.type} — ${client.name}`,
-          text: body.summaryEmail,
-        });
-
+      if (emailSent) {
         await prisma.clientSession.update({
           where: { id: session.id },
           data: { emailSentAt: new Date() },
         });
-
-        emailSent = true;
-      } catch (err) {
-        console.error('Session email send failed:', err);
       }
     }
 
