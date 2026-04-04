@@ -2,7 +2,9 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Button, useToast, Card, Badge } from "@/components/ui";
-import { FileDown, Share2, Check, Loader2, Calendar, TrendingUp, BarChart3, FileText, Mic, Copy, ChevronDown, ChevronUp } from "lucide-react";
+import { FileDown, Share2, Check, Loader2, Calendar, TrendingUp, BarChart3, FileText, Mic, ChevronDown, ChevronUp } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { cn } from "@/lib/utils";
 import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 import { ProgressBar } from "@/components/ui/ProgressBar";
@@ -75,7 +77,7 @@ export default function ClientPortalReportingPage() {
     const [sessions, setSessions] = useState<ClientSession[]>([]);
     const [isLoadingSessions, setIsLoadingSessions] = useState(true);
     const [expandedSessionId, setExpandedSessionId] = useState<string | null>(null);
-    const [showCRTab, setShowCRTab] = useState<"cr" | "email">("cr");
+
 
     useEffect(() => {
         (async () => {
@@ -247,63 +249,16 @@ export default function ClientPortalReportingPage() {
                                     </button>
                                     {isExpanded && (
                                         <div className="border-t border-[#E8EBF0]">
-                                            <div className="flex gap-0 border-b border-[#E8EBF0]">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setShowCRTab("cr")}
-                                                    className={cn(
-                                                        "px-5 py-3 text-sm font-semibold border-b-2 transition-colors",
-                                                        showCRTab === "cr" ? "border-[#6C3AFF] text-[#6C3AFF]" : "border-transparent text-[#6B7194] hover:text-[#12122A]"
-                                                    )}
-                                                >
-                                                    Compte rendu
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setShowCRTab("email")}
-                                                    className={cn(
-                                                        "px-5 py-3 text-sm font-semibold border-b-2 transition-colors",
-                                                        showCRTab === "email" ? "border-[#6C3AFF] text-[#6C3AFF]" : "border-transparent text-[#6B7194] hover:text-[#12122A]"
-                                                    )}
-                                                >
-                                                    Mail de synthèse
-                                                </button>
-                                            </div>
                                             <div className="p-5">
-                                                {showCRTab === "cr" &&
-                                                    (session.crMarkdown ? (
-                                                        <div className="prose prose-sm prose-slate max-w-none">
-                                                            <pre className="whitespace-pre-wrap text-sm text-[#12122A] font-sans leading-relaxed">
-                                                                {session.crMarkdown}
-                                                            </pre>
-                                                        </div>
-                                                    ) : (
-                                                        <p className="text-sm text-[#6B7194] italic">Pas de CR disponible.</p>
-                                                    ))}
-                                                {showCRTab === "email" &&
-                                                    (session.summaryEmail ? (
-                                                        <div className="space-y-3">
-                                                            <div className="bg-[#F8F9FC] border border-[#E8EBF0] rounded-xl p-4">
-                                                                <pre className="whitespace-pre-wrap text-sm text-[#12122A] font-sans leading-relaxed">
-                                                                    {session.summaryEmail}
-                                                                </pre>
-                                                            </div>
-                                                            <Button
-                                                                variant="outline"
-                                                                size="sm"
-                                                                className="gap-2 rounded-xl border-[#E8EBF0] hover:border-[#7C5CFC]/30 hover:text-[#7C5CFC]"
-                                                                onClick={() => {
-                                                                    navigator.clipboard.writeText(session.summaryEmail!);
-                                                                    toast.success("Copié", "Mail copié dans le presse-papier");
-                                                                }}
-                                                            >
-                                                                <Copy className="w-3.5 h-3.5" />
-                                                                Copier le mail
-                                                            </Button>
-                                                        </div>
-                                                    ) : (
-                                                        <p className="text-sm text-[#6B7194] italic">Pas de mail de synthèse disponible.</p>
-                                                    ))}
+                                                {session.crMarkdown ? (
+                                                    <div className="prose prose-sm prose-slate max-w-none">
+                                                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                                            {session.crMarkdown}
+                                                        </ReactMarkdown>
+                                                    </div>
+                                                ) : (
+                                                    <p className="text-sm text-[#6B7194] italic">Pas de CR disponible.</p>
+                                                )}
                                                 {session.tasks.length > 0 && (
                                                     <div className="mt-5 pt-5 border-t border-[#E8EBF0]">
                                                         <h4 className="text-xs font-bold text-[#6B7194] uppercase tracking-wider mb-3">Tâches d&apos;équipe</h4>

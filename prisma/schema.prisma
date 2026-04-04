@@ -801,6 +801,8 @@ model Action {
   callEnrichmentAt    DateTime?
   callEnrichmentError String?
 
+  managerNote   String?      @db.Text
+
   createdAt     DateTime     @default(now())
 
   meetingFeedback   MeetingFeedback?

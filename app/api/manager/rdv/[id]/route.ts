@@ -47,6 +47,7 @@ export const PUT = withErrorHandler(
 
     const actionUpdate: Record<string, unknown> = {};
     if (body.note !== undefined) actionUpdate.note = body.note;
+    if (body.managerNote !== undefined) actionUpdate.managerNote = body.managerNote;
     if (body.contactId !== undefined) actionUpdate.contactId = body.contactId;
     if (body.callbackDate !== undefined) actionUpdate.callbackDate = new Date(body.callbackDate);
     if (body.meetingType !== undefined) actionUpdate.meetingType = body.meetingType;
