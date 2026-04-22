@@ -381,6 +381,21 @@ export async function notifyManagersClientSignal(data: ClientMeetingAlertData & 
     });
 }
 
+export async function notifyManagersCommercialAbsent(data: ClientMeetingAlertData & {
+    recontact: string;
+    clientNote?: string | null;
+    commercialName?: string;
+}) {
+    const dateStr = fmtDateParis(data.meetingDate);
+    const recontactLabel = data.recontact === "YES" ? "recontact demandé" : data.recontact === "MAYBE" ? "recontact possible" : "pas de recontact";
+    return notifyAllManagers({
+        title: `RDV Absent (commercial) : ${data.clientName}`,
+        message: `${data.contactName} (${data.companyName})${dateStr ? ` - ${dateStr}` : ""} — Marqué absent par ${data.commercialName ?? "le commercial"}, ${recontactLabel}${data.clientNote ? ` — "${data.clientNote.slice(0, 80)}"` : ""} — A rappeler`,
+        type: "error",
+        link: "/manager/rdv",
+    });
+}
+
 export async function notifyManagersClientFeedback(data: ClientMeetingAlertData & {
     outcome: string;
     clientNote?: string | null;

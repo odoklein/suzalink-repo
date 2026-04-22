@@ -44,7 +44,10 @@ export async function GET(request: NextRequest) {
                 to.setHours(23, 59, 59, 999);
                 dateFilter.lte = to;
             }
-            where.createdAt = dateFilter;
+            where.OR = [
+                { callbackDate: dateFilter },
+                { createdAt: dateFilter },
+            ];
         }
 
         // Filter by Mission (via Campaign -> Mission)
@@ -120,16 +123,24 @@ export async function GET(request: NextRequest) {
                         },
                     },
                 },
+                meetingFeedback: {
+                    select: {
+                        id: true,
+                        outcome: true,
+                        recontactRequested: true,
+                        clientNote: true,
+                        createdAt: true,
+                    },
+                },
             },
             orderBy: {
-                createdAt: "desc",
+                callbackDate: "desc",
             },
         });
 
         // Exclude RDV cancelled with less than 10 min before scheduled time
         const meetings = filterRdvList(rawMeetings);
 
-        // Transform response to match frontend expectations (include meeting format metadata)
         const transformedMeetings = meetings.map((meeting) => ({
             id: meeting.id,
             createdAt: meeting.createdAt,
@@ -142,6 +153,8 @@ export async function GET(request: NextRequest) {
             meetingAddress: meeting.meetingAddress ?? undefined,
             meetingJoinUrl: meeting.meetingJoinUrl ?? undefined,
             meetingPhone: meeting.meetingPhone ?? undefined,
+            confirmationStatus: meeting.confirmationStatus,
+            meetingFeedback: meeting.meetingFeedback ?? null,
             contact: meeting.contact,
             mission: meeting.campaign?.mission
                 ? {

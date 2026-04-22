@@ -44,6 +44,14 @@ import "../../manager/rdv/_components/rdv-shell.css";
 
 type MeetingResult = "MEETING_BOOKED" | "MEETING_CANCELLED";
 
+interface MeetingFeedbackData {
+    id: string;
+    outcome: "POSITIVE" | "NEUTRAL" | "NEGATIVE" | "NO_SHOW";
+    recontactRequested: "YES" | "NO" | "MAYBE";
+    clientNote?: string | null;
+    createdAt: string;
+}
+
 interface Meeting {
     id: string;
     createdAt: string;
@@ -56,6 +64,8 @@ interface Meeting {
     meetingAddress?: string | null;
     meetingJoinUrl?: string | null;
     meetingPhone?: string | null;
+    confirmationStatus?: "PENDING" | "CONFIRMED" | "CANCELLED";
+    meetingFeedback?: MeetingFeedbackData | null;
     contact: {
         id: string;
         firstName: string | null;
@@ -142,7 +152,7 @@ function getAvatarColor(m: Meeting): string {
 export default function SDRMeetingsPage() {
     const [meetings, setMeetings] = useState<Meeting[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [statusFilter, setStatusFilter] = useState<RdvStatus | "all">("all");
+    const [statusFilter, setStatusFilter] = useState<RdvStatus | "all" | "confirmed" | "absent">("all");
     const [query, setQuery] = useState("");
 
     // Fetch meetings
@@ -169,20 +179,38 @@ export default function SDRMeetingsPage() {
         fetchMeetings();
     }, []);
 
-    // Stats by status
     const stats = useMemo(() => {
         const upcoming = meetings.filter((m) => getRdvStatus(m) === "upcoming").length;
         const past = meetings.filter((m) => getRdvStatus(m) === "past").length;
         const rescheduled = meetings.filter((m) => getRdvStatus(m) === "rescheduled").length;
         const cancelled = meetings.filter((m) => getRdvStatus(m) === "cancelled").length;
-        return { upcoming, past, rescheduled, cancelled, all: meetings.length };
+        const confirmed = meetings.filter((m) => m.confirmationStatus === "CONFIRMED" && m.result !== "MEETING_CANCELLED").length;
+        const absent = meetings.filter((m) => m.meetingFeedback?.outcome === "NO_SHOW").length;
+        return { upcoming, past, rescheduled, cancelled, confirmed, absent, all: meetings.length };
     }, [meetings]);
 
-    // Filtered meetings by status tab
+    const absentMeetings = useMemo(() =>
+        meetings
+            .filter((m) => m.meetingFeedback?.outcome === "NO_SHOW")
+            .sort((a, b) => {
+                const da = a.meetingFeedback?.createdAt ? new Date(a.meetingFeedback.createdAt).getTime() : 0;
+                const db = b.meetingFeedback?.createdAt ? new Date(b.meetingFeedback.createdAt).getTime() : 0;
+                return db - da;
+            }),
+        [meetings],
+    );
+
     const filteredMeetings = useMemo(() => {
-        const statusScoped = statusFilter === "all"
-            ? meetings
-            : meetings.filter((m) => getRdvStatus(m) === statusFilter);
+        let statusScoped: Meeting[];
+        if (statusFilter === "all") {
+            statusScoped = meetings;
+        } else if (statusFilter === "confirmed") {
+            statusScoped = meetings.filter((m) => m.confirmationStatus === "CONFIRMED" && m.result !== "MEETING_CANCELLED");
+        } else if (statusFilter === "absent") {
+            statusScoped = meetings.filter((m) => m.meetingFeedback?.outcome === "NO_SHOW");
+        } else {
+            statusScoped = meetings.filter((m) => getRdvStatus(m) === statusFilter);
+        }
 
         const queryScoped = query.trim()
             ? statusScoped.filter((m) => {
@@ -203,6 +231,11 @@ export default function SDRMeetingsPage() {
             : statusScoped;
 
         return [...queryScoped].sort((a, b) => {
+            if (statusFilter === "absent") {
+                const fa = a.meetingFeedback?.createdAt ? new Date(a.meetingFeedback.createdAt).getTime() : 0;
+                const fb = b.meetingFeedback?.createdAt ? new Date(b.meetingFeedback.createdAt).getTime() : 0;
+                return fb - fa;
+            }
             const da = a.callbackDate ? new Date(a.callbackDate).getTime() : 0;
             const db = b.callbackDate ? new Date(b.callbackDate).getTime() : 0;
             return statusFilter === "upcoming" ? da - db : db - da;
@@ -552,10 +585,76 @@ export default function SDRMeetingsPage() {
                     </div>
                 </header>
 
-                <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+                {/* Absent RDVs alert banner */}
+                {absentMeetings.length > 0 && (
+                    <div className="rounded-2xl border-2 border-red-200 bg-gradient-to-r from-red-50 via-red-50/80 to-orange-50/60 p-5 shadow-sm animate-fade-in">
+                        <div className="flex items-start gap-4">
+                            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-red-100 text-red-600">
+                                <XCircle className="h-5 w-5" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <h3 className="text-sm font-bold text-red-800">
+                                        {absentMeetings.length} RDV marqué{absentMeetings.length > 1 ? "s" : ""} absent{absentMeetings.length > 1 ? "s" : ""}
+                                    </h3>
+                                    <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-700 border border-red-200">
+                                        Action requise
+                                    </span>
+                                </div>
+                                <div className="flex flex-col gap-2">
+                                    {absentMeetings.slice(0, 5).map((m) => {
+                                        const contactName = [m.contact.firstName, m.contact.lastName].filter(Boolean).join(" ") || "Contact";
+                                        const wantsRecontact = m.meetingFeedback?.recontactRequested === "YES";
+                                        const maybeRecontact = m.meetingFeedback?.recontactRequested === "MAYBE";
+                                        return (
+                                            <div
+                                                key={m.id}
+                                                className="flex items-center gap-3 rounded-xl border border-red-100 bg-white/80 px-3 py-2.5 cursor-pointer hover:bg-white transition"
+                                                onClick={() => setSelectedMeeting(m)}
+                                            >
+                                                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-red-100 text-xs font-bold text-red-700">
+                                                    {m.contact.firstName?.[0] ?? "?"}{m.contact.lastName?.[0] ?? ""}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <span className="text-sm font-semibold text-slate-900">{contactName}</span>
+                                                    <span className="text-xs text-slate-500 ml-2">{m.contact.company.name}</span>
+                                                </div>
+                                                {wantsRecontact && (
+                                                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700 border border-amber-200 shrink-0">
+                                                        <RotateCcw className="w-3 h-3" /> A recontacter
+                                                    </span>
+                                                )}
+                                                {maybeRecontact && (
+                                                    <span className="inline-flex items-center gap-1 rounded-full bg-slate-50 px-2 py-0.5 text-[10px] font-bold text-slate-600 border border-slate-200 shrink-0">
+                                                        Peut-être
+                                                    </span>
+                                                )}
+                                                {m.meetingFeedback?.clientNote && (
+                                                    <span className="text-xs text-slate-500 truncate max-w-[200px]" title={m.meetingFeedback.clientNote}>
+                                                        &ldquo;{m.meetingFeedback.clientNote}&rdquo;
+                                                    </span>
+                                                )}
+                                                <ArrowRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                            </div>
+                                        );
+                                    })}
+                                    {absentMeetings.length > 5 && (
+                                        <p className="text-xs text-red-600 font-medium mt-1">
+                                            + {absentMeetings.length - 5} autre{absentMeetings.length - 5 > 1 ? "s" : ""} RDV absent{absentMeetings.length - 5 > 1 ? "s" : ""}
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-3 lg:grid-cols-6">
                     {[
                         { key: "upcoming", label: "À venir", val: stats.upcoming, stripe: "bg-emerald-500", activeBg: "bg-emerald-50/70", activeBorder: "border-emerald-200" },
                         { key: "past", label: "Passés", val: stats.past, stripe: "bg-slate-300", activeBg: "bg-slate-100/80", activeBorder: "border-slate-200" },
+                        { key: "confirmed" as const, label: "Confirmés", val: stats.confirmed, stripe: "bg-blue-500", activeBg: "bg-blue-50/70", activeBorder: "border-blue-200" },
+                        { key: "absent" as const, label: "Absents", val: stats.absent, stripe: "bg-red-600", activeBg: "bg-red-50/80", activeBorder: "border-red-200" },
                         { key: "rescheduled", label: "Reportés", val: stats.rescheduled, stripe: "bg-amber-500", activeBg: "bg-amber-50/80", activeBorder: "border-amber-200" },
                         { key: "cancelled", label: "Annulés", val: stats.cancelled, stripe: "bg-red-500", activeBg: "bg-red-50/80", activeBorder: "border-red-200" },
                     ].map((s) => {
@@ -564,7 +663,7 @@ export default function SDRMeetingsPage() {
                             <button
                                 key={s.key}
                                 type="button"
-                                onClick={() => setStatusFilter(s.key as RdvStatus)}
+                                onClick={() => setStatusFilter(s.key as RdvStatus | "confirmed" | "absent")}
                                 className={cn(
                                     "flex items-center gap-3 rounded-2xl border bg-white px-4 py-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md",
                                     isActive ? `${s.activeBg} ${s.activeBorder}` : "border-slate-200"
@@ -581,24 +680,33 @@ export default function SDRMeetingsPage() {
                 </div>
 
                 <div className="inline-flex flex-wrap gap-1 rounded-2xl bg-black/[0.04] p-1">
-                    {(["all", "upcoming", "past", "rescheduled", "cancelled"] as const).map((f) => (
+                    {([
+                        { key: "all", label: "Tous", count: stats.all },
+                        { key: "upcoming", label: "À venir", count: stats.upcoming },
+                        { key: "confirmed", label: "Confirmés", count: stats.confirmed },
+                        { key: "absent", label: "Absents", count: stats.absent },
+                        { key: "past", label: "Passés", count: stats.past },
+                        { key: "rescheduled", label: "Reportés", count: stats.rescheduled },
+                        { key: "cancelled", label: "Annulés", count: stats.cancelled },
+                    ] as const).map((f) => (
                         <button
-                            key={f}
+                            key={f.key}
                             type="button"
-                            onClick={() => setStatusFilter(f)}
+                            onClick={() => setStatusFilter(f.key)}
                             className={cn(
                                 "inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm transition",
-                                statusFilter === f
+                                statusFilter === f.key
                                     ? "bg-white text-slate-900 shadow-sm font-semibold"
-                                    : "text-slate-500 hover:bg-white/70 hover:text-slate-700"
+                                    : "text-slate-500 hover:bg-white/70 hover:text-slate-700",
+                                f.key === "absent" && f.count > 0 && statusFilter !== f.key && "text-red-600"
                             )}
                         >
-                            {f === "all" ? "Tous" : f === "upcoming" ? "À venir" : f === "past" ? "Passés" : f === "rescheduled" ? "Reportés" : "Annulés"}
+                            {f.label}
                             <span className={cn(
                                 "rounded-full px-1.5 py-0.5 text-[11px] font-bold",
-                                statusFilter === f ? "bg-indigo-50 text-indigo-700" : "bg-slate-200 text-slate-600"
+                                statusFilter === f.key ? "bg-indigo-50 text-indigo-700" : f.key === "absent" && f.count > 0 ? "bg-red-100 text-red-700" : "bg-slate-200 text-slate-600"
                             )}>
-                                {f === "all" ? stats.all : f === "upcoming" ? stats.upcoming : f === "past" ? stats.past : f === "rescheduled" ? stats.rescheduled : stats.cancelled}
+                                {f.count}
                             </span>
                         </button>
                     ))}
@@ -619,9 +727,13 @@ export default function SDRMeetingsPage() {
                                         ? "Aucun rendez-vous à venir."
                                         : statusFilter === "past"
                                             ? "Aucun rendez-vous passé."
-                                            : statusFilter === "rescheduled"
-                                                ? "Aucun rendez-vous reporté."
-                                                : "Aucun rendez-vous annulé."}
+                                            : statusFilter === "confirmed"
+                                                ? "Aucun rendez-vous confirmé."
+                                                : statusFilter === "absent"
+                                                    ? "Aucun rendez-vous marqué absent."
+                                                    : statusFilter === "rescheduled"
+                                                        ? "Aucun rendez-vous reporté."
+                                                        : "Aucun rendez-vous annulé."}
                         </p>
                     </div>
                 ) : (
@@ -632,7 +744,12 @@ export default function SDRMeetingsPage() {
                         return (
                             <div
                                 key={meeting.id}
-                                className="group overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md cursor-pointer"
+                                className={cn(
+                                    "group overflow-hidden rounded-[22px] border shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md cursor-pointer",
+                                    meeting.meetingFeedback?.outcome === "NO_SHOW"
+                                        ? "border-red-300 bg-red-50/30 ring-1 ring-red-100 hover:border-red-400"
+                                        : "border-slate-200 bg-white hover:border-slate-300"
+                                )}
                                 onClick={() => setSelectedMeeting(meeting)}
                                 onContextMenu={(e) => handleContextMenu(e, meeting)}
                             >
@@ -659,6 +776,36 @@ export default function SDRMeetingsPage() {
                                     <div className="flex-1 p-4 sm:p-5 flex flex-col gap-3">
                                         <div className="flex flex-wrap items-center gap-2">
                                             {statusBadge(status)}
+                                            {meeting.confirmationStatus === "CONFIRMED" && meeting.result !== "MEETING_CANCELLED" && (
+                                                <span className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full border bg-blue-50 text-blue-700 border-blue-200">
+                                                    <Check className="w-2.5 h-2.5" />
+                                                    Confirmé
+                                                </span>
+                                            )}
+                                            {meeting.confirmationStatus === "PENDING" && meeting.result !== "MEETING_CANCELLED" && (
+                                                <span className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full border bg-amber-50 text-amber-700 border-amber-200">
+                                                    <Circle className="w-2.5 h-2.5 fill-amber-500 text-amber-500" />
+                                                    En attente
+                                                </span>
+                                            )}
+                                            {meeting.meetingFeedback?.outcome === "NO_SHOW" && (
+                                                <span className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full border bg-red-50 text-red-700 border-red-200 animate-pulse">
+                                                    <XCircle className="w-2.5 h-2.5" />
+                                                    Absent
+                                                    {meeting.meetingFeedback.recontactRequested === "YES" && " — A recontacter"}
+                                                </span>
+                                            )}
+                                            {meeting.meetingFeedback && meeting.meetingFeedback.outcome !== "NO_SHOW" && (
+                                                <span className={cn(
+                                                    "inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full border",
+                                                    meeting.meetingFeedback.outcome === "POSITIVE" ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
+                                                    meeting.meetingFeedback.outcome === "NEUTRAL" ? "bg-slate-50 text-slate-700 border-slate-200" :
+                                                    "bg-orange-50 text-orange-700 border-orange-200"
+                                                )}>
+                                                    <MessageSquare className="w-2.5 h-2.5" />
+                                                    {meeting.meetingFeedback.outcome === "POSITIVE" ? "Positif" : meeting.meetingFeedback.outcome === "NEUTRAL" ? "Neutre" : "Négatif"}
+                                                </span>
+                                            )}
                                             {meeting.meetingType && (
                                                 <span className="text-xs font-semibold text-slate-700 bg-slate-50 px-2 py-1 rounded border border-slate-200 flex items-center gap-1">
                                                     {meeting.meetingType === "VISIO" && "📹 Visio"}

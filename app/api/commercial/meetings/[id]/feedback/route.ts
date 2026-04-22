@@ -8,12 +8,12 @@ import {
     AuthError,
     ValidationError,
 } from '@/lib/api-utils';
+import { notifyManagersCommercialAbsent, notifyManagersClientFeedback } from '@/lib/notifications';
 
-// Helper: verify a COMMERCIAL user has access to the action (via their client's missions)
 async function verifyCommercialAccessToAction(actionId: string, interlocuteurId: string) {
     const interlocuteur = await prisma.clientInterlocuteur.findUnique({
         where: { id: interlocuteurId },
-        select: { clientId: true },
+        select: { clientId: true, firstName: true, lastName: true },
     });
 
     if (!interlocuteur) throw new AuthError('Interlocuteur introuvable', 403);
@@ -21,8 +21,9 @@ async function verifyCommercialAccessToAction(actionId: string, interlocuteurId:
     const action = await prisma.action.findUnique({
         where: { id: actionId },
         include: {
+            contact: { select: { firstName: true, lastName: true, company: { select: { name: true } } } },
             campaign: {
-                include: { mission: { select: { clientId: true } } },
+                include: { mission: { select: { clientId: true, name: true, client: { select: { name: true } } } } },
             },
         },
     });
@@ -32,7 +33,7 @@ async function verifyCommercialAccessToAction(actionId: string, interlocuteurId:
         throw new AuthError('Accès non autorisé', 403);
     }
 
-    return action;
+    return { action, interlocuteur };
 }
 
 // ============================================
@@ -54,6 +55,14 @@ export const GET = withErrorHandler(async (
     const feedback = await prisma.meetingFeedback.findUnique({ where: { actionId } });
     return successResponse(feedback);
 });
+
+function buildAlertData(action: any, interlocuteur: any) {
+    const contactName = [action.contact?.firstName, action.contact?.lastName].filter(Boolean).join(" ") || "Contact";
+    const companyName = action.contact?.company?.name || "Entreprise";
+    const clientName = action.campaign?.mission?.client?.name || "Client";
+    const commercialName = [interlocuteur.firstName, interlocuteur.lastName].filter(Boolean).join(" ") || "Commercial";
+    return { contactName, companyName, clientName, missionName: action.campaign?.mission?.name, meetingDate: action.callbackDate?.toISOString?.() ?? null, commercialName };
+}
 
 // ============================================
 // POST /api/commercial/meetings/[id]/feedback
@@ -86,7 +95,7 @@ export const POST = withErrorHandler(async (
         throw new ValidationError('Valeur recontactRequested invalide');
     }
 
-    const action = await verifyCommercialAccessToAction(actionId, interlocuteurId);
+    const { action, interlocuteur } = await verifyCommercialAccessToAction(actionId, interlocuteurId);
 
     if (action.confirmationStatus !== 'CONFIRMED') {
         throw new AuthError("Ce rendez-vous n'est pas encore confirmé", 403);
@@ -106,6 +115,13 @@ export const POST = withErrorHandler(async (
         },
     });
 
+    const alertData = buildAlertData(action, interlocuteur);
+    if (outcome === 'NO_SHOW') {
+        notifyManagersCommercialAbsent({ ...alertData, recontact: recontactRequested, clientNote }).catch(() => {});
+    } else {
+        notifyManagersClientFeedback({ ...alertData, outcome, clientNote }).catch(() => {});
+    }
+
     return successResponse(feedback);
 });
 
@@ -124,7 +140,7 @@ export const PATCH = withErrorHandler(async (
     const interlocuteurId = session.user.interlocuteurId;
     if (!interlocuteurId) throw new AuthError('Profil commercial introuvable', 403);
 
-    await verifyCommercialAccessToAction(actionId, interlocuteurId);
+    const { action, interlocuteur } = await verifyCommercialAccessToAction(actionId, interlocuteurId);
 
     const body = await request.json();
     const { outcome, recontactRequested, clientNote } = body;
@@ -152,6 +168,16 @@ export const PATCH = withErrorHandler(async (
             ...(clientNote !== undefined && { clientNote: clientNote || null }),
         },
     });
+
+    const finalOutcome = outcome || existing.outcome;
+    if (finalOutcome === 'NO_SHOW' && existing.outcome !== 'NO_SHOW') {
+        const alertData = buildAlertData(action, interlocuteur);
+        notifyManagersCommercialAbsent({
+            ...alertData,
+            recontact: recontactRequested || existing.recontactRequested,
+            clientNote: clientNote ?? existing.clientNote,
+        }).catch(() => {});
+    }
 
     return successResponse(updated);
 });
