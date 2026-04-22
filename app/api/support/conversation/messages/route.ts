@@ -34,8 +34,8 @@ const PostBody = z.object({
 
 export const POST = withErrorHandler(async (request: NextRequest) => {
     const session = await requireAuth(request);
-    if (session.user.role !== "CLIENT") {
-        throw new AuthError("Réservé aux clients", 403);
+    if (session.user.role !== "CLIENT" && session.user.role !== "COMMERCIAL") {
+        throw new AuthError("Réservé aux clients/commerciaux", 403);
     }
     const body = await validateRequest(request, PostBody);
 

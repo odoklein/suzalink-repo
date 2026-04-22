@@ -51,9 +51,9 @@ const INTENT_STYLES: Record<
     { color: string; bg: string; border: string; icon: string; label: string }
 > = {
     RDV: {
-        color: "#1F4A30",
-        bg: "#E6EEE6",
-        border: "rgba(31,74,48,0.2)",
+        color: "#4F46E5",
+        bg: "#ECE8FF",
+        border: "rgba(99,102,241,0.25)",
         icon: "📅",
         label: "Question RDV",
     },
@@ -429,7 +429,7 @@ export function ClientSupportPanel({
                     overflowY: "auto",
                     padding: "16px",
                     position: "relative",
-                    background: isResolved ? "rgba(43,95,62,0.04)" : T.paper,
+                    background: isResolved ? "rgba(124,92,252,0.05)" : T.paper,
                     transition: "background 0.5s ease",
                 }}
             >
@@ -620,7 +620,7 @@ export function ClientSupportPanel({
                                 display: "flex",
                                 alignItems: "center",
                                 gap: 6,
-                                boxShadow: "0 6px 14px rgba(31,74,48,0.25)",
+                                boxShadow: "0 6px 14px rgba(99,102,241,0.25)",
                                 animation: "cpSupBubbleIn 0.2s ease both",
                                 whiteSpace: "nowrap",
                             }}
@@ -638,7 +638,7 @@ export function ClientSupportPanel({
                     style={{
                         padding: "12px 16px",
                         background: T.brandSoft,
-                        borderTop: `1px solid rgba(31,74,48,0.18)`,
+                        borderTop: `1px solid rgba(99,102,241,0.2)`,
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "space-between",
@@ -734,7 +734,7 @@ export function ClientSupportPanel({
                                 }}
                                 onMouseEnter={(e) => {
                                     e.currentTarget.style.background = T.brandSofter;
-                                    e.currentTarget.style.borderColor = "rgba(31,74,48,0.22)";
+                                    e.currentTarget.style.borderColor = "rgba(99,102,241,0.24)";
                                     e.currentTarget.style.color = T.ink;
                                 }}
                                 onMouseLeave={(e) => {
@@ -823,7 +823,7 @@ export function ClientSupportPanel({
                                         fontSize: 11.5,
                                         fontWeight: 500,
                                         background: T.brandSofter,
-                                        border: `1px solid rgba(31,74,48,0.18)`,
+                                        border: `1px solid rgba(99,102,241,0.22)`,
                                         color: T.brandStrong,
                                         cursor: "pointer",
                                     }}
@@ -846,7 +846,7 @@ export function ClientSupportPanel({
                                 borderRadius: T.radiusS,
                                 flexShrink: 0,
                                 background: showQuickReplies ? T.brandSoft : T.paperSunken,
-                                border: `1px solid ${showQuickReplies ? "rgba(31,74,48,0.25)" : T.line}`,
+                                border: `1px solid ${showQuickReplies ? "rgba(99,102,241,0.28)" : T.line}`,
                                 color: showQuickReplies ? T.brandStrong : T.ink3,
                                 cursor: "pointer",
                                 display: "flex",
@@ -923,7 +923,7 @@ export function ClientSupportPanel({
                                 transition: "all 200ms cubic-bezier(.34,1.56,.64,1)",
                                 transform: canSend ? "scale(1)" : "scale(0.95)",
                                 boxShadow: canSend
-                                    ? "0 6px 14px rgba(31,74,48,0.25)"
+                                    ? "0 6px 14px rgba(99,102,241,0.25)"
                                     : "none",
                             }}
                         >

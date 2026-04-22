@@ -140,7 +140,9 @@ export default function ClientSupportRoot() {
     const [isManagerTyping, setIsManagerTyping] = useState(false);
     const lastMessageAtRef = useRef<string | null>(null);
 
-    const canRender = status === "authenticated" && session?.user?.role === "CLIENT";
+    const canRender =
+        status === "authenticated" &&
+        (session?.user?.role === "CLIENT" || session?.user?.role === "COMMERCIAL");
 
     const fetchConversation = useCallback(
         async (): Promise<SupportConversationDetailDTO | null> => {

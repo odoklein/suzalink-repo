@@ -13,7 +13,7 @@ import {
 } from "@/lib/api-utils";
 
 export const GET = withErrorHandler(async (request: NextRequest) => {
-    const session = await requireRole(["CLIENT"], request);
+    const session = await requireRole(["CLIENT", "COMMERCIAL"], request);
     const clientId = session.user.clientId;
     if (!clientId) {
         return successResponse({ meetings: [] });

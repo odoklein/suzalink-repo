@@ -591,7 +591,7 @@ export function ManagerSupportWorkspace({ isOpen, onClose }: ManagerSupportWorks
                                             borderRadius: T.radiusS,
                                             background:
                                                 detail.status === "RESOLVED" ? T.surface : T.brandSoft,
-                                            border: `1px solid ${detail.status === "RESOLVED" ? T.line : "rgba(107,190,134,0.3)"}`,
+                                            border: `1px solid ${detail.status === "RESOLVED" ? T.line : "rgba(124,92,252,0.35)"}`,
                                             color: detail.status === "RESOLVED" ? T.ink2 : T.brand,
                                             fontSize: 12,
                                             fontWeight: 600,
@@ -612,7 +612,7 @@ export function ManagerSupportWorkspace({ isOpen, onClose }: ManagerSupportWorks
                                         padding: "18px 20px",
                                         background:
                                             detail.status === "RESOLVED"
-                                                ? "rgba(107,190,134,0.04)"
+                                                ? "rgba(124,92,252,0.06)"
                                                 : T.surface,
                                         transition: "background 0.4s ease",
                                     }}
@@ -735,7 +735,7 @@ export function ManagerSupportWorkspace({ isOpen, onClose }: ManagerSupportWorks
                                         style={{
                                             padding: "14px 20px",
                                             borderTop: `1px solid ${T.line}`,
-                                            background: "rgba(107,190,134,0.07)",
+                                            background: "rgba(124,92,252,0.08)",
                                             display: "flex",
                                             alignItems: "center",
                                             justifyContent: "space-between",
@@ -756,7 +756,7 @@ export function ManagerSupportWorkspace({ isOpen, onClose }: ManagerSupportWorks
                                                 padding: "6px 14px",
                                                 borderRadius: T.radiusS,
                                                 background: T.brandSoft,
-                                                border: "1px solid rgba(107,190,134,0.3)",
+                                                border: "1px solid rgba(124,92,252,0.35)",
                                                 color: T.brand,
                                                 fontSize: 12,
                                                 fontWeight: 600,

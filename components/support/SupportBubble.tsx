@@ -93,7 +93,7 @@ export function SupportBubble({ message, viewpoint, theme = "light", isLast, see
                         padding: "4px 12px",
                         borderRadius: 999,
                         background: t.brandSoft,
-                        border: `1px solid ${theme === "light" ? "rgba(43,95,62,0.18)" : "rgba(107,190,134,0.3)"}`,
+                        border: `1px solid ${theme === "light" ? "rgba(99,102,241,0.24)" : "rgba(124,92,252,0.35)"}`,
                         color: theme === "light" ? t.brandStrong : t.brand,
                         fontSize: 11.5,
                         fontWeight: 500,
@@ -107,6 +107,11 @@ export function SupportBubble({ message, viewpoint, theme = "light", isLast, see
 
     const isOwn =
         viewpoint === "client" ? message.role === "CLIENT" : message.role === "MANAGER";
+    const isManagerViewClientMessage = viewpoint === "manager" && message.role === "CLIENT";
+    const senderIsCommercial = message.author?.role === "COMMERCIAL";
+    const senderTag = isManagerViewClientMessage
+        ? (senderIsCommercial ? "Commercial" : "Client")
+        : null;
     const time = new Date(message.createdAt).toLocaleTimeString("fr-FR", {
         hour: "2-digit",
         minute: "2-digit",
@@ -121,7 +126,7 @@ export function SupportBubble({ message, viewpoint, theme = "light", isLast, see
     const otherInk = theme === "light" ? t.ink : t.ink;
     const ownShadow =
         theme === "light"
-            ? "0 6px 18px rgba(31,74,48,0.2)"
+            ? "0 6px 18px rgba(99,102,241,0.24)"
             : "0 6px 18px rgba(79,158,107,0.22)";
 
     const bubbleStyle: CSSProperties = {
@@ -159,18 +164,58 @@ export function SupportBubble({ message, viewpoint, theme = "light", isLast, see
                     minWidth: 0,
                 }}
             >
-                {!isOwn && message.author?.name && (
-                    <span
+                {!isOwn && (message.author?.name || senderTag) && (
+                    <div
                         style={{
-                            fontSize: 10.5,
-                            color: t.ink3,
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 6,
                             marginBottom: 3,
-                            fontWeight: 600,
-                            letterSpacing: "0.02em",
+                            minWidth: 0,
                         }}
                     >
-                        {message.author.name}
-                    </span>
+                        {message.author?.name && (
+                            <span
+                                style={{
+                                    fontSize: 10.5,
+                                    color: t.ink3,
+                                    fontWeight: 600,
+                                    letterSpacing: "0.02em",
+                                    whiteSpace: "nowrap",
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
+                                }}
+                            >
+                                {message.author.name}
+                            </span>
+                        )}
+                        {senderTag && (
+                            <span
+                                style={{
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    height: 18,
+                                    padding: "0 7px",
+                                    borderRadius: 999,
+                                    fontSize: 10,
+                                    fontWeight: 700,
+                                    letterSpacing: "0.02em",
+                                    background: senderIsCommercial
+                                        ? "rgba(99,102,241,0.16)"
+                                        : "rgba(148,163,184,0.18)",
+                                    border: senderIsCommercial
+                                        ? "1px solid rgba(99,102,241,0.26)"
+                                        : "1px solid rgba(148,163,184,0.28)",
+                                    color: senderIsCommercial
+                                        ? (theme === "light" ? "#4F46E5" : "#A996FF")
+                                        : t.ink3,
+                                }}
+                                aria-label={`Expéditeur: ${senderTag}`}
+                            >
+                                {senderTag}
+                            </span>
+                        )}
+                    </div>
                 )}
                 <div style={bubbleStyle}>{message.content}</div>
                 <div

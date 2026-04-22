@@ -23,7 +23,7 @@ const T = SUP_DARK;
 /**
  * Compact sidebar entry rendered above the profile area for MANAGER users.
  * Shows an unread rollup pill and opens the full support workspace overlay.
- * Uses the forest-green support palette so it visually pairs with the client-side
+ * Uses the indigo support palette so it visually pairs with the client-side
  * FAB without drifting from the dark sidebar aesthetic.
  */
 export function ManagerSupportSidebarEntry({ isExpanded }: ManagerSupportSidebarEntryProps) {
@@ -62,9 +62,9 @@ export function ManagerSupportSidebarEntry({ isExpanded }: ManagerSupportSidebar
     const active = stats?.activeConversations ?? 0;
 
     const idleBg = unread > 0
-        ? "linear-gradient(135deg, rgba(107,190,134,0.22), rgba(79,158,107,0.12))"
-        : "rgba(107,190,134,0.08)";
-    const hoverBg = "rgba(107,190,134,0.22)";
+        ? "linear-gradient(135deg, rgba(124,92,252,0.24), rgba(99,102,241,0.14))"
+        : "rgba(124,92,252,0.09)";
+    const hoverBg = "rgba(124,92,252,0.24)";
 
     return (
         <>
@@ -85,7 +85,7 @@ export function ManagerSupportSidebarEntry({ isExpanded }: ManagerSupportSidebar
                     padding: isExpanded ? "8px 10px" : "8px 6px",
                     justifyContent: isExpanded ? "flex-start" : "center",
                     borderRadius: 10,
-                    border: `1px solid rgba(107,190,134,0.28)`,
+                    border: `1px solid rgba(124,92,252,0.32)`,
                     background: idleBg,
                     color: "#E8F1EB",
                     cursor: "pointer",
@@ -110,7 +110,7 @@ export function ManagerSupportSidebarEntry({ isExpanded }: ManagerSupportSidebar
                         width: 24,
                         height: 24,
                         borderRadius: 7,
-                        background: "rgba(107,190,134,0.28)",
+                        background: "rgba(124,92,252,0.28)",
                         color: T.brand,
                         display: "inline-flex",
                         alignItems: "center",

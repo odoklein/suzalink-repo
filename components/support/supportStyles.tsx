@@ -4,7 +4,7 @@
  * Support surface visual tokens + keyframes.
  *
  * Aligned to `designsystemfinalfolder` (Captain Prospect DS): DM Sans /
- * DM Mono typography, ivory paper `#FAF9F6`, forest brand `#2B5F3E`,
+ * DM Mono typography, ivory paper `#FAF9F6`, indigo brand `#7C5CFC`,
  * stone neutrals, generous corner radii (24 / 20 / 16 / 12), soft shadows.
  *
  * We expose two token sets:
@@ -29,8 +29,8 @@ export function SupportStyles() {
             @keyframes cpSupSlideDown { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
             @keyframes cpSupSlideUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
             @keyframes cpSupFabPulse {
-                0%, 100% { box-shadow: 0 12px 32px rgba(43,95,62,0.32), 0 0 0 0 rgba(43,95,62,0.35); }
-                50%      { box-shadow: 0 12px 32px rgba(43,95,62,0.32), 0 0 0 14px rgba(43,95,62,0); }
+                0%, 100% { box-shadow: 0 12px 32px rgba(124,92,252,0.32), 0 0 0 0 rgba(124,92,252,0.35); }
+                50%      { box-shadow: 0 12px 32px rgba(124,92,252,0.32), 0 0 0 14px rgba(124,92,252,0); }
             }
             @keyframes cpSupStatusPing {
                 0%, 100% { transform: scale(1); opacity: 0.55; }
@@ -43,8 +43,8 @@ export function SupportStyles() {
             @keyframes cpSupBadgePop { from { transform: scale(0); } to { transform: scale(1); } }
             @keyframes cpSupPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
             @keyframes cpSupResolvedWash {
-                from { background-color: rgba(43,95,62,0); }
-                to   { background-color: rgba(43,95,62,0.05); }
+                from { background-color: rgba(124,92,252,0); }
+                to   { background-color: rgba(124,92,252,0.06); }
             }
 
             .cp-support-root .cp-sup-scroll-hidden::-webkit-scrollbar { display: none; }
@@ -72,10 +72,10 @@ export const SUP_LIGHT = {
     ink2: "#2B3A2B",
     ink3: "#615F55",
     ink4: "#A8A69A",
-    brand: "#2B5F3E",
-    brandStrong: "#1F4A30",
-    brandSoft: "#E6EEE6",
-    brandSofter: "#F1F5EF",
+    brand: "#7C5CFC",
+    brandStrong: "#6366F1",
+    brandSoft: "#ECE8FF",
+    brandSofter: "#F4F2FF",
     accentAmber: "#C97B2A",
     accentAmberSoft: "#FBEAD1",
     danger: "#B23B3B",
@@ -87,7 +87,7 @@ export const SUP_LIGHT = {
     radiusXS: 10,
     shadowPanel:
         "0 32px 80px rgba(31,43,31,0.18), 0 2px 8px rgba(31,43,31,0.06), inset 0 1px 0 rgba(255,255,255,0.6)",
-    shadowFab: "0 12px 28px rgba(43,95,62,0.32)",
+    shadowFab: "0 12px 28px rgba(124,92,252,0.32)",
 };
 
 /** Manager workspace tokens — sits above the dark sidebar, keeps the forest accent. */
@@ -101,9 +101,9 @@ export const SUP_DARK = {
     ink2: "#D8DECF",
     ink3: "#9AA694",
     ink4: "#6B7566",
-    brand: "#6BBE86",
-    brandStrong: "#4F9E6B",
-    brandSoft: "rgba(107,190,134,0.18)",
+    brand: "#A996FF",
+    brandStrong: "#8E7DFF",
+    brandSoft: "rgba(124,92,252,0.2)",
     accentAmber: "#F4B560",
     accentAmberSoft: "rgba(244,181,96,0.15)",
     danger: "#F3766C",

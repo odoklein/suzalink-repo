@@ -16,8 +16,8 @@ import { getConversationForClientUser } from "@/lib/support/service";
 
 export const GET = withErrorHandler(async (request: NextRequest) => {
     const session = await requireAuth(request);
-    if (session.user.role !== "CLIENT") {
-        throw new AuthError("Réservé aux clients", 403);
+    if (session.user.role !== "CLIENT" && session.user.role !== "COMMERCIAL") {
+        throw new AuthError("Réservé aux clients/commerciaux", 403);
     }
     const conversation = await getConversationForClientUser(session.user.id);
     if (!conversation) {

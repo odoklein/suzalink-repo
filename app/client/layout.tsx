@@ -7,7 +7,7 @@ import ClientSupportRoot from "@/components/support/ClientSupportRoot";
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
     return (
         <AppLayoutShell
-            allowedRoles={["CLIENT"]}
+            allowedRoles={["CLIENT", "COMMERCIAL"]}
             customNavigation={CLIENT_NAV}
         >
             {children}
