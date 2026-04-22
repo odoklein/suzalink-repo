@@ -101,12 +101,6 @@ export const MANAGER_NAV: NavSection[] = [
         permission: "pages.clients",
       },
       {
-        href: "/manager/testclient",
-        icon: LayoutGrid,
-        label: "TestClient",
-        permission: "pages.clients",
-      },
-      {
         href: "/manager/rdv",
         icon: Calendar,
         label: "SAS RDV",

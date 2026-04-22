@@ -10,7 +10,6 @@ import { GlobalSidebar, MobileMenuButton } from "./GlobalSidebar";
 import { GlobalSearchModal } from "./GlobalSearchModal";
 import { NavSection, getNavByRole, ROLE_CONFIG } from "@/lib/navigation/config";
 import { NotificationBell } from "@/components/ui/NotificationBell";
-import { AssistantLauncher } from "@/components/ui/AssistantLauncher";
 import { Modal } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { RefreshCw, AlertTriangle } from "lucide-react";
@@ -425,7 +424,6 @@ function InnerLayout({
                         >
                             <RefreshCw className="w-3.5 h-3.5" />
                         </button>
-                        <AssistantLauncher />
                         <NotificationBell />
                     </div>
                 </header>

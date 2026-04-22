@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
-import { SUP_DARK, SupportStyles } from "./supportStyles";
+import { SUP_LIGHT, SupportStyles } from "./supportStyles";
 import { AvatarRing, SupportBubble } from "./SupportBubble";
 import type {
     SupportConversationDetailDTO,
@@ -13,7 +13,12 @@ import type {
 type TabFilter = "ACTIVE" | "RESOLVED" | "ALL" | "UNREAD";
 
 const POLL_INTERVAL_MS = 20_000;
-const T = SUP_DARK;
+const T = {
+    ...SUP_LIGHT,
+    surface: SUP_LIGHT.paper,
+    surfaceRaised: SUP_LIGHT.paperRaised,
+    surfaceSunken: SUP_LIGHT.paperSunken,
+};
 
 interface ManagerSupportWorkspaceProps {
     isOpen: boolean;
@@ -213,7 +218,7 @@ export function ManagerSupportWorkspace({ isOpen, onClose }: ManagerSupportWorks
         <>
             <SupportStyles />
             <div
-                className="cp-support-root cp-support-root-dark"
+                className="cp-support-root"
                 role="dialog"
                 aria-label="Support — espace manager"
                 aria-modal="true"
@@ -221,7 +226,7 @@ export function ManagerSupportWorkspace({ isOpen, onClose }: ManagerSupportWorks
                     position: "fixed",
                     inset: 0,
                     zIndex: 110,
-                    background: "rgba(7,12,10,0.62)",
+                    background: "rgba(15,23,42,0.18)",
                     backdropFilter: "blur(6px)",
                     display: "flex",
                     justifyContent: "flex-end",
@@ -238,7 +243,7 @@ export function ManagerSupportWorkspace({ isOpen, onClose }: ManagerSupportWorks
                         display: "flex",
                         background: T.surface,
                         borderLeft: `1px solid ${T.line}`,
-                        boxShadow: "-32px 0 80px rgba(0,0,0,0.5)",
+                        boxShadow: "-20px 0 56px rgba(15,23,42,0.18)",
                         animation: "cpSupPanelIn 0.3s cubic-bezier(.34,1.4,.64,1) both",
                     }}
                 >
@@ -393,7 +398,7 @@ export function ManagerSupportWorkspace({ isOpen, onClose }: ManagerSupportWorks
                                                 <AvatarRing
                                                     name={conv.clientName}
                                                     size={28}
-                                                    theme="dark"
+                                                    theme="light"
                                                     status={conv.status === "ACTIVE" ? "online" : "offline"}
                                                 />
                                                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -541,7 +546,7 @@ export function ManagerSupportWorkspace({ isOpen, onClose }: ManagerSupportWorks
                                     <AvatarRing
                                         name={detail.clientName}
                                         size={40}
-                                        theme="dark"
+                                        theme="light"
                                         status={detail.status === "ACTIVE" ? "online" : "offline"}
                                     />
                                     <div style={{ flex: 1, minWidth: 0 }}>
@@ -622,7 +627,7 @@ export function ManagerSupportWorkspace({ isOpen, onClose }: ManagerSupportWorks
                                             key={m.id}
                                             message={m}
                                             viewpoint="manager"
-                                            theme="dark"
+                                            theme="light"
                                             isLast={
                                                 i === detail.messages.length - 1 && m.role === "MANAGER"
                                             }
@@ -691,14 +696,14 @@ export function ManagerSupportWorkspace({ isOpen, onClose }: ManagerSupportWorks
                                                         ? `linear-gradient(135deg, ${T.brand}, ${T.brandStrong})`
                                                         : T.surface,
                                                     border: replyValue.trim() ? "none" : `1px solid ${T.line}`,
-                                                    color: replyValue.trim() ? "#0F1812" : T.ink4,
+                                                    color: replyValue.trim() ? "#FFFFFF" : T.ink4,
                                                     cursor: replyValue.trim() && !sending ? "pointer" : "not-allowed",
                                                     display: "flex",
                                                     alignItems: "center",
                                                     justifyContent: "center",
                                                     transition: "all 200ms cubic-bezier(.34,1.56,.64,1)",
                                                     boxShadow: replyValue.trim()
-                                                        ? "0 6px 14px rgba(79,158,107,0.3)"
+                                                        ? "0 6px 14px rgba(99,102,241,0.25)"
                                                         : "none",
                                                 }}
                                             >
