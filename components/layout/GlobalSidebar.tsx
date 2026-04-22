@@ -22,6 +22,7 @@ import { NavSection, NavItem, ROLE_CONFIG } from "@/lib/navigation/config";
 import { UserRole } from "@prisma/client";
 import { formatCallbackDate } from "@/lib/utils/parseDateFromNote";
 import logoCaptain from "../../logocaptainroseblanc.png";
+import { ManagerSupportSidebarEntry } from "@/components/support/ManagerSupportSidebarEntry";
 
 interface GlobalSidebarProps {
     navigation: NavSection[];
@@ -415,6 +416,11 @@ export function GlobalSidebar({ navigation }: GlobalSidebarProps) {
 
                 {/* Footer */}
                 <div className="cp-sidebar-footer" ref={userMenuRef}>
+                    {/* Manager-only support entry (sits above the profile) */}
+                    {userRole === "MANAGER" && (
+                        <ManagerSupportSidebarEntry isExpanded={isExpanded} />
+                    )}
+
                     {/* Collapse toggle (when expanded, shows at bottom) */}
                     {!isExpanded && (
                         <button

@@ -428,6 +428,11 @@ model User {
   commsMessageReadReceipts CommsMessageReadReceipt[] @relation("CommsMessageReader")
   commsMessageReactions   CommsMessageReaction[]    @relation("CommsMessageReactor")
   commsSavedSearches      CommsSavedSearch[]
+
+  // Client Support Module (separate from comms — broadcast to all active managers)
+  supportMessages         SupportMessage[]        @relation("SupportMessageAuthor")
+  supportManagerStates    SupportManagerState[]   @relation("SupportManagerStateUser")
+  supportResolutions      SupportConversation[]   @relation("SupportConversationResolver")
   
   // Billing Module
   createdInvoices         Invoice[]               @relation("InvoiceCreator")
@@ -589,6 +594,9 @@ model Client {
   
   // Internal Communication Module
   commsChannel  CommsChannel?
+
+  // Client Support Module (broadcast channel to all active managers)
+  supportConversation SupportConversation?
   
   // Prospect Orchestration Engine
   prospectSources     ProspectSource[]
@@ -3395,4 +3403,96 @@ model WeeklyAnalysis {
   @@index([weekEnd])
   @@index([createdById])
   @@index([status])
+}
+
+// ============================================
+// CLIENT SUPPORT MODULE
+// Separate from the CommsModule. Each client company has a single
+// support conversation that is broadcast to all active MANAGER users.
+// ============================================
+
+enum SupportConversationStatus {
+  ACTIVE
+  RESOLVED
+}
+
+enum SupportMessageRole {
+  CLIENT
+  MANAGER
+  SYSTEM
+}
+
+enum SupportIntent {
+  RDV
+  RAPPORT
+  PROBLEME
+  AUTRE
+}
+
+model SupportConversation {
+  id            String                    @id @default(cuid())
+  clientId      String                    @unique
+  client        Client                    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  status        SupportConversationStatus @default(ACTIVE)
+
+  // Resolution tracking
+  resolvedAt    DateTime?
+  resolvedById  String?
+  resolvedBy    User?                     @relation("SupportConversationResolver", fields: [resolvedById], references: [id], onDelete: SetNull)
+
+  // Denormalised metadata
+  messageCount  Int                       @default(0)
+  lastMessageAt DateTime?
+  lastIntent    SupportIntent?
+
+  messages       SupportMessage[]
+  managerStates  SupportManagerState[]
+
+  createdAt     DateTime                  @default(now())
+  updatedAt     DateTime                  @updatedAt
+
+  @@index([status])
+  @@index([lastMessageAt])
+}
+
+model SupportMessage {
+  id              String              @id @default(cuid())
+  conversationId  String
+  conversation    SupportConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  role            SupportMessageRole
+  // Author: null for SYSTEM events
+  authorId        String?
+  author          User?               @relation("SupportMessageAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+
+  content         String              @db.Text
+  intent          SupportIntent?
+
+  // Optional structured context tags (e.g. { pageLabel, rdvRef })
+  context         Json?
+
+  createdAt       DateTime            @default(now())
+
+  @@index([conversationId, createdAt])
+  @@index([authorId])
+}
+
+// Per-manager read tracking. Because every active manager sees every support
+// conversation, state is created lazily on first access.
+model SupportManagerState {
+  id              String              @id @default(cuid())
+  conversationId  String
+  conversation    SupportConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  managerId       String
+  manager         User                @relation("SupportManagerStateUser", fields: [managerId], references: [id], onDelete: Cascade)
+
+  lastReadAt      DateTime?
+  isPinned        Boolean             @default(false)
+
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  @@unique([conversationId, managerId])
+  @@index([managerId])
 }
