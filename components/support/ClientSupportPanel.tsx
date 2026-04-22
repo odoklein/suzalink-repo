@@ -110,6 +110,7 @@ export function ClientSupportPanel({
     );
     const [showContextBanner, setShowContextBanner] = useState(true);
     const [showQuickReplies, setShowQuickReplies] = useState(false);
+    const [showResolvedHistory, setShowResolvedHistory] = useState(false);
     const [isManagerTyping, setIsManagerTyping] = useState(false);
     const [sending, setSending] = useState(false);
     const [newMessageCount, setNewMessageCount] = useState(0);
@@ -127,6 +128,17 @@ export function ClientSupportPanel({
     const messages = conversation.messages;
     const isResolved = conversation.status === "RESOLVED";
     const managerOnline = true;
+    const latestNewThreadMarkerIndex = [...messages]
+        .map((m, idx) => ({ m, idx }))
+        .reverse()
+        .find(({ m }) =>
+            m.role === "SYSTEM" &&
+            m.context?.pathname === "client-new-thread",
+        )?.idx ?? -1;
+    const hasResolvedHistory = latestNewThreadMarkerIndex > 0;
+    const visibleMessages = hasResolvedHistory && !showResolvedHistory
+        ? messages.slice(latestNewThreadMarkerIndex)
+        : messages;
 
     useEffect(() => {
         onManagerTypingChange?.(isManagerTyping);
@@ -315,13 +327,16 @@ export function ClientSupportPanel({
             });
             if (!res.ok) return;
             const detail = await fetch("/api/support/conversation").then((r) => r.json());
-            if (detail?.success) onConversationUpdate(detail.data);
+            if (detail?.success) {
+                onConversationUpdate(detail.data);
+                setShowResolvedHistory(false);
+            }
         } catch {
             // ignore
         }
     };
 
-    const lastClientMessage = [...messages].reverse().find((m) => m.role === "CLIENT");
+    const lastClientMessage = [...visibleMessages].reverse().find((m) => m.role === "CLIENT");
 
     return (
         <div
@@ -508,7 +523,44 @@ export function ClientSupportPanel({
                     </div>
                 )}
 
-                {messages.map((msg) => (
+                {hasResolvedHistory && !isResolved && (
+                    <div
+                        style={{
+                            margin: "0 0 12px",
+                            padding: "10px 12px",
+                            borderRadius: T.radiusS,
+                            border: `1px solid ${T.line}`,
+                            background: T.paperRaised,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            gap: 10,
+                            animation: "cpSupSlideDown 0.2s ease both",
+                        }}
+                    >
+                        <span style={{ fontSize: 12, color: T.ink3 }}>
+                            Historique résolu masqué
+                        </span>
+                        <button
+                            type="button"
+                            onClick={() => setShowResolvedHistory((v) => !v)}
+                            style={{
+                                padding: "4px 10px",
+                                borderRadius: 999,
+                                fontSize: 11.5,
+                                fontWeight: 600,
+                                background: T.brandSoft,
+                                border: `1px solid rgba(99,102,241,0.2)`,
+                                color: T.brandStrong,
+                                cursor: "pointer",
+                            }}
+                        >
+                            {showResolvedHistory ? "Masquer" : "Voir l'historique"}
+                        </button>
+                    </div>
+                )}
+
+                {visibleMessages.map((msg) => (
                     <SupportBubble
                         key={msg.id}
                         message={msg}

@@ -11,6 +11,7 @@ interface Stats {
     totalUnread: number;
     activeConversations: number;
     resolvedConversations: number;
+    alertsUnread?: number;
 }
 
 interface ManagerSupportSidebarEntryProps {
@@ -35,9 +36,17 @@ export function ManagerSupportSidebarEntry({ isExpanded }: ManagerSupportSidebar
 
     const fetchStats = useCallback(async () => {
         try {
-            const res = await fetch("/api/support/manager/stats");
-            const json = await res.json();
-            if (json?.success) setStats(json.data as Stats);
+            const [statsRes, alertsRes] = await Promise.all([
+                fetch("/api/support/manager/stats"),
+                fetch("/api/support/manager/alerts"),
+            ]);
+            const statsJson = await statsRes.json();
+            const alertsJson = await alertsRes.json();
+            if (statsJson?.success) {
+                const data = statsJson.data as Stats;
+                data.alertsUnread = alertsJson?.success ? (alertsJson.data?.unreadCount ?? 0) : 0;
+                setStats(data);
+            }
         } catch {
             // ignore
         }
@@ -59,9 +68,11 @@ export function ManagerSupportSidebarEntry({ isExpanded }: ManagerSupportSidebar
     if (!canRender) return null;
 
     const unread = stats?.totalUnread ?? 0;
+    const alertsUnread = stats?.alertsUnread ?? 0;
+    const totalBadge = unread + alertsUnread;
     const active = stats?.activeConversations ?? 0;
 
-    const idleBg = unread > 0
+    const idleBg = totalBadge > 0
         ? "linear-gradient(135deg, rgba(124,92,252,0.24), rgba(99,102,241,0.14))"
         : "rgba(124,92,252,0.09)";
     const hoverBg = "rgba(124,92,252,0.24)";
@@ -72,7 +83,7 @@ export function ManagerSupportSidebarEntry({ isExpanded }: ManagerSupportSidebar
             <button
                 type="button"
                 onClick={() => setIsWorkspaceOpen(true)}
-                aria-label={`Support — ${unread} messages non lus`}
+                aria-label={`Support — ${unread} messages non lus${alertsUnread > 0 ? `, ${alertsUnread} alertes` : ""}`}
                 className={cn(
                     "cp-support-sidebar-entry",
                     isExpanded && "cp-support-sidebar-entry-expanded",
@@ -102,7 +113,7 @@ export function ManagerSupportSidebarEntry({ isExpanded }: ManagerSupportSidebar
                 onMouseLeave={(e) => {
                     e.currentTarget.style.background = idleBg;
                 }}
-                title={!isExpanded ? `Support · ${active} actives · ${unread} non lus` : undefined}
+                title={!isExpanded ? `Support · ${active} actives · ${unread} non lus${alertsUnread > 0 ? ` · ${alertsUnread} alertes` : ""}` : undefined}
             >
                 <span
                     style={{
@@ -119,7 +130,7 @@ export function ManagerSupportSidebarEntry({ isExpanded }: ManagerSupportSidebar
                     }}
                 >
                     <LifeBuoy className="w-3.5 h-3.5" strokeWidth={2} />
-                    {unread > 0 && (
+                    {totalBadge > 0 && (
                         <span
                             aria-hidden="true"
                             style={{
@@ -141,7 +152,7 @@ export function ManagerSupportSidebarEntry({ isExpanded }: ManagerSupportSidebar
                                 animation: "cpSupBadgePop 0.3s cubic-bezier(.34,1.56,.64,1) both",
                             }}
                         >
-                            {unread > 9 ? "9+" : unread}
+                            {totalBadge > 9 ? "9+" : totalBadge}
                         </span>
                     )}
                 </span>
@@ -166,7 +177,7 @@ export function ManagerSupportSidebarEntry({ isExpanded }: ManagerSupportSidebar
                         </span>
                     </span>
                 )}
-                {isExpanded && unread > 0 && (
+                {isExpanded && totalBadge > 0 && (
                     <span
                         style={{
                             padding: "1px 7px",
@@ -177,7 +188,7 @@ export function ManagerSupportSidebarEntry({ isExpanded }: ManagerSupportSidebar
                             fontWeight: 700,
                         }}
                     >
-                        {unread}
+                        {totalBadge}
                     </span>
                 )}
             </button>

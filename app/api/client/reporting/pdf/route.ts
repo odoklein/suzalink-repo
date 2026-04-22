@@ -4,8 +4,7 @@ import {
     withErrorHandler,
     AuthError,
 } from "@/lib/api-utils";
-import { getChromiumExecutablePath } from "@/lib/pdf-chromium";
-import { getReportHtml } from "./report-template";
+import { generateClientReportPdf } from "@/lib/reporting/pdf";
 import { getReportData, toReportData } from "../get-report-data";
 
 // ============================================
@@ -68,37 +67,15 @@ export const GET = withErrorHandler(async (request: NextRequest) => {
     }
 
     const reportData = toReportData(raw, dateFromDate, dateToDate);
-    const templateData = {
-        ...reportData,
-        missions: reportData.missions.map(({ id: _id, ...m }) => m),
-    };
-    const html = getReportHtml(templateData);
-    const isVercel = !!process.env.VERCEL;
-    const puppeteer = isVercel ? await import("puppeteer-core") : await import("puppeteer");
-    const chromium = isVercel ? (await import("@sparticuz/chromium-min")).default : null;
-    const browser = await puppeteer.default.launch({
-        headless: true,
-        args: isVercel ? chromium!.args : ["--no-sandbox", "--disable-setuid-sandbox"],
-        executablePath: isVercel ? await getChromiumExecutablePath() : undefined,
+    const pdfBuffer = await generateClientReportPdf(reportData);
+    const filename = `rapport-${raw.client.name.replace(/[^a-z0-9]/gi, "_")}-${dateFromDate.toISOString().slice(0, 10)}.pdf`;
+
+    return new NextResponse(new Uint8Array(pdfBuffer), {
+        status: 200,
+        headers: {
+            "Content-Type": "application/pdf",
+            "Content-Disposition": `attachment; filename="${filename}"`,
+            "Content-Length": String(pdfBuffer.length),
+        },
     });
-    try {
-        const page = await browser.newPage();
-        await page.setContent(html, { waitUntil: "networkidle0" });
-        const pdfBuffer = await page.pdf({
-            format: "A4",
-            printBackground: true,
-            margin: { top: "0", right: "0", bottom: "0", left: "0" },
-        });
-        const filename = `rapport-${raw.client.name.replace(/[^a-z0-9]/gi, "_")}-${dateFromDate.toISOString().slice(0, 10)}.pdf`;
-        return new NextResponse(new Uint8Array(pdfBuffer), {
-            status: 200,
-            headers: {
-                "Content-Type": "application/pdf",
-                "Content-Disposition": `attachment; filename="${filename}"`,
-                "Content-Length": String(pdfBuffer.length),
-            },
-        });
-    } finally {
-        await browser.close();
-    }
 });

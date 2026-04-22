@@ -10,8 +10,10 @@ import {
 } from "@/lib/api-utils";
 import {
     MEETING_CANCELLATION_REASON_CODES,
+    getMeetingCancellationLabel,
     type MeetingCancellationReasonCode,
 } from "@/lib/constants/meetingCancellationReasons";
+import { notifyManagersClientCancel } from "@/lib/notifications";
 
 export const POST = withErrorHandler(async (
     request: NextRequest,
@@ -88,11 +90,22 @@ export const POST = withErrorHandler(async (
                 select: {
                     id: true,
                     name: true,
-                    mission: { select: { id: true, name: true } },
+                    mission: { select: { id: true, name: true, client: { select: { name: true } } } },
                 },
             },
         },
     });
+
+    const contactName = [updated.contact?.firstName, updated.contact?.lastName].filter(Boolean).join(" ") || "Contact";
+    const companyName = updated.contact?.company?.name ?? "Entreprise";
+    notifyManagersClientCancel({
+        clientName: updated.campaign.mission.client.name,
+        contactName,
+        companyName,
+        missionName: updated.campaign.mission.name,
+        meetingDate: action.callbackDate?.toISOString() ?? null,
+        cancellationReason: getMeetingCancellationLabel(cancellationReason),
+    }).catch(() => {});
 
     return successResponse(updated);
 });

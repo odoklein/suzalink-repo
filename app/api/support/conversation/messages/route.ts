@@ -17,6 +17,8 @@ import {
     getConversationIdForClientUser,
     postMessage,
 } from "@/lib/support/service";
+import { notifyManagersClientSupportMessage } from "@/lib/notifications";
+import { prisma } from "@/lib/prisma";
 import type { SupportIntent } from "@prisma/client";
 
 const PostBody = z.object({
@@ -54,5 +56,16 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
         },
         "CLIENT",
     );
+
+    const user = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { client: { select: { name: true } } },
+    });
+    notifyManagersClientSupportMessage({
+        clientName: user?.client?.name ?? "Client",
+        messagePreview: body.content,
+        intent: body.intent ?? null,
+    }).catch(() => {});
+
     return successResponse(message, 201);
 });

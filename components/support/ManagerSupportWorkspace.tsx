@@ -11,8 +11,20 @@ import type {
 } from "@/lib/support/types";
 
 type TabFilter = "ACTIVE" | "RESOLVED" | "ALL" | "UNREAD";
+type WorkspaceMode = "conversations" | "alerts";
+
+interface ClientAlert {
+    id: string;
+    title: string;
+    message: string;
+    type: "info" | "success" | "warning" | "error";
+    link: string | null;
+    isRead: boolean;
+    createdAt: string;
+}
 
 const POLL_INTERVAL_MS = 20_000;
+const ALERT_POLL_MS = 15_000;
 const T = {
     ...SUP_LIGHT,
     surface: SUP_LIGHT.paper,
@@ -35,6 +47,31 @@ function formatRelative(value: string | null): string {
     return new Date(ts).toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
 }
 
+const ALERT_TYPE_CONFIG: Record<string, { icon: string; color: string; bg: string; border: string }> = {
+    "Signal client": { icon: "🚨", color: "#8B1A14", bg: "#FDE8E7", border: "rgba(217,48,37,0.18)" },
+    "Avis client": { icon: "💬", color: "#4238D0", bg: "#EEEDFB", border: "rgba(91,79,232,0.18)" },
+    "Demande report": { icon: "📅", color: "#8A4A00", bg: "#FEF6E4", border: "rgba(201,123,42,0.22)" },
+    "Annulation client": { icon: "❌", color: "#8B1A14", bg: "#FDE8E7", border: "rgba(217,48,37,0.18)" },
+    "Message support": { icon: "✉️", color: "#155B7A", bg: "#E4EEF4", border: "rgba(21,91,122,0.18)" },
+};
+
+function getAlertTypeFromTitle(title: string): keyof typeof ALERT_TYPE_CONFIG {
+    for (const key of Object.keys(ALERT_TYPE_CONFIG)) {
+        if (title.startsWith(key)) return key;
+    }
+    return "Message support";
+}
+
+function formatAlertTime(iso: string): string {
+    const ts = new Date(iso).getTime();
+    const diff = Date.now() - ts;
+    if (diff < 60_000) return "a l'instant";
+    if (diff < 3_600_000) return `il y a ${Math.floor(diff / 60_000)} min`;
+    if (diff < 86_400_000) return `il y a ${Math.floor(diff / 3_600_000)} h`;
+    if (diff < 172_800_000) return "hier";
+    return new Date(ts).toLocaleDateString("fr-FR", { day: "numeric", month: "short", timeZone: "Europe/Paris" });
+}
+
 export function ManagerSupportWorkspace({ isOpen, onClose }: ManagerSupportWorkspaceProps) {
     const { data: session } = useSession();
     const [conversations, setConversations] = useState<SupportConversationSummaryDTO[]>([]);
@@ -47,6 +84,51 @@ export function ManagerSupportWorkspace({ isOpen, onClose }: ManagerSupportWorks
     const [sending, setSending] = useState(false);
     const [resolving, setResolving] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
+    const [mode, setMode] = useState<WorkspaceMode>("conversations");
+    const [alerts, setAlerts] = useState<ClientAlert[]>([]);
+    const [alertsUnread, setAlertsUnread] = useState(0);
+    const [loadingAlerts, setLoadingAlerts] = useState(false);
+    const [selectedAlert, setSelectedAlert] = useState<ClientAlert | null>(null);
+
+    const fetchAlerts = useCallback(async () => {
+        try {
+            setLoadingAlerts(true);
+            const res = await fetch("/api/support/manager/alerts");
+            const json = await res.json();
+            if (json?.success) {
+                setAlerts(json.data.alerts ?? []);
+                setAlertsUnread(json.data.unreadCount ?? 0);
+            }
+        } catch {
+            // ignore
+        } finally {
+            setLoadingAlerts(false);
+        }
+    }, []);
+
+    const markAlertsRead = useCallback(async () => {
+        try {
+            await fetch("/api/support/manager/alerts", { method: "PATCH" });
+            setAlertsUnread(0);
+            setAlerts((prev) => prev.map((a) => ({ ...a, isRead: true })));
+        } catch {
+            // ignore
+        }
+    }, []);
+
+    useEffect(() => {
+        if (!isOpen) return;
+        fetchAlerts();
+        const id = window.setInterval(fetchAlerts, ALERT_POLL_MS);
+        return () => window.clearInterval(id);
+    }, [isOpen, fetchAlerts]);
+
+    useEffect(() => {
+        if (mode === "alerts" && alertsUnread > 0) {
+            markAlertsRead();
+        }
+    }, [mode, alertsUnread, markAlertsRead]);
 
     const fetchList = useCallback(async () => {
         try {
@@ -285,16 +367,67 @@ export function ManagerSupportWorkspace({ isOpen, onClose }: ManagerSupportWorks
                                     >
                                         Support
                                     </div>
-                                    <div
-                                        style={{
-                                            fontSize: 16,
-                                            color: T.ink,
-                                            fontWeight: 700,
-                                            marginTop: 2,
-                                            letterSpacing: "-0.01em",
-                                        }}
-                                    >
-                                        Conversations clients
+                                    <div style={{ display: "flex", gap: 4, marginTop: 4 }}>
+                                        <button
+                                            type="button"
+                                            onClick={() => { setMode("conversations"); setSelectedAlert(null); }}
+                                            style={{
+                                                padding: "3px 10px",
+                                                borderRadius: 999,
+                                                fontSize: 12,
+                                                fontWeight: 700,
+                                                cursor: "pointer",
+                                                border: "none",
+                                                background: mode === "conversations" ? T.brand : "transparent",
+                                                color: mode === "conversations" ? "#fff" : T.ink2,
+                                                transition: "all 150ms ease",
+                                                letterSpacing: "-0.01em",
+                                            }}
+                                        >
+                                            Conversations
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => { setMode("alerts"); setSelectedId(null); setDetail(null); }}
+                                            style={{
+                                                padding: "3px 10px",
+                                                borderRadius: 999,
+                                                fontSize: 12,
+                                                fontWeight: 700,
+                                                cursor: "pointer",
+                                                border: "none",
+                                                background: mode === "alerts" ? T.brand : "transparent",
+                                                color: mode === "alerts" ? "#fff" : T.ink2,
+                                                transition: "all 150ms ease",
+                                                letterSpacing: "-0.01em",
+                                                position: "relative",
+                                            }}
+                                        >
+                                            Alertes
+                                            {alertsUnread > 0 && (
+                                                <span
+                                                    style={{
+                                                        position: "absolute",
+                                                        top: -4,
+                                                        right: -4,
+                                                        minWidth: 16,
+                                                        height: 16,
+                                                        padding: "0 4px",
+                                                        borderRadius: 999,
+                                                        background: "#D93025",
+                                                        color: "#fff",
+                                                        fontSize: 9,
+                                                        fontWeight: 700,
+                                                        display: "inline-flex",
+                                                        alignItems: "center",
+                                                        justifyContent: "center",
+                                                        animation: "cpSupBadgePop 0.3s cubic-bezier(.34,1.56,.64,1) both",
+                                                    }}
+                                                >
+                                                    {alertsUnread > 9 ? "9+" : alertsUnread}
+                                                </span>
+                                            )}
+                                        </button>
                                     </div>
                                 </div>
                                 <button
@@ -315,199 +448,423 @@ export function ManagerSupportWorkspace({ isOpen, onClose }: ManagerSupportWorks
                                     ✕
                                 </button>
                             </div>
-                            <input
-                                type="search"
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                onKeyDown={(e) => {
-                                    if (e.key === "Enter") fetchList();
-                                }}
-                                placeholder="Rechercher un client..."
-                                style={{
-                                    width: "100%",
-                                    padding: "8px 12px",
-                                    borderRadius: T.radiusS,
-                                    border: `1px solid ${T.line}`,
-                                    background: T.surfaceRaised,
-                                    color: T.ink,
-                                    fontSize: 13,
-                                    fontFamily: "inherit",
-                                    outline: "none",
-                                }}
-                            />
-                            <div style={{ display: "flex", gap: 4, marginTop: 10 }}>
-                                <button type="button" style={tabButtonStyle(tab === "ACTIVE")} onClick={() => setTab("ACTIVE")}>
-                                    Actives
-                                </button>
-                                <button type="button" style={tabButtonStyle(tab === "UNREAD")} onClick={() => setTab("UNREAD")}>
-                                    Non lus
-                                </button>
-                                <button type="button" style={tabButtonStyle(tab === "RESOLVED")} onClick={() => setTab("RESOLVED")}>
-                                    Résolues
-                                </button>
-                                <button type="button" style={tabButtonStyle(tab === "ALL")} onClick={() => setTab("ALL")}>
-                                    Toutes
-                                </button>
-                            </div>
+                            {mode === "conversations" && (
+                                <>
+                                    <input
+                                        type="search"
+                                        value={search}
+                                        onChange={(e) => setSearch(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === "Enter") fetchList();
+                                        }}
+                                        placeholder="Rechercher un client..."
+                                        style={{
+                                            width: "100%",
+                                            padding: "8px 12px",
+                                            borderRadius: T.radiusS,
+                                            border: `1px solid ${T.line}`,
+                                            background: T.surfaceRaised,
+                                            color: T.ink,
+                                            fontSize: 13,
+                                            fontFamily: "inherit",
+                                            outline: "none",
+                                        }}
+                                    />
+                                    <div style={{ display: "flex", gap: 4, marginTop: 10 }}>
+                                        <button type="button" style={tabButtonStyle(tab === "ACTIVE")} onClick={() => setTab("ACTIVE")}>
+                                            Actives
+                                        </button>
+                                        <button type="button" style={tabButtonStyle(tab === "UNREAD")} onClick={() => setTab("UNREAD")}>
+                                            Non lus
+                                        </button>
+                                        <button type="button" style={tabButtonStyle(tab === "RESOLVED")} onClick={() => setTab("RESOLVED")}>
+                                            Résolues
+                                        </button>
+                                        <button type="button" style={tabButtonStyle(tab === "ALL")} onClick={() => setTab("ALL")}>
+                                            Toutes
+                                        </button>
+                                    </div>
+                                </>
+                            )}
                         </div>
                         <div
                             className="cp-sup-scroll-hidden"
                             style={{ flex: 1, overflowY: "auto", padding: "8px 0" }}
                         >
-                            {loadingList && conversations.length === 0 ? (
-                                <div style={{ padding: 16, color: T.ink3, fontSize: 13 }}>
-                                    Chargement…
-                                </div>
-                            ) : filteredConversations.length === 0 ? (
-                                <div
-                                    style={{
-                                        padding: 24,
-                                        textAlign: "center",
-                                        color: T.ink3,
-                                        fontSize: 13,
-                                    }}
-                                >
-                                    Aucune conversation.
-                                </div>
-                            ) : (
-                                filteredConversations.map((conv) => {
-                                    const isActive = conv.id === selectedId;
-                                    return (
-                                        <button
-                                            type="button"
-                                            key={conv.id}
-                                            onClick={() => setSelectedId(conv.id)}
+                            {mode === "conversations" ? (
+                                <>
+                                    {loadingList && conversations.length === 0 ? (
+                                        <div style={{ padding: 16, color: T.ink3, fontSize: 13 }}>
+                                            Chargement…
+                                        </div>
+                                    ) : filteredConversations.length === 0 ? (
+                                        <div
                                             style={{
-                                                width: "100%",
-                                                textAlign: "left",
-                                                background: isActive ? T.brandSoft : "transparent",
-                                                borderLeft: isActive
-                                                    ? `3px solid ${T.brand}`
-                                                    : "3px solid transparent",
-                                                padding: "12px 16px",
-                                                cursor: "pointer",
-                                                border: "none",
-                                                borderBottom: `1px solid ${T.lineSoft}`,
-                                                display: "flex",
-                                                flexDirection: "column",
-                                                gap: 4,
-                                                transition: "background 150ms ease",
+                                                padding: 24,
+                                                textAlign: "center",
+                                                color: T.ink3,
+                                                fontSize: 13,
                                             }}
                                         >
-                                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                                <AvatarRing
-                                                    name={conv.clientName}
-                                                    size={28}
-                                                    theme="light"
-                                                    status={conv.status === "ACTIVE" ? "online" : "offline"}
-                                                />
-                                                <div style={{ flex: 1, minWidth: 0 }}>
-                                                    <div
+                                            Aucune conversation.
+                                        </div>
+                                    ) : (
+                                        filteredConversations.map((conv) => {
+                                            const isActive = conv.id === selectedId;
+                                            return (
+                                                <button
+                                                    type="button"
+                                                    key={conv.id}
+                                                    onClick={() => setSelectedId(conv.id)}
+                                                    style={{
+                                                        width: "100%",
+                                                        textAlign: "left",
+                                                        background: isActive ? T.brandSoft : "transparent",
+                                                        borderLeft: isActive
+                                                            ? `3px solid ${T.brand}`
+                                                            : "3px solid transparent",
+                                                        padding: "12px 16px",
+                                                        cursor: "pointer",
+                                                        border: "none",
+                                                        borderBottom: `1px solid ${T.lineSoft}`,
+                                                        display: "flex",
+                                                        flexDirection: "column",
+                                                        gap: 4,
+                                                        transition: "background 150ms ease",
+                                                    }}
+                                                >
+                                                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                                        <AvatarRing
+                                                            name={conv.clientName}
+                                                            size={28}
+                                                            theme="light"
+                                                            status={conv.status === "ACTIVE" ? "online" : "offline"}
+                                                        />
+                                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                                            <div
+                                                                style={{
+                                                                    display: "flex",
+                                                                    justifyContent: "space-between",
+                                                                    alignItems: "baseline",
+                                                                    gap: 6,
+                                                                }}
+                                                            >
+                                                                <span
+                                                                    style={{
+                                                                        fontWeight: 700,
+                                                                        fontSize: 13,
+                                                                        color: T.ink,
+                                                                        whiteSpace: "nowrap",
+                                                                        overflow: "hidden",
+                                                                        textOverflow: "ellipsis",
+                                                                    }}
+                                                                >
+                                                                    {conv.clientName}
+                                                                </span>
+                                                                <span
+                                                                    className="cp-support-root-mono"
+                                                                    style={{
+                                                                        fontSize: 10.5,
+                                                                        color: T.ink4,
+                                                                        flexShrink: 0,
+                                                                    }}
+                                                                >
+                                                                    {formatRelative(conv.lastMessageAt)}
+                                                                </span>
+                                                            </div>
+                                                            <div
+                                                                style={{
+                                                                    fontSize: 12,
+                                                                    color: T.ink3,
+                                                                    whiteSpace: "nowrap",
+                                                                    overflow: "hidden",
+                                                                    textOverflow: "ellipsis",
+                                                                }}
+                                                            >
+                                                                {conv.lastMessagePreview ?? "Aucun message"}
+                                                            </div>
+                                                        </div>
+                                                        {conv.unreadCount > 0 && (
+                                                            <span
+                                                                style={{
+                                                                    minWidth: 18,
+                                                                    height: 18,
+                                                                    padding: "0 6px",
+                                                                    borderRadius: 9,
+                                                                    background: T.danger,
+                                                                    fontSize: 10,
+                                                                    fontWeight: 700,
+                                                                    color: "#fff",
+                                                                    display: "inline-flex",
+                                                                    alignItems: "center",
+                                                                    justifyContent: "center",
+                                                                }}
+                                                            >
+                                                                {conv.unreadCount > 9 ? "9+" : conv.unreadCount}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <div style={{ display: "flex", gap: 6, marginLeft: 36, alignItems: "center" }}>
+                                                        {conv.status === "RESOLVED" && (
+                                                            <span
+                                                                style={{
+                                                                    fontSize: 10,
+                                                                    padding: "1px 7px",
+                                                                    borderRadius: 6,
+                                                                    background: T.brandSoft,
+                                                                    color: T.brand,
+                                                                    fontWeight: 600,
+                                                                }}
+                                                            >
+                                                                Résolu
+                                                            </span>
+                                                        )}
+                                                        {conv.lastIntent && (
+                                                            <span
+                                                                style={{
+                                                                    fontSize: 10,
+                                                                    padding: "1px 7px",
+                                                                    borderRadius: 6,
+                                                                    background: T.accentAmberSoft,
+                                                                    color: T.accentAmber,
+                                                                    fontWeight: 600,
+                                                                }}
+                                                            >
+                                                                {conv.lastIntent}
+                                                            </span>
+                                                        )}
+                                                        {conv.isPinned && (
+                                                            <span style={{ fontSize: 10, color: T.accentAmber }}>📌</span>
+                                                        )}
+                                                    </div>
+                                                </button>
+                                            );
+                                        })
+                                    )}
+                                </>
+                            ) : (
+                                <>
+                                    {loadingAlerts && alerts.length === 0 ? (
+                                        <div style={{ padding: 16, color: T.ink3, fontSize: 13 }}>
+                                            Chargement…
+                                        </div>
+                                    ) : alerts.length === 0 ? (
+                                        <div
+                                            style={{
+                                                padding: 24,
+                                                textAlign: "center",
+                                                color: T.ink3,
+                                                fontSize: 13,
+                                            }}
+                                        >
+                                            <span style={{ fontSize: 28, display: "block", marginBottom: 8 }}>🔔</span>
+                                            Aucune alerte client pour le moment.
+                                        </div>
+                                    ) : (
+                                        alerts.map((alert) => {
+                                            const aType = getAlertTypeFromTitle(alert.title);
+                                            const cfg = ALERT_TYPE_CONFIG[aType];
+                                            const isActive = selectedAlert?.id === alert.id;
+                                            return (
+                                                <button
+                                                    type="button"
+                                                    key={alert.id}
+                                                    onClick={() => setSelectedAlert(alert)}
+                                                    style={{
+                                                        width: "100%",
+                                                        textAlign: "left",
+                                                        background: isActive ? cfg.bg : alert.isRead ? "transparent" : "rgba(217,48,37,0.04)",
+                                                        borderLeft: isActive
+                                                            ? `3px solid ${cfg.color}`
+                                                            : alert.isRead ? "3px solid transparent" : `3px solid ${cfg.color}`,
+                                                        padding: "12px 16px",
+                                                        cursor: "pointer",
+                                                        border: "none",
+                                                        borderBottom: `1px solid ${T.lineSoft}`,
+                                                        display: "flex",
+                                                        gap: 10,
+                                                        alignItems: "flex-start",
+                                                        transition: "background 150ms ease",
+                                                    }}
+                                                >
+                                                    <span
                                                         style={{
+                                                            width: 30,
+                                                            height: 30,
+                                                            borderRadius: 8,
+                                                            background: cfg.bg,
+                                                            border: `1px solid ${cfg.border}`,
                                                             display: "flex",
-                                                            justifyContent: "space-between",
-                                                            alignItems: "baseline",
-                                                            gap: 6,
+                                                            alignItems: "center",
+                                                            justifyContent: "center",
+                                                            fontSize: 14,
+                                                            flexShrink: 0,
                                                         }}
                                                     >
-                                                        <span
+                                                        {cfg.icon}
+                                                    </span>
+                                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                                        <div
                                                             style={{
-                                                                fontWeight: 700,
-                                                                fontSize: 13,
-                                                                color: T.ink,
+                                                                display: "flex",
+                                                                justifyContent: "space-between",
+                                                                alignItems: "baseline",
+                                                                gap: 6,
+                                                            }}
+                                                        >
+                                                            <span
+                                                                style={{
+                                                                    fontWeight: alert.isRead ? 600 : 700,
+                                                                    fontSize: 12,
+                                                                    color: cfg.color,
+                                                                    whiteSpace: "nowrap",
+                                                                    overflow: "hidden",
+                                                                    textOverflow: "ellipsis",
+                                                                }}
+                                                            >
+                                                                {alert.title}
+                                                            </span>
+                                                            <span
+                                                                className="cp-support-root-mono"
+                                                                style={{
+                                                                    fontSize: 10,
+                                                                    color: T.ink4,
+                                                                    flexShrink: 0,
+                                                                }}
+                                                            >
+                                                                {formatAlertTime(alert.createdAt)}
+                                                            </span>
+                                                        </div>
+                                                        <div
+                                                            style={{
+                                                                fontSize: 11.5,
+                                                                color: T.ink3,
                                                                 whiteSpace: "nowrap",
                                                                 overflow: "hidden",
                                                                 textOverflow: "ellipsis",
+                                                                marginTop: 2,
                                                             }}
                                                         >
-                                                            {conv.clientName}
-                                                        </span>
+                                                            {alert.message}
+                                                        </div>
                                                         <span
-                                                            className="cp-support-root-mono"
                                                             style={{
-                                                                fontSize: 10.5,
-                                                                color: T.ink4,
-                                                                flexShrink: 0,
+                                                                display: "inline-block",
+                                                                marginTop: 4,
+                                                                fontSize: 10,
+                                                                padding: "1px 7px",
+                                                                borderRadius: 6,
+                                                                background: cfg.bg,
+                                                                border: `1px solid ${cfg.border}`,
+                                                                color: cfg.color,
+                                                                fontWeight: 600,
                                                             }}
                                                         >
-                                                            {formatRelative(conv.lastMessageAt)}
+                                                            {aType}
                                                         </span>
                                                     </div>
-                                                    <div
-                                                        style={{
-                                                            fontSize: 12,
-                                                            color: T.ink3,
-                                                            whiteSpace: "nowrap",
-                                                            overflow: "hidden",
-                                                            textOverflow: "ellipsis",
-                                                        }}
-                                                    >
-                                                        {conv.lastMessagePreview ?? "Aucun message"}
-                                                    </div>
-                                                </div>
-                                                {conv.unreadCount > 0 && (
-                                                    <span
-                                                        style={{
-                                                            minWidth: 18,
-                                                            height: 18,
-                                                            padding: "0 6px",
-                                                            borderRadius: 9,
-                                                            background: T.danger,
-                                                            fontSize: 10,
-                                                            fontWeight: 700,
-                                                            color: "#fff",
-                                                            display: "inline-flex",
-                                                            alignItems: "center",
-                                                            justifyContent: "center",
-                                                        }}
-                                                    >
-                                                        {conv.unreadCount > 9 ? "9+" : conv.unreadCount}
-                                                    </span>
-                                                )}
-                                            </div>
-                                            <div style={{ display: "flex", gap: 6, marginLeft: 36, alignItems: "center" }}>
-                                                {conv.status === "RESOLVED" && (
-                                                    <span
-                                                        style={{
-                                                            fontSize: 10,
-                                                            padding: "1px 7px",
-                                                            borderRadius: 6,
-                                                            background: T.brandSoft,
-                                                            color: T.brand,
-                                                            fontWeight: 600,
-                                                        }}
-                                                    >
-                                                        Résolu
-                                                    </span>
-                                                )}
-                                                {conv.lastIntent && (
-                                                    <span
-                                                        style={{
-                                                            fontSize: 10,
-                                                            padding: "1px 7px",
-                                                            borderRadius: 6,
-                                                            background: T.accentAmberSoft,
-                                                            color: T.accentAmber,
-                                                            fontWeight: 600,
-                                                        }}
-                                                    >
-                                                        {conv.lastIntent}
-                                                    </span>
-                                                )}
-                                                {conv.isPinned && (
-                                                    <span style={{ fontSize: 10, color: T.accentAmber }}>📌</span>
-                                                )}
-                                            </div>
-                                        </button>
-                                    );
-                                })
+                                                    {!alert.isRead && (
+                                                        <span
+                                                            style={{
+                                                                width: 7,
+                                                                height: 7,
+                                                                borderRadius: "50%",
+                                                                background: "#D93025",
+                                                                flexShrink: 0,
+                                                                marginTop: 4,
+                                                            }}
+                                                        />
+                                                    )}
+                                                </button>
+                                            );
+                                        })
+                                    )}
+                                </>
                             )}
                         </div>
                     </div>
 
                     {/* DETAIL column */}
                     <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
-                        {!detail ? (
+                        {mode === "alerts" ? (
+                            selectedAlert ? (
+                                <AlertDetailView alert={selectedAlert} onBack={() => setSelectedAlert(null)} />
+                            ) : (
+                                <div
+                                    style={{
+                                        flex: 1,
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        color: T.ink3,
+                                        gap: 10,
+                                        padding: 24,
+                                        textAlign: "center",
+                                    }}
+                                >
+                                    <span style={{ fontSize: 32 }}>🔔</span>
+                                    <div style={{ fontSize: 15, fontWeight: 700, color: T.ink }}>
+                                        Alertes clients
+                                    </div>
+                                    <div style={{ fontSize: 13, maxWidth: 360, lineHeight: 1.6 }}>
+                                        Retrouvez ici toutes les actions de vos clients : signalements, demandes de report, avis, annulations et messages support. Sélectionnez une alerte pour voir le détail.
+                                    </div>
+                                    {alerts.length > 0 && (
+                                        <div
+                                            style={{
+                                                display: "flex",
+                                                flexWrap: "wrap",
+                                                gap: 8,
+                                                justifyContent: "center",
+                                                marginTop: 12,
+                                            }}
+                                        >
+                                            {Object.entries(ALERT_TYPE_CONFIG).map(([key, cfg]) => {
+                                                const count = alerts.filter((a) => a.title.startsWith(key)).length;
+                                                if (count === 0) return null;
+                                                return (
+                                                    <span
+                                                        key={key}
+                                                        style={{
+                                                            display: "inline-flex",
+                                                            alignItems: "center",
+                                                            gap: 5,
+                                                            padding: "5px 12px",
+                                                            borderRadius: 999,
+                                                            background: cfg.bg,
+                                                            border: `1px solid ${cfg.border}`,
+                                                            color: cfg.color,
+                                                            fontSize: 12,
+                                                            fontWeight: 600,
+                                                        }}
+                                                    >
+                                                        {cfg.icon} {key}
+                                                        <span
+                                                            style={{
+                                                                background: cfg.color,
+                                                                color: "#fff",
+                                                                borderRadius: 999,
+                                                                padding: "0 6px",
+                                                                fontSize: 10,
+                                                                fontWeight: 700,
+                                                                minWidth: 18,
+                                                                display: "inline-flex",
+                                                                alignItems: "center",
+                                                                justifyContent: "center",
+                                                                height: 16,
+                                                            }}
+                                                        >
+                                                            {count}
+                                                        </span>
+                                                    </span>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
+                            )
+                        ) : !detail ? (
                             <div
                                 style={{
                                     flex: 1,
@@ -778,5 +1135,246 @@ export function ManagerSupportWorkspace({ isOpen, onClose }: ManagerSupportWorks
                 </aside>
             </div>
         </>
+    );
+}
+
+function AlertDetailView({ alert, onBack }: { alert: ClientAlert; onBack: () => void }) {
+    const aType = getAlertTypeFromTitle(alert.title);
+    const cfg = ALERT_TYPE_CONFIG[aType];
+    const formattedDate = new Date(alert.createdAt).toLocaleString("fr-FR", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone: "Europe/Paris",
+    });
+
+    return (
+        <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+            <div
+                style={{
+                    padding: "14px 20px",
+                    borderBottom: `1px solid ${T.line}`,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
+                    flexShrink: 0,
+                    background: T.surfaceRaised,
+                }}
+            >
+                <button
+                    type="button"
+                    onClick={onBack}
+                    style={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: T.radiusS,
+                        background: T.surfaceSunken,
+                        border: `1px solid ${T.line}`,
+                        color: T.ink3,
+                        cursor: "pointer",
+                        fontSize: 14,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                    }}
+                >
+                    ←
+                </button>
+                <div style={{ flex: 1 }}>
+                    <div
+                        style={{
+                            fontSize: 15,
+                            fontWeight: 700,
+                            color: T.ink,
+                            letterSpacing: "-0.01em",
+                        }}
+                    >
+                        Détail de l&apos;alerte
+                    </div>
+                    <div style={{ fontSize: 11, color: T.ink3, marginTop: 2 }}>
+                        {formattedDate}
+                    </div>
+                </div>
+                {alert.link && (
+                    <a
+                        href={alert.link}
+                        style={{
+                            padding: "6px 14px",
+                            borderRadius: T.radiusS,
+                            background: T.brandSoft,
+                            border: "1px solid rgba(124,92,252,0.35)",
+                            color: T.brand,
+                            fontSize: 12,
+                            fontWeight: 600,
+                            textDecoration: "none",
+                            cursor: "pointer",
+                        }}
+                    >
+                        Voir le RDV →
+                    </a>
+                )}
+            </div>
+
+            <div
+                style={{
+                    flex: 1,
+                    padding: "28px 32px",
+                    overflowY: "auto",
+                    background: T.surface,
+                }}
+            >
+                <div
+                    style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 14,
+                        marginBottom: 24,
+                    }}
+                >
+                    <span
+                        style={{
+                            width: 48,
+                            height: 48,
+                            borderRadius: 14,
+                            background: cfg.bg,
+                            border: `1.5px solid ${cfg.border}`,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: 22,
+                            flexShrink: 0,
+                        }}
+                    >
+                        {cfg.icon}
+                    </span>
+                    <div>
+                        <span
+                            style={{
+                                display: "inline-block",
+                                padding: "3px 10px",
+                                borderRadius: 999,
+                                background: cfg.bg,
+                                border: `1px solid ${cfg.border}`,
+                                color: cfg.color,
+                                fontSize: 11.5,
+                                fontWeight: 700,
+                                marginBottom: 4,
+                            }}
+                        >
+                            {aType}
+                        </span>
+                        <div
+                            style={{
+                                fontSize: 18,
+                                fontWeight: 700,
+                                color: T.ink,
+                                letterSpacing: "-0.02em",
+                            }}
+                        >
+                            {alert.title}
+                        </div>
+                    </div>
+                </div>
+
+                <div
+                    style={{
+                        padding: "18px 20px",
+                        borderRadius: 14,
+                        background: cfg.bg,
+                        border: `1px solid ${cfg.border}`,
+                        marginBottom: 20,
+                    }}
+                >
+                    <div
+                        style={{
+                            fontSize: 10,
+                            fontWeight: 700,
+                            textTransform: "uppercase",
+                            letterSpacing: "0.08em",
+                            color: cfg.color,
+                            marginBottom: 8,
+                            opacity: 0.7,
+                        }}
+                    >
+                        Détail
+                    </div>
+                    <p
+                        style={{
+                            fontSize: 14,
+                            color: cfg.color,
+                            fontWeight: 500,
+                            lineHeight: 1.7,
+                            margin: 0,
+                            whiteSpace: "pre-wrap",
+                        }}
+                    >
+                        {alert.message}
+                    </p>
+                </div>
+
+                <div
+                    style={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        gap: 10,
+                        marginTop: 16,
+                    }}
+                >
+                    <div
+                        style={{
+                            padding: "12px 16px",
+                            borderRadius: 12,
+                            background: T.surfaceRaised,
+                            border: `1px solid ${T.line}`,
+                            flex: "1 1 160px",
+                        }}
+                    >
+                        <div
+                            style={{
+                                fontSize: 10,
+                                fontWeight: 700,
+                                textTransform: "uppercase",
+                                letterSpacing: "0.08em",
+                                color: T.ink4,
+                                marginBottom: 6,
+                            }}
+                        >
+                            Type
+                        </div>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: T.ink }}>
+                            {alert.type === "warning" ? "⚠️ Attention requise" : alert.type === "error" ? "🚨 Urgent" : alert.type === "success" ? "✅ Positif" : "ℹ️ Information"}
+                        </div>
+                    </div>
+                    <div
+                        style={{
+                            padding: "12px 16px",
+                            borderRadius: 12,
+                            background: T.surfaceRaised,
+                            border: `1px solid ${T.line}`,
+                            flex: "1 1 160px",
+                        }}
+                    >
+                        <div
+                            style={{
+                                fontSize: 10,
+                                fontWeight: 700,
+                                textTransform: "uppercase",
+                                letterSpacing: "0.08em",
+                                color: T.ink4,
+                                marginBottom: 6,
+                            }}
+                        >
+                            Reçu le
+                        </div>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: T.ink }}>
+                            {formattedDate}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     );
 }

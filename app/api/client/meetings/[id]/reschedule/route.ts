@@ -8,6 +8,7 @@ import {
     AuthError,
     errorResponse,
 } from "@/lib/api-utils";
+import { notifyManagersClientReschedule } from "@/lib/notifications";
 
 export const POST = withErrorHandler(async (
     request: NextRequest,
@@ -72,6 +73,8 @@ export const POST = withErrorHandler(async (
         nextNote = nextNote ? `${nextNote}\n${tag}` : tag;
     }
 
+    const oldCallbackDate = action.callbackDate?.toISOString() ?? null;
+
     const updated = await prisma.action.update({
         where: { id: actionId },
         data: {
@@ -91,11 +94,23 @@ export const POST = withErrorHandler(async (
                 select: {
                     id: true,
                     name: true,
-                    mission: { select: { id: true, name: true } },
+                    mission: { select: { id: true, name: true, client: { select: { name: true } } } },
                 },
             },
         },
     });
+
+    const contactName = [updated.contact?.firstName, updated.contact?.lastName].filter(Boolean).join(" ") || "Contact";
+    const companyName = updated.contact?.company?.name ?? "Entreprise";
+    notifyManagersClientReschedule({
+        clientName: updated.campaign.mission.client.name,
+        contactName,
+        companyName,
+        missionName: updated.campaign.mission.name,
+        meetingDate: oldCallbackDate,
+        newDate: parsed.toISOString(),
+        reason: reason ?? null,
+    }).catch(() => {});
 
     return successResponse(updated);
 });

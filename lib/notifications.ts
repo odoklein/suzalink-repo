@@ -322,6 +322,121 @@ export async function createMilestoneNotification(
 }
 
 // ============================================
+// MANAGER ALERTS — client actions
+// ============================================
+
+/**
+ * Notify every active MANAGER user about a client-initiated event.
+ * Fire-and-forget: errors are logged but never thrown.
+ */
+export async function notifyAllManagers(params: Omit<CreateNotificationParams, "userId">) {
+    try {
+        const managers = await prisma.user.findMany({
+            where: { role: "MANAGER", isActive: true },
+            select: { id: true },
+        });
+        await Promise.allSettled(
+            managers.map((m) => createNotification({ ...params, userId: m.id })),
+        );
+    } catch (error) {
+        console.error("[notifyAllManagers] Failed:", error);
+    }
+}
+
+interface ClientMeetingAlertData {
+    clientName: string;
+    contactName: string;
+    companyName: string;
+    missionName?: string;
+    meetingDate?: string | null;
+}
+
+function fmtDateParis(iso: string | null | undefined): string {
+    if (!iso) return "";
+    try {
+        return new Date(iso).toLocaleDateString("fr-FR", {
+            day: "numeric",
+            month: "long",
+            hour: "2-digit",
+            minute: "2-digit",
+            timeZone: "Europe/Paris",
+        });
+    } catch {
+        return "";
+    }
+}
+
+export async function notifyManagersClientSignal(data: ClientMeetingAlertData & {
+    outcome: string;
+    recontact: string;
+    clientNote?: string | null;
+}) {
+    const dateStr = fmtDateParis(data.meetingDate);
+    const recontactLabel = data.recontact === "YES" ? "souhaite recontact" : data.recontact === "MAYBE" ? "peut-etre recontact" : "pas de recontact";
+    return notifyAllManagers({
+        title: `Signal client : ${data.clientName}`,
+        message: `${data.contactName} (${data.companyName})${dateStr ? ` - ${dateStr}` : ""} — Contact absent, ${recontactLabel}${data.clientNote ? ` — "${data.clientNote.slice(0, 80)}"` : ""}`,
+        type: "warning",
+        link: "/manager/rdv",
+    });
+}
+
+export async function notifyManagersClientFeedback(data: ClientMeetingAlertData & {
+    outcome: string;
+    clientNote?: string | null;
+}) {
+    const outcomeLabels: Record<string, string> = { POSITIVE: "Positif", NEUTRAL: "Neutre", NEGATIVE: "Negatif", NO_SHOW: "Absent" };
+    const label = outcomeLabels[data.outcome] ?? data.outcome;
+    const dateStr = fmtDateParis(data.meetingDate);
+    return notifyAllManagers({
+        title: `Avis client : ${data.clientName}`,
+        message: `${data.contactName} (${data.companyName})${dateStr ? ` - ${dateStr}` : ""} — Retour : ${label}${data.clientNote ? ` — "${data.clientNote.slice(0, 80)}"` : ""}`,
+        type: data.outcome === "NEGATIVE" || data.outcome === "NO_SHOW" ? "warning" : "info",
+        link: "/manager/rdv",
+    });
+}
+
+export async function notifyManagersClientReschedule(data: ClientMeetingAlertData & {
+    newDate: string;
+    reason?: string | null;
+}) {
+    const oldDateStr = fmtDateParis(data.meetingDate);
+    const newDateStr = fmtDateParis(data.newDate);
+    return notifyAllManagers({
+        title: `Demande report : ${data.clientName}`,
+        message: `${data.contactName} (${data.companyName}) demande un report${oldDateStr ? ` du ${oldDateStr}` : ""}${newDateStr ? ` au ${newDateStr}` : ""}${data.reason ? ` — "${data.reason.slice(0, 80)}"` : ""}`,
+        type: "warning",
+        link: "/manager/rdv",
+    });
+}
+
+export async function notifyManagersClientCancel(data: ClientMeetingAlertData & {
+    cancellationReason?: string;
+}) {
+    const dateStr = fmtDateParis(data.meetingDate);
+    return notifyAllManagers({
+        title: `Annulation client : ${data.clientName}`,
+        message: `${data.contactName} (${data.companyName})${dateStr ? ` - ${dateStr}` : ""} — RDV annule par le client${data.cancellationReason ? ` (${data.cancellationReason})` : ""}`,
+        type: "error",
+        link: "/manager/rdv",
+    });
+}
+
+export async function notifyManagersClientSupportMessage(data: {
+    clientName: string;
+    messagePreview: string;
+    intent?: string | null;
+}) {
+    const intentLabels: Record<string, string> = { RDV: "Question RDV", RAPPORT: "Rapport", PROBLEME: "Probleme", AUTRE: "Autre" };
+    const intentStr = data.intent ? ` [${intentLabels[data.intent] ?? data.intent}]` : "";
+    return notifyAllManagers({
+        title: `Message support : ${data.clientName}${intentStr}`,
+        message: data.messagePreview.slice(0, 140),
+        type: data.intent === "PROBLEME" ? "warning" : "info",
+    });
+}
+
+// ============================================
 // RDV EMAIL NOTIFICATIONS
 // ============================================
 

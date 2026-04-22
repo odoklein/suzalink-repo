@@ -553,15 +553,16 @@ const avt = (id: string) => {
   return AVT[Math.abs(h) % AVT.length];
 };
 
+const DISPLAY_TZ = "Europe/Paris";
 const fmtFull = (s: string) => new Date(s).toLocaleDateString("fr-FR", {
-  weekday: "long", day: "numeric", month: "long", year: "numeric",
+  weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: DISPLAY_TZ,
 });
 const fmtCard = (s: string) => {
   const d = new Date(s);
   return {
-    day:   d.getDate(),
-    month: d.toLocaleDateString("fr-FR", { month: "short" }).replace(".", "").toUpperCase(),
-    time:  d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }),
+    day:   parseInt(d.toLocaleDateString("fr-FR", { day: "numeric", timeZone: DISPLAY_TZ }), 10),
+    month: d.toLocaleDateString("fr-FR", { month: "short", timeZone: DISPLAY_TZ }).replace(".", "").toUpperCase(),
+    time:  d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", timeZone: DISPLAY_TZ }),
   };
 };
 const fmtCustomKey = (k: string) =>
@@ -621,7 +622,12 @@ function genICS(m: Meeting) {
   const name = nameParts.join(" ") || m.company?.name || "Contact entreprise";
   const dt = m.callbackDate ? new Date(m.callbackDate) : new Date();
   const p  = (n: number) => n.toString().padStart(2,"0");
-  const f  = (d: Date)   => `${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}T${p(d.getHours())}${p(d.getMinutes())}00`;
+  const parisParts = (d: Date) => {
+    const fmt = new Intl.DateTimeFormat("fr-FR", { timeZone: DISPLAY_TZ, year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false });
+    const parts = Object.fromEntries(fmt.formatToParts(d).map(p=>[p.type,p.value]));
+    return { y:parts.year, M:parts.month, d:parts.day, h:parts.hour, m:parts.minute };
+  };
+  const f = (d: Date) => { const pp=parisParts(d); return `${pp.y}${pp.M}${pp.d}T${pp.h}${pp.m}00`; };
   const end = new Date(dt.getTime()+30*60000);
   const companyName = m.contact?.company?.name ?? m.company?.name ?? "Client";
   const txt = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//CaptainProspect//RDV//FR",
@@ -642,7 +648,7 @@ function genCSV(meetings: Meeting[]) {
     const d=m.callbackDate ? new Date(m.callbackDate) : null, fb=m.meetingFeedback;
     const c = m.contact;
     const co = c?.company ?? m.company;
-    return [d ? d.toLocaleDateString("fr-FR") : "",d ? d.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}) : "",
+    return [d ? d.toLocaleDateString("fr-FR",{timeZone:DISPLAY_TZ}) : "",d ? d.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit",timeZone:DISPLAY_TZ}) : "",
       S[getRdvStatus(m)].label,m.campaign.mission.name,m.campaign.name,
       c?.firstName??"",c?.lastName??"",c?.title??"",c?.email??"",
       c?.phone??"",c?.linkedin??"",co?.name??"",
@@ -894,9 +900,10 @@ export default function ClientPortalMeetingsPage() {
     if (!sel||!rsDate) return;
     setRsSub(true);
     try {
+      const localDate = new Date(`${rsDate}T${rsTime}:00`);
       const r=await fetch(`/api/client/meetings/${sel.id}/reschedule`,{
         method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({newDate:`${rsDate}T${rsTime}:00`}),
+        body:JSON.stringify({newDate:localDate.toISOString()}),
       });
       const j=await r.json();
       if (j.success){ toast.success("Demande envoyée","L'équipe vous recontactera pour confirmer."); closeModal(); }
@@ -1518,7 +1525,7 @@ function DetailModal({ m, onClose, onFeedback, onCancel, onDelete }: {
         <Sec label="Fiche RDV">
           {m.rdvFicheUpdatedAt && (
             <p style={{fontSize:10.5,color:tk.ink4,marginBottom:10}}>
-              Dernière mise à jour : {new Date(m.rdvFicheUpdatedAt).toLocaleString("fr-FR")}
+              Dernière mise à jour : {new Date(m.rdvFicheUpdatedAt).toLocaleString("fr-FR",{timeZone:DISPLAY_TZ})}
             </p>
           )}
           <div style={{display:"flex",flexDirection:"column",gap:10}}>
@@ -1667,7 +1674,9 @@ function RsModal({ m, onClose, date, time, sub, onDate, onTime, onSubmit }: {
   const name = m.contact ? [m.contact.firstName,m.contact.lastName].filter(Boolean).join(" ") || "Contact" : m.company?.name ?? "Contact entreprise";
   const companyName = m.contact?.company?.name ?? m.company?.name ?? "Entreprise inconnue";
   const tmrw=new Date(); tmrw.setDate(tmrw.getDate()+1); tmrw.setHours(10,0,0,0);
-  const minDateTime=tmrw.toISOString().slice(0,16);
+  const minParts = new Intl.DateTimeFormat("en-CA", { timeZone: DISPLAY_TZ, year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false })
+    .formatToParts(tmrw).reduce((a,p)=>{a[p.type]=p.value;return a;},{} as Record<string,string>);
+  const minDateTime=`${minParts.year}-${minParts.month}-${minParts.day}T${minParts.hour}:${minParts.minute}`;
   const dateTimeValue = date && time ? `${date}T${time}` : "";
 
   const handleDateTimeChange = (value: string) => {

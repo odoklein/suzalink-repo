@@ -483,6 +483,7 @@ export async function reopenConversation(
     userName: string,
     userRole: "CLIENT" | "MANAGER",
 ): Promise<void> {
+    const isClientReopen = userRole === "CLIENT";
     await prisma.$transaction([
         prisma.supportConversation.update({
             where: { id: conversationId },
@@ -493,8 +494,13 @@ export async function reopenConversation(
                 conversationId,
                 role: "SYSTEM",
                 authorId: userId,
-                content: `${userName} a réouvert la conversation.`,
-                context: { pathname: userRole === "MANAGER" ? "manager" : "client" } as Prisma.InputJsonValue,
+                content: isClientReopen
+                    ? `${userName} a démarré une nouvelle conversation après résolution.`
+                    : `${userName} a réouvert la conversation.`,
+                context: {
+                    pathname: isClientReopen ? "client-new-thread" : "manager",
+                    pageLabel: isClientReopen ? "new-thread" : "reopen",
+                } as Prisma.InputJsonValue,
             },
         }),
     ]);

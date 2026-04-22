@@ -7,6 +7,10 @@ import {
     NotFoundError,
     AuthError,
 } from '@/lib/api-utils';
+import {
+    notifyManagersClientSignal,
+    notifyManagersClientFeedback,
+} from '@/lib/notifications';
 
 export const GET = withErrorHandler(async (
     request: NextRequest,
@@ -108,6 +112,32 @@ export const POST = withErrorHandler(async (
             clientNote: clientNote || null,
         },
     });
+
+    const contact = await prisma.action.findUnique({
+        where: { id: actionId },
+        select: {
+            callbackDate: true,
+            contact: { select: { firstName: true, lastName: true, company: { select: { name: true } } } },
+            campaign: { select: { mission: { select: { name: true, client: { select: { name: true } } } } } },
+        },
+    });
+    if (contact) {
+        const contactName = [contact.contact?.firstName, contact.contact?.lastName].filter(Boolean).join(" ") || "Contact";
+        const companyName = contact.contact?.company?.name ?? "Entreprise";
+        const clientName = contact.campaign.mission.client.name;
+        const alertData = {
+            clientName,
+            contactName,
+            companyName,
+            missionName: contact.campaign.mission.name,
+            meetingDate: contact.callbackDate?.toISOString() ?? null,
+        };
+        if (outcome === "NO_SHOW") {
+            notifyManagersClientSignal({ ...alertData, outcome, recontact, clientNote: clientNote || null }).catch(() => {});
+        } else {
+            notifyManagersClientFeedback({ ...alertData, outcome, clientNote: clientNote || null }).catch(() => {});
+        }
+    }
 
     return successResponse(feedback);
 });
