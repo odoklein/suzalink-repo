@@ -232,6 +232,7 @@ export async function getConversationForManager(
 ): Promise<SupportConversationDetailDTO | null> {
     const core = await loadConversationCore(conversationId);
     if (!core) return null;
+    if (core.messageCount === 0) return null;
     await ensureManagerState(conversationId, managerId);
     const unread = await countUnreadForManager(conversationId, managerId);
     const state = await prisma.supportManagerState.findUnique({
@@ -257,7 +258,9 @@ export async function listManagerInbox(
     managerId: string,
     filters: ManagerInboxFilters = {},
 ): Promise<SupportConversationSummaryDTO[]> {
-    const where: Prisma.SupportConversationWhereInput = {};
+    const where: Prisma.SupportConversationWhereInput = {
+        messageCount: { gt: 0 },
+    };
     if (filters.status) where.status = filters.status;
     if (filters.search) {
         where.client = { name: { contains: filters.search, mode: "insensitive" } };
@@ -327,8 +330,12 @@ export async function getManagerInboxStats(managerId: string): Promise<{
     resolvedConversations: number;
 }> {
     const [active, resolved] = await Promise.all([
-        prisma.supportConversation.count({ where: { status: "ACTIVE" } }),
-        prisma.supportConversation.count({ where: { status: "RESOLVED" } }),
+        prisma.supportConversation.count({
+            where: { status: "ACTIVE", messageCount: { gt: 0 } },
+        }),
+        prisma.supportConversation.count({
+            where: { status: "RESOLVED", messageCount: { gt: 0 } },
+        }),
     ]);
 
     // Total unread = messages from client/system newer than this manager's
@@ -341,6 +348,7 @@ export async function getManagerInboxStats(managerId: string): Promise<{
     const stateMap = new Map(states.map((s) => [s.conversationId, s.lastReadAt]));
 
     const conversations = await prisma.supportConversation.findMany({
+        where: { messageCount: { gt: 0 } },
         select: { id: true },
     });
     let totalUnread = 0;
