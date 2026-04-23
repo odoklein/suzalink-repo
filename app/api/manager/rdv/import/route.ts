@@ -80,7 +80,6 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
     const mappingsStr = (formData.get("mappings") as string)?.trim();
     const missingEntityHandlingRaw = ((formData.get("missingEntityHandling") as string) || "skip").trim();
     const createCampaignNow = String(formData.get("createCampaignNow") || "").trim().toLowerCase() === "true";
-    const campaignNameInput = String(formData.get("campaignName") || "").trim();
     const createListNow = String(formData.get("createListNow") || "").trim().toLowerCase() === "true";
     const listNameInput = String(formData.get("listName") || "").trim();
     const missingEntityHandling: MissingEntityHandling =
@@ -121,6 +120,7 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
         where: { id: missionId },
         select: {
             id: true,
+            name: true,
             channel: true,
             campaigns: { where: { isActive: true }, take: 1, orderBy: { createdAt: "asc" }, select: { id: true } },
             lists: { select: { id: true } },
@@ -131,7 +131,7 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
     }
     let campaignId = mission.campaigns[0]?.id;
     if (!campaignId && createCampaignNow) {
-        const safeCampaignName = campaignNameInput || `Campagne import RDV - ${new Date().toLocaleDateString("fr-FR")}`;
+        const safeCampaignName = mission.name;
         const createdCampaign = await prisma.campaign.create({
             data: {
                 missionId: mission.id,

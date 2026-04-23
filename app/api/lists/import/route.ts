@@ -920,13 +920,15 @@ async function processBatch(
         const defaultChannel: "CALL" | "EMAIL" | "LINKEDIN" = "CALL";
 
         // Determine or create campaign for this import (one per list)
-        const campaignName = `Historique import - ${validRows[0]?.companyName ?? "Liste"}`;
+        let campaignName = "Historique import";
         const listWithMission = await prisma.list.findUnique({
             where: { id: listId },
             select: {
                 missionId: true,
+                mission: { select: { name: true } },
             },
         });
+        campaignName = listWithMission?.mission?.name?.trim() || campaignName;
         let campaignId: string | null = null;
         if (listWithMission?.missionId) {
             const existingCampaign = await prisma.campaign.findFirst({

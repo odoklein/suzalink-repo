@@ -1183,23 +1183,83 @@ function MissionRow({
 
 function ScriptModal({ mission, onClose }: { mission: MissionLite | null; onClose: () => void }) {
     if (!mission) return null;
-    const campaigns = mission.campaigns || [];
+    const { success, error: showError } = useToast();
+    const [scriptDraft, setScriptDraft] = useState("");
+    const [isSaving, setIsSaving] = useState(false);
+
+    const { data: campaigns = [], isLoading } = useQuery({
+        queryKey: ["mission-campaigns-for-script-modal", mission.id],
+        queryFn: async () => {
+            const res = await fetch(`/api/campaigns?missionId=${mission.id}`);
+            const json = await res.json();
+            if (!json.success || !Array.isArray(json.data)) {
+                throw new Error(json.error || "Impossible de charger les scripts");
+            }
+            return json.data as Array<{
+                id: string;
+                isActive: boolean;
+                script: string | null;
+                _count?: { actions?: number };
+            }>;
+        },
+        enabled: !!mission?.id,
+        staleTime: 30_000,
+    });
+
+    const targetCampaign = (campaigns.length > 0
+        ? [...campaigns].sort((a, b) => {
+              const activeDelta = Number(b.isActive) - Number(a.isActive);
+              if (activeDelta !== 0) return activeDelta;
+              const aActions = a._count?.actions ?? 0;
+              const bActions = b._count?.actions ?? 0;
+              return bActions - aActions;
+          })[0]
+        : null) as { id: string; script: string | null } | null;
+
+    useEffect(() => {
+        setScriptDraft(targetCampaign?.script ?? "");
+    }, [targetCampaign?.id, targetCampaign?.script]);
+
+    const saveScript = async () => {
+        if (!targetCampaign) return;
+        setIsSaving(true);
+        try {
+            const res = await fetch(`/api/campaigns/${targetCampaign.id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ script: scriptDraft }),
+            });
+            const json = await res.json();
+            if (!json.success) {
+                showError("Erreur", json.error || "Impossible de sauvegarder le script");
+                return;
+            }
+            success("Script mis à jour", "Le script actif de la mission a été sauvegardé");
+        } catch {
+            showError("Erreur", "Impossible de sauvegarder le script");
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
     return (
         <Modal
             isOpen={!!mission}
             onClose={onClose}
-            title={`Scripts · ${mission.name}`}
-            description="Gérez les scripts de campagnes liées à cette mission"
+            title={`Script · ${mission.name}`}
+            description="Edition directe du script principal de la mission"
             size="lg"
         >
-            {campaigns.length === 0 ? (
+            {isLoading ? (
+                <div className="py-8 text-center text-sm text-slate-500">Chargement du script...</div>
+            ) : !targetCampaign ? (
                 <div className="text-center py-8">
                     <FileText className="w-10 h-10 text-slate-300 mx-auto mb-3" />
                     <p className="text-sm font-medium text-slate-700">
-                        Aucune campagne liée à cette mission
+                        Aucun script disponible pour cette mission
                     </p>
                     <p className="text-xs text-slate-500 mt-1">
-                        Créez une campagne depuis la page de la mission pour y attacher un script.
+                        Créez d’abord une campagne active depuis la mission pour initialiser un script.
                     </p>
                     <Link
                         href={`/manager/missions/${mission.id}?tab=campaigns`}
@@ -1209,33 +1269,26 @@ function ScriptModal({ mission, onClose }: { mission: MissionLite | null; onClos
                     </Link>
                 </div>
             ) : (
-                <div className="space-y-2">
-                    {campaigns.map((c) => (
-                        <Link
-                            key={c.id}
-                            href={`/manager/campaigns/${c.id}`}
-                            className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 hover:border-indigo-200 hover:bg-indigo-50/30 transition-colors"
-                        >
-                            <div className="w-9 h-9 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                                <FileText className="w-4 h-4" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="text-sm font-semibold text-slate-900 truncate">{c.name}</p>
-                                {c.icp && (
-                                    <p className="text-xs text-slate-500 truncate mt-0.5">{c.icp}</p>
-                                )}
-                            </div>
-                            <ChevronRight className="w-4 h-4 text-slate-400" />
-                        </Link>
-                    ))}
+                <div className="space-y-4">
+                    <div className="rounded-xl border border-slate-200 bg-white p-3">
+                        <textarea
+                            value={scriptDraft}
+                            onChange={(e) => setScriptDraft(e.target.value)}
+                            className="w-full min-h-[320px] rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-300"
+                            placeholder="Ecrivez le script principal de cette mission..."
+                        />
+                    </div>
                     <div className="pt-3 border-t border-slate-100 flex justify-end gap-2">
-                        <Button variant="ghost" onClick={onClose}>Fermer</Button>
+                        <Button variant="ghost" onClick={onClose} disabled={isSaving}>Fermer</Button>
+                        <Button variant="primary" onClick={saveScript} disabled={isSaving}>
+                            {isSaving ? "Enregistrement..." : "Enregistrer"}
+                        </Button>
                         <Link
-                            href={`/manager/missions/${mission.id}?tab=campaigns`}
+                            href={`/manager/missions/${mission.id}?tab=strategy`}
                             className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 text-white text-sm font-medium hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-500/30 transition-all"
                         >
                             <Settings2 className="w-4 h-4" />
-                            Gérer la mission
+                            Ouvrir la mission
                         </Link>
                     </div>
                 </div>

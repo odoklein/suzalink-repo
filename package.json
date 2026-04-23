@@ -81,6 +81,7 @@
     "dotenv-cli": "^11.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.1.1",
+    "next-unused": "^0.0.6",
     "tailwindcss": "^4",
     "tsx": "^4.21.0",
     "typescript": "^5"
