@@ -20,7 +20,7 @@ import { sendTransactionalEmail } from "@/lib/email/transactional";
 const sendBroadcastSchema = z.object({
   subject: z.string().trim().min(1, "L'objet est requis").max(500),
   bodyHtml: z.string().trim().min(1, "Le contenu HTML est requis"),
-  audienceType: z.enum(["ALL_CLIENTS", "ALL_COMMERCIALS", "SELECTION"]),
+  audienceType: z.enum(["ALL_CLIENTS", "ALL_COMMERCIALS", "INTERNAL_TEAM", "SELECTION"]),
   // Required only when audienceType === "SELECTION"
   recipientIds: z.array(z.string()).optional(),
 });
@@ -42,6 +42,18 @@ export const GET = withErrorHandler(async (request: NextRequest) => {
       orderBy: { createdAt: "desc" },
       include: {
         sentBy: { select: { id: true, name: true, email: true } },
+        recipients: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            wasSent: true,
+            openedAt: true,
+            openCount: true,
+            lastOpenedAt: true,
+          },
+          orderBy: { email: "asc" },
+        },
       },
     }),
     prisma.broadcastEmail.count(),
@@ -84,6 +96,16 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
       select: { email: true, name: true },
     });
     recipients = users.map((u) => ({ email: u.email, name: u.name }));
+  } else if (audienceType === "INTERNAL_TEAM") {
+    const users = await prisma.user.findMany({
+      where: {
+        isActive: true,
+        email: { not: "" },
+        role: { in: ["MANAGER", "SDR", "BOOKER", "DEVELOPER", "BUSINESS_DEVELOPER"] },
+      },
+      select: { email: true, name: true },
+    });
+    recipients = users.map((u) => ({ email: u.email, name: u.name }));
   } else {
     // SELECTION
     if (!recipientIds || recipientIds.length === 0) {
@@ -112,6 +134,17 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
       failedCount: 0,
       status: "SENDING",
       sentById: session.user.id,
+      recipients: {
+        create: recipients.map((recipient) => ({
+          email: recipient.email,
+          name: recipient.name,
+        })),
+      },
+    },
+    include: {
+      recipients: {
+        select: { id: true, email: true, name: true },
+      },
     },
   });
 
@@ -119,12 +152,34 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
   let sentCount = 0;
   let failedCount = 0;
 
+  const appBaseUrl = process.env.NEXTAUTH_URL || new URL(request.url).origin;
+  const recipientsByEmail = new Map(
+    broadcast.recipients.map((recipient) => [recipient.email.toLowerCase(), recipient])
+  );
+
   for (const recipient of recipients) {
+    const dbRecipient = recipientsByEmail.get(recipient.email.toLowerCase());
+    const trackingPixel = dbRecipient
+      ? `<img src="${appBaseUrl}/api/broadcast-open?id=${dbRecipient.id}" width="1" height="1" alt="" style="display:none;" />`
+      : "";
+    const htmlWithTrackingPixel = `${bodyHtml}${trackingPixel}`;
+
     const ok = await sendTransactionalEmail({
       to: recipient.email,
       subject,
-      html: bodyHtml,
+      html: htmlWithTrackingPixel,
     });
+
+    if (dbRecipient) {
+      await prisma.broadcastEmailRecipient.update({
+        where: { id: dbRecipient.id },
+        data: {
+          wasSent: ok,
+          sendError: ok ? null : "Envoi SMTP échoué",
+        },
+      });
+    }
+
     if (ok) {
       sentCount++;
     } else {
@@ -149,6 +204,18 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
     },
     include: {
       sentBy: { select: { id: true, name: true, email: true } },
+      recipients: {
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          wasSent: true,
+          openedAt: true,
+          openCount: true,
+          lastOpenedAt: true,
+        },
+        orderBy: { email: "asc" },
+      },
     },
   });
 

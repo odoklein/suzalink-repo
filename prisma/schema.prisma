@@ -3509,6 +3509,7 @@ model SupportManagerState {
 enum BroadcastAudienceType {
   ALL_CLIENTS
   ALL_COMMERCIALS
+  INTERNAL_TEAM
   SELECTION
 }
 
@@ -3537,10 +3538,34 @@ model BroadcastEmail {
 
   sentById        String
   sentBy          User                  @relation("BroadcastEmailSender", fields: [sentById], references: [id])
+  recipients      BroadcastEmailRecipient[]
 
   sentAt          DateTime?
   createdAt       DateTime              @default(now())
 
   @@index([sentById])
   @@index([createdAt])
+}
+
+model BroadcastEmailRecipient {
+  id               String         @id @default(cuid())
+  broadcastEmailId String
+  broadcastEmail   BroadcastEmail @relation(fields: [broadcastEmailId], references: [id], onDelete: Cascade)
+
+  email            String
+  name             String?
+  userId           String?
+
+  wasSent          Boolean        @default(false)
+  sendError        String?
+  openedAt         DateTime?
+  openCount        Int            @default(0)
+  lastOpenedAt     DateTime?
+
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  @@index([broadcastEmailId])
+  @@index([openedAt])
+  @@index([userId])
 }

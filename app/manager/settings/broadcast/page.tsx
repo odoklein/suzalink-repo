@@ -21,13 +21,14 @@ import {
   RefreshCw,
   X,
   Check,
+  Building2,
 } from "lucide-react";
 
 // ============================================
 // TYPES
 // ============================================
 
-type AudienceType = "ALL_CLIENTS" | "ALL_COMMERCIALS" | "SELECTION";
+type AudienceType = "ALL_CLIENTS" | "ALL_COMMERCIALS" | "INTERNAL_TEAM" | "SELECTION";
 
 interface SelectableUser {
   id: string;
@@ -48,6 +49,15 @@ interface BroadcastRecord {
   sentAt: string | null;
   createdAt: string;
   sentBy: { id: string; name: string; email: string };
+  recipients: {
+    id: string;
+    email: string;
+    name: string | null;
+    wasSent: boolean;
+    openedAt: string | null;
+    openCount: number;
+    lastOpenedAt: string | null;
+  }[];
 }
 
 // ============================================
@@ -78,11 +88,18 @@ const AUDIENCE_OPTIONS: {
     description: "Choisissez précisément les destinataires",
     icon: MousePointer,
   },
+  {
+    value: "INTERNAL_TEAM",
+    label: "Équipe interne",
+    description: "Managers, SDR, Booker, Dev et Business Developer",
+    icon: Building2,
+  },
 ];
 
 const AUDIENCE_LABELS: Record<AudienceType, string> = {
   ALL_CLIENTS: "Tous les clients",
   ALL_COMMERCIALS: "Tous les commerciaux",
+  INTERNAL_TEAM: "Équipe interne",
   SELECTION: "Sélection manuelle",
 };
 
@@ -223,6 +240,8 @@ function ConfirmSendDialog({
 function HistoryCard({ item }: { item: BroadcastRecord }) {
   const [expanded, setExpanded] = useState(false);
   const status = STATUS_CONFIG[item.status];
+  const openedCount = item.recipients.filter((r) => Boolean(r.openedAt)).length;
+  const deliveredCount = item.recipients.filter((r) => r.wasSent).length;
 
   return (
     <div className="rounded-2xl border border-slate-200/80 bg-white shadow-sm overflow-hidden">
@@ -254,6 +273,11 @@ function HistoryCard({ item }: { item: BroadcastRecord }) {
               <CheckCircle2 className="w-3 h-3 text-emerald-500" />
               {item.sentCount}/{item.recipientCount} envoyés
             </span>
+            <span className="text-slate-300">·</span>
+            <span className="flex items-center gap-1">
+              <Eye className="w-3 h-3 text-indigo-500" />
+              {openedCount}/{deliveredCount || item.sentCount} ouverts
+            </span>
             {item.failedCount > 0 && (
               <>
                 <span className="text-slate-300">·</span>
@@ -282,6 +306,57 @@ function HistoryCard({ item }: { item: BroadcastRecord }) {
           <div className="flex items-center gap-2 text-xs text-slate-500">
             <span className="font-medium text-slate-600">Envoyé par :</span>
             {item.sentBy.name} ({item.sentBy.email})
+          </div>
+          <div className="grid grid-cols-3 gap-2 text-xs">
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2">
+              <p className="text-emerald-700 font-semibold">{item.sentCount}</p>
+              <p className="text-emerald-600">Envoyés</p>
+            </div>
+            <div className="rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2">
+              <p className="text-indigo-700 font-semibold">{openedCount}</p>
+              <p className="text-indigo-600">Ouverts</p>
+            </div>
+            <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2">
+              <p className="text-red-700 font-semibold">{item.failedCount}</p>
+              <p className="text-red-600">Échecs</p>
+            </div>
+          </div>
+          <div className="rounded-xl border border-slate-200 overflow-hidden">
+            <div className="px-3 py-2 bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-600">
+              Détail compact par destinataire
+            </div>
+            <div className="max-h-56 overflow-y-auto divide-y divide-slate-100">
+              {item.recipients.map((recipient) => (
+                <div key={recipient.id} className="px-3 py-2 text-xs flex items-center gap-2">
+                  <span className="font-medium text-slate-700 truncate max-w-[180px]">
+                    {recipient.name || recipient.email}
+                  </span>
+                  <span className="text-slate-400 truncate">{recipient.email}</span>
+                  <span className="ml-auto flex items-center gap-2 shrink-0">
+                    <span
+                      className={`px-2 py-0.5 rounded-full border ${
+                        recipient.wasSent
+                          ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                          : "border-red-200 bg-red-50 text-red-700"
+                      }`}
+                    >
+                      {recipient.wasSent ? "Envoyé" : "Échec"}
+                    </span>
+                    <span
+                      className={`px-2 py-0.5 rounded-full border ${
+                        recipient.openedAt
+                          ? "border-indigo-200 bg-indigo-50 text-indigo-700"
+                          : "border-slate-200 bg-slate-50 text-slate-500"
+                      }`}
+                    >
+                      {recipient.openedAt
+                        ? `Ouvert${recipient.openCount > 1 ? ` x${recipient.openCount}` : ""}`
+                        : "Non ouvert"}
+                    </span>
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
           <div>
             <span className="text-xs font-medium text-slate-500 uppercase tracking-wide block mb-2">
@@ -325,6 +400,7 @@ export default function BroadcastEmailPage() {
   const [audienceCounts, setAudienceCounts] = useState<{
     clients: number;
     commercials: number;
+    internalTeam: number;
   } | null>(null);
 
   // Send state
@@ -394,6 +470,8 @@ export default function BroadcastEmailPage() {
       ? audienceCounts?.clients ?? 0
       : audienceType === "ALL_COMMERCIALS"
       ? audienceCounts?.commercials ?? 0
+      : audienceType === "INTERNAL_TEAM"
+      ? audienceCounts?.internalTeam ?? 0
       : selectedIds.size;
 
   // ── Filtered users for selection ──────────────────────────────────────────
@@ -553,6 +631,8 @@ export default function BroadcastEmailPage() {
                       ? audienceCounts?.clients
                       : opt.value === "ALL_COMMERCIALS"
                       ? audienceCounts?.commercials
+                      : opt.value === "INTERNAL_TEAM"
+                      ? audienceCounts?.internalTeam
                       : selectedIds.size;
                   return (
                     <label
@@ -661,7 +741,11 @@ export default function BroadcastEmailPage() {
                                   </span>
                                 </div>
                                 <span className="text-[10px] font-semibold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full uppercase shrink-0">
-                                  {u.role === "CLIENT" ? "Client" : "Commercial"}
+                                  {u.role === "CLIENT"
+                                    ? "Client"
+                                    : u.role === "COMMERCIAL"
+                                    ? "Commercial"
+                                    : "Interne"}
                                 </span>
                               </button>
                             );
