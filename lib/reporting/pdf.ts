@@ -2,14 +2,21 @@ import PDFDocument from "pdfkit";
 import type { ReportData, ReportMission } from "@/lib/reporting/types";
 
 const COLORS = {
-    primary: "#4F46E5",
-    primarySoft: "#EEF2FF",
-    text: "#0F172A",
-    muted: "#64748B",
-    border: "#E2E8F0",
-    surface: "#F8FAFC",
-    success: "#059669",
-    danger: "#DC2626",
+    paper: "#FAF9F6",
+    paperRaised: "#FFFFFF",
+    paperSunken: "#F4F3EE",
+    brand: "#7C5CFC",
+    brandStrong: "#6366F1",
+    brandSoft: "#ECE8FF",
+    ink: "#1F2A1F",
+    ink2: "#2B3A2B",
+    ink3: "#615F55",
+    inkMuted: "#A8A69A",
+    line: "#E9E4DB",
+    lineStrong: "#D9D2C6",
+    success: "#0F9D74",
+    danger: "#B23B3B",
+    warning: "#C97B2A",
 };
 
 function collectPdfBuffer(doc: PDFKit.PDFDocument): Promise<Buffer> {
@@ -25,6 +32,7 @@ function ensureSpace(doc: PDFKit.PDFDocument, requiredHeight: number) {
     const bottomLimit = doc.page.height - doc.page.margins.bottom;
     if (doc.y + requiredHeight > bottomLimit) {
         doc.addPage();
+        paintPageBackground(doc);
     }
 }
 
@@ -36,6 +44,21 @@ function formatDelta(delta: number | null | undefined, suffix = "%"): string | n
     if (delta == null) return null;
     const sign = delta >= 0 ? "+" : "";
     return `${sign}${delta}${suffix}`;
+}
+
+function getDeltaColor(delta: number): string {
+    if (delta > 0) return COLORS.success;
+    if (delta < 0) return COLORS.danger;
+    return COLORS.ink3;
+}
+
+function paintPageBackground(doc: PDFKit.PDFDocument) {
+    const margin = 18;
+    const x = margin;
+    const y = margin;
+    const w = doc.page.width - margin * 2;
+    const h = doc.page.height - margin * 2;
+    doc.roundedRect(x, y, w, h, 20).fill(COLORS.paper);
 }
 
 function buildInsights(data: ReportData): string[] {
@@ -78,6 +101,60 @@ function buildInsights(data: ReportData): string[] {
     return insights.slice(0, 4);
 }
 
+function drawSectionTitle(doc: PDFKit.PDFDocument, title: string) {
+    doc.fillColor(COLORS.ink3).font("Helvetica-Bold").fontSize(9).text(title.toUpperCase(), {
+        characterSpacing: 1.1,
+    });
+    doc.moveDown(0.35);
+    const y = doc.y;
+    const x = doc.page.margins.left;
+    const width = doc.page.width - doc.page.margins.left - doc.page.margins.right;
+    doc.moveTo(x, y).lineTo(x + width, y).lineWidth(1).strokeColor(COLORS.line).stroke();
+    doc.moveDown(0.55);
+}
+
+function drawHeader(doc: PDFKit.PDFDocument, data: ReportData) {
+    const left = doc.page.margins.left;
+    const width = doc.page.width - doc.page.margins.left - doc.page.margins.right;
+    const headerHeight = 152;
+    const badgeWidth = 112;
+    const badgeHeight = 72;
+    const y = doc.y;
+
+    doc.roundedRect(left, y, width, headerHeight, 20).fill(COLORS.brandStrong);
+    doc.roundedRect(left + 22, y + 18, badgeWidth, badgeHeight, 14).fill("#FFFFFF22");
+
+    doc.fillColor("#FFFFFF").font("Helvetica-Bold").fontSize(9).text("RAPPORT CLIENT", left + 30, y + 34, {
+        width: badgeWidth - 28,
+    });
+    doc.fillColor("#F6F4FF").font("Helvetica").fontSize(9).text(data.periodLabel.toUpperCase(), left + 36, y + 52, {
+        width: badgeWidth - 28,
+    });
+
+    doc.fillColor("#FFFFFF").font("Helvetica-Bold").fontSize(24).text(data.missionLabel, left + 156, y + 30, {
+        width: width - 176,
+    });
+    doc.fillColor("#E6E1FF").font("Helvetica").fontSize(10.5).text(`${data.clientName} | Genere le ${data.generatedDate}`, left + 156, y + 68, {
+        width: width - 176,
+    });
+
+    doc.fillColor("#FFFFFF").font("Helvetica-Bold").fontSize(36).text(String(data.meetingsBooked), left + 156, y + 94);
+    doc.fillColor("#E6E1FF").font("Helvetica").fontSize(11).text("RDV planifies", left + 216, y + 106);
+
+    if (data.meetingsDelta != null) {
+        const deltaColor = data.meetingsDelta >= 0 ? "#BDF7E8" : "#FFD3D3";
+        doc.fillColor(deltaColor)
+            .font("Helvetica-Bold")
+            .fontSize(10)
+            .text(`${formatDelta(data.meetingsDelta) ?? ""} vs periode precedente`, left + width - 210, y + 114, {
+                width: 186,
+                align: "right",
+            });
+    }
+
+    doc.y = y + headerHeight + 18;
+}
+
 function drawStatCard(
     doc: PDFKit.PDFDocument,
     x: number,
@@ -86,23 +163,51 @@ function drawStatCard(
     height: number,
     title: string,
     value: string,
-    delta?: string | null
+    delta?: number | null
 ) {
-    doc.roundedRect(x, y, width, height, 14).fillAndStroke(COLORS.surface, COLORS.border);
-    doc.fillColor(COLORS.muted).font("Helvetica").fontSize(10).text(title, x + 16, y + 14);
-    doc.fillColor(COLORS.text).font("Helvetica-Bold").fontSize(22).text(value, x + 16, y + 34, {
-        width: width - 32,
+    doc.roundedRect(x, y, width, height, 14).fillAndStroke(COLORS.paperRaised, COLORS.line);
+    doc.fillColor(COLORS.ink3).font("Helvetica-Bold").fontSize(9).text(title.toUpperCase(), x + 14, y + 12, {
+        width: width - 28,
+        characterSpacing: 0.7,
+    });
+    doc.fillColor(COLORS.ink).font("Helvetica-Bold").fontSize(24).text(value, x + 14, y + 34, {
+        width: width - 28,
     });
 
-    if (delta) {
-        const deltaColor = delta.startsWith("-") ? COLORS.danger : COLORS.success;
-        doc.fillColor(deltaColor).font("Helvetica-Bold").fontSize(10).text(delta, x + 16, y + height - 24);
+    if (delta != null) {
+        doc.fillColor(getDeltaColor(delta))
+            .font("Helvetica-Bold")
+            .fontSize(10)
+            .text(formatDelta(delta) ?? "", x + 14, y + height - 22);
     }
 }
 
-function drawSectionTitle(doc: PDFKit.PDFDocument, title: string) {
-    doc.fillColor(COLORS.text).font("Helvetica-Bold").fontSize(14).text(title);
-    doc.moveDown(0.5);
+function drawPipeline(doc: PDFKit.PDFDocument, data: ReportData) {
+    const left = doc.page.margins.left;
+    const width = doc.page.width - doc.page.margins.left - doc.page.margins.right;
+    const cardHeight = 66;
+    const gap = 10;
+    const cardWidth = (width - gap * 3) / 4;
+    const pipeline = [
+        { label: "Contacts", value: data.contactsReached },
+        { label: "Qualifies", value: data.qualifiedLeads },
+        { label: "RDV", value: data.meetingsBooked },
+        { label: "Opportunites", value: data.opportunities },
+    ];
+
+    for (let i = 0; i < pipeline.length; i += 1) {
+        const item = pipeline[i];
+        const x = left + i * (cardWidth + gap);
+        const y = doc.y;
+        doc.roundedRect(x, y, cardWidth, cardHeight, 12).fillAndStroke(COLORS.paperSunken, COLORS.line);
+        doc.fillColor(COLORS.ink).font("Helvetica-Bold").fontSize(19).text(String(item.value), x + 12, y + 16, {
+            width: cardWidth - 24,
+        });
+        doc.fillColor(COLORS.ink3).font("Helvetica").fontSize(9).text(item.label, x + 12, y + 42, {
+            width: cardWidth - 24,
+        });
+    }
+    doc.y += cardHeight + 16;
 }
 
 function drawTrendRows(doc: PDFKit.PDFDocument, periods: ReportData["meetingsByPeriod"]) {
@@ -115,7 +220,7 @@ function drawTrendRows(doc: PDFKit.PDFDocument, periods: ReportData["meetingsByP
     const barWidth = totalWidth - labelWidth - valueWidth - 20;
 
     if (rows.length === 0) {
-        doc.fillColor(COLORS.muted).font("Helvetica").fontSize(10).text("Aucun RDV enregistre sur la periode.");
+        doc.fillColor(COLORS.ink3).font("Helvetica").fontSize(10).text("Aucun RDV enregistre sur la periode selectionnee.");
         doc.moveDown(0.4);
         return;
     }
@@ -125,12 +230,12 @@ function drawTrendRows(doc: PDFKit.PDFDocument, periods: ReportData["meetingsByP
         const y = doc.y;
         const fillWidth = Math.max(8, (row.count / max) * barWidth);
 
-        doc.fillColor(COLORS.muted).font("Helvetica").fontSize(10).text(row.label, left, y + 5, {
+        doc.fillColor(COLORS.ink3).font("Helvetica-Bold").fontSize(9.5).text(row.label, left, y + 6, {
             width: labelWidth,
         });
-        doc.roundedRect(left + labelWidth + 8, y + 6, barWidth, 10, 5).fill("#E5E7EB");
-        doc.roundedRect(left + labelWidth + 8, y + 6, fillWidth, 10, 5).fill(COLORS.primary);
-        doc.fillColor(COLORS.text).font("Helvetica-Bold").fontSize(10).text(String(row.count), left + labelWidth + barWidth + 16, y + 4, {
+        doc.roundedRect(left + labelWidth + 8, y + 8, barWidth, 8, 4).fill(COLORS.brandSoft);
+        doc.roundedRect(left + labelWidth + 8, y + 8, fillWidth, 8, 4).fill(COLORS.brand);
+        doc.fillColor(COLORS.ink).font("Helvetica-Bold").fontSize(10).text(String(row.count), left + labelWidth + barWidth + 16, y + 4, {
             width: valueWidth,
             align: "right",
         });
@@ -151,21 +256,21 @@ function drawMissionCard(doc: PDFKit.PDFDocument, mission: ReportMission) {
     ensureSpace(doc, cardHeight + 10);
 
     const y = doc.y;
-    doc.roundedRect(left, y, width, cardHeight, 14).fillAndStroke("#FFFFFF", COLORS.border);
-    doc.fillColor(COLORS.text).font("Helvetica-Bold").fontSize(11).text(mission.name, left + 16, y + 14, {
+    doc.roundedRect(left, y, width, cardHeight, 14).fillAndStroke(COLORS.paperRaised, COLORS.line);
+    doc.fillColor(COLORS.ink).font("Helvetica-Bold").fontSize(11).text(mission.name, left + 16, y + 14, {
         width: width - 120,
     });
-    doc.fillColor(mission.isActive ? COLORS.success : COLORS.muted)
+    doc.fillColor(mission.isActive ? COLORS.success : COLORS.inkMuted)
         .font("Helvetica-Bold")
         .fontSize(9)
         .text(mission.isActive ? "ACTIF" : "INACTIF", left + width - 72, y + 16, {
             width: 56,
             align: "right",
         });
-    doc.fillColor(COLORS.muted).font("Helvetica").fontSize(9).text(bodyText, left + 16, y + 34);
+    doc.fillColor(COLORS.ink3).font("Helvetica").fontSize(9).text(bodyText, left + 16, y + 34);
 
     if (objectiveText) {
-        doc.fillColor(COLORS.text).font("Helvetica").fontSize(9).text(objectiveText, left + 16, y + 50, {
+        doc.fillColor(COLORS.ink2).font("Helvetica").fontSize(9).text(objectiveText, left + 16, y + 50, {
             width: width - 32,
         });
     }
@@ -176,7 +281,7 @@ function drawMissionCard(doc: PDFKit.PDFDocument, mission: ReportMission) {
 export async function generateClientReportPdf(data: ReportData): Promise<Buffer> {
     const doc = new PDFDocument({
         size: "A4",
-        margins: { top: 48, right: 48, bottom: 48, left: 48 },
+        margins: { top: 56, right: 48, bottom: 56, left: 48 },
         info: {
             Title: `Rapport d'activite - ${data.clientName}`,
             Author: "Captain Prospect CRM",
@@ -188,35 +293,17 @@ export async function generateClientReportPdf(data: ReportData): Promise<Buffer>
     const pageWidth = doc.page.width - doc.page.margins.left - doc.page.margins.right;
     const left = doc.page.margins.left;
 
-    doc.roundedRect(left, 48, pageWidth, 126, 20).fill(COLORS.primary);
-    doc.fillColor("#FFFFFF").font("Helvetica").fontSize(10).text(data.periodLabel.toUpperCase(), left + 24, 68);
-    doc.fillColor("#FFFFFF").font("Helvetica-Bold").fontSize(26).text(data.missionLabel, left + 24, 88, {
-        width: pageWidth - 48,
-    });
-    doc.fillColor("#E0E7FF").font("Helvetica").fontSize(11).text(`${data.clientName} • Genere le ${data.generatedDate}`, left + 24, 124);
-    doc.fillColor("#FFFFFF").font("Helvetica-Bold").fontSize(36).text(String(data.meetingsBooked), left + 24, 148);
-    doc.fillColor("#E0E7FF").font("Helvetica").fontSize(11).text("RDV planifies", left + 92, 161);
-
-    if (data.meetingsDelta != null) {
-        doc.fillColor("#C7D2FE")
-            .font("Helvetica-Bold")
-            .fontSize(10)
-            .text(`${formatDelta(data.meetingsDelta) ?? ""} vs periode precedente`, left + pageWidth - 196, 154, {
-                width: 172,
-                align: "right",
-            });
-    }
-
-    doc.y = 198;
-    drawSectionTitle(doc, "Vue d'ensemble");
+    paintPageBackground(doc);
+    drawHeader(doc, data);
+    drawSectionTitle(doc, "Synthese executive");
 
     const gap = 12;
     const cardWidth = (pageWidth - gap) / 2;
     const cardHeight = 84;
     const cardsY = doc.y;
 
-    drawStatCard(doc, left, cardsY, cardWidth, cardHeight, "Contacts touches", String(data.contactsReached), formatDelta(data.deltas?.[0]));
-    drawStatCard(doc, left + cardWidth + gap, cardsY, cardWidth, cardHeight, "Leads qualifies", String(data.qualifiedLeads), formatDelta(data.deltas?.[1]));
+    drawStatCard(doc, left, cardsY, cardWidth, cardHeight, "Contacts touches", String(data.contactsReached), data.deltas?.[0] ?? null);
+    drawStatCard(doc, left + cardWidth + gap, cardsY, cardWidth, cardHeight, "Leads qualifies", String(data.qualifiedLeads), data.deltas?.[1] ?? null);
     drawStatCard(doc, left, cardsY + cardHeight + gap, cardWidth, cardHeight, "Opportunites", String(data.opportunities), null);
     drawStatCard(
         doc,
@@ -226,10 +313,14 @@ export async function generateClientReportPdf(data: ReportData): Promise<Buffer>
         cardHeight,
         "Taux de conversion",
         `${data.conversionRate}%`,
-        formatDelta(data.deltas?.[3], " pts")
+        data.deltas?.[3] ?? null
     );
 
     doc.y = cardsY + cardHeight * 2 + gap + 24;
+    ensureSpace(doc, 100);
+    drawSectionTitle(doc, "Parcours de conversion");
+    drawPipeline(doc, data);
+
     ensureSpace(doc, 120);
     drawSectionTitle(doc, "Points cles");
 
@@ -237,8 +328,8 @@ export async function generateClientReportPdf(data: ReportData): Promise<Buffer>
     for (const insight of insights) {
         ensureSpace(doc, 28);
         const bulletY = doc.y + 3;
-        doc.circle(left + 4, bulletY + 4, 2.5).fill(COLORS.primary);
-        doc.fillColor(COLORS.text).font("Helvetica").fontSize(10.5).text(insight, left + 16, doc.y, {
+        doc.circle(left + 4, bulletY + 4, 2.5).fill(COLORS.brand);
+        doc.fillColor(COLORS.ink2).font("Helvetica").fontSize(10.5).text(insight, left + 16, doc.y, {
             width: pageWidth - 16,
             lineGap: 2,
         });
@@ -251,22 +342,19 @@ export async function generateClientReportPdf(data: ReportData): Promise<Buffer>
     doc.moveDown(0.4);
 
     ensureSpace(doc, 80);
-    drawSectionTitle(doc, "Missions");
+    drawSectionTitle(doc, "Portefeuille de missions");
     if (data.missions.length === 0) {
-        doc.fillColor(COLORS.muted).font("Helvetica").fontSize(10).text("Aucune mission sur la periode selectionnee.");
+        doc.fillColor(COLORS.ink3).font("Helvetica").fontSize(10).text("Aucune mission sur la periode selectionnee.");
     } else {
         for (const mission of data.missions) {
             drawMissionCard(doc, mission);
         }
     }
 
-    doc.fillColor(COLORS.muted)
-        .font("Helvetica")
-        .fontSize(8)
-        .text("Document genere sans rendu Chrome pour un export plus rapide et plus fiable.", left, doc.page.height - 28, {
-            width: pageWidth,
-            align: "center",
-        });
+    doc.fillColor(COLORS.inkMuted).font("Helvetica").fontSize(8).text("Document genere par le moteur de reporting Captain Prospect CRM.", left, doc.page.height - 32, {
+        width: pageWidth,
+        align: "center",
+    });
 
     doc.end();
     return bufferPromise;

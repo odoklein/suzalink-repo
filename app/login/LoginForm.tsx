@@ -60,14 +60,14 @@ export default function LoginForm() {
         <>
             <style>{`
                 .lp {
-                    --cp950: #1e1b4b; --cp700: #4338ca; --cp600: #4f46e5;
-                    --cp500: #6366f1; --cp400: #818cf8; --cp200: #c7d2fe;
-                    --ink: #1e1b4b; --ink2: rgba(30,27,75,.52); --ink3: rgba(30,27,75,.32);
-                    --ink4: rgba(30,27,75,.18); --ink5: rgba(30,27,75,.08);
+                    --cp950: #1a1757; --cp700: #322da0; --cp600: #3f39c5;
+                    --cp500: #4f46e5; --cp400: #6b67e6; --cp200: #b9b6f7;
+                    --ink: #0e0f12; --ink2: rgba(34,36,43,.72); --ink3: rgba(74,77,88,.72);
+                    --ink4: rgba(142,145,157,.95); --ink5: rgba(217,219,226,.95);
                     --t: 0.18s cubic-bezier(.4,0,.2,1);
                     --spring: 0.5s cubic-bezier(.22,1,.36,1);
 
-                    font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+                    font-family: "Inter Tight", -apple-system, Helvetica, Arial, sans-serif;
                     -webkit-font-smoothing: antialiased;
                     min-height: 100vh;
                     display: flex;
@@ -79,11 +79,11 @@ export default function LoginForm() {
                     overflow: hidden;
 
                     background:
-                        radial-gradient(55.87% 55.87% at 35.49% -18.37%, #d1aad7 0%, rgba(255,255,255,0) 100%),
-                        radial-gradient(70.81% 48.44% at -24.53% -16.02%, #c88bc4 0%, rgba(255,255,255,0) 100%),
-                        radial-gradient(91.61% 92.58% at 104.86% -43.36%, #7b8fdd 0%, rgba(255,255,255,0) 100%),
-                        radial-gradient(50.59% 55.55% at -2.99% -8.69%, #86bff2 9.06%, rgba(255,255,255,0) 100%),
-                        #f7fafc;
+                        radial-gradient(55.87% 55.87% at 35.49% -18.37%, #eeeefd 0%, rgba(255,255,255,0) 100%),
+                        radial-gradient(70.81% 48.44% at -24.53% -16.02%, #dcdbfb 0%, rgba(255,255,255,0) 100%),
+                        radial-gradient(91.61% 92.58% at 104.86% -43.36%, #b9b6f7 0%, rgba(255,255,255,0) 100%),
+                        radial-gradient(50.59% 55.55% at -2.99% -8.69%, #f3f3f6 9.06%, rgba(255,255,255,0) 100%),
+                        #f7f6f2;
                 }
 
                 .lp::before {
@@ -161,15 +161,15 @@ export default function LoginForm() {
 
                 .lp-wrap {
                     display: flex; align-items: center;
-                    height: 46px; border-radius: 12px;
-                    border: 1.5px solid var(--ink5);
+                    height: 42px; border-radius: 10px;
+                    border: 1px solid var(--ink5);
                     background: rgba(255,255,255,.55);
                     transition: border-color var(--t), box-shadow var(--t), background var(--t);
                 }
-                .lp-wrap:hover { border-color: var(--ink4); }
+                .lp-wrap:hover { border-color: #b7b9c2; }
                 .lp-wrap.f {
                     border-color: var(--cp500);
-                    box-shadow: 0 0 0 3px rgba(99,102,241,.10);
+                    box-shadow: 0 0 0 4px rgba(79,70,229,.18);
                     background: rgba(255,255,255,.8);
                 }
                 .lp-wrap.err {
@@ -186,7 +186,7 @@ export default function LoginForm() {
 
                 .lp-in {
                     flex: 1; height: 100%; padding: 0 12px 0 0;
-                    font-family: inherit; font-size: 13.5px; font-weight: 400;
+                    font-family: inherit; font-size: 14px; font-weight: 400;
                     color: var(--ink); background: transparent; border: none; outline: none;
                 }
                 .lp-in::placeholder { color: var(--ink4); }
@@ -217,9 +217,9 @@ export default function LoginForm() {
                 }
 
                 .lp-btn {
-                    width: 100%; height: 46px; border-radius: 12px; border: none;
-                    background: linear-gradient(160deg, var(--cp500) 0%, var(--cp950) 100%);
-                    box-shadow: 0 2px 12px rgba(99,102,241,.25);
+                    width: 100%; height: 48px; border-radius: 10px; border: none;
+                    background: var(--cp500);
+                    box-shadow: none;
                     color: #fff; font-family: inherit; font-weight: 600;
                     font-size: 14px; letter-spacing: .01em;
                     cursor: pointer; display: flex; align-items: center;
@@ -228,10 +228,13 @@ export default function LoginForm() {
                     margin-bottom: 20px;
                 }
                 .lp-btn:hover:not(:disabled) {
-                    filter: brightness(1.08); transform: translateY(-1px);
-                    box-shadow: 0 4px 20px rgba(99,102,241,.30);
+                    background: var(--cp600);
+                    transform: translateY(-1px);
+                    filter: none;
+                    box-shadow: none;
                 }
-                .lp-btn:active:not(:disabled) { filter: brightness(.96); transform: translateY(0); }
+                .lp-btn:active:not(:disabled) { background: var(--cp700); transform: translateY(0); }
+                .lp-btn:focus-visible { outline: none; box-shadow: 0 0 0 4px rgba(79,70,229,.18); }
                 .lp-btn:disabled { opacity: .55; cursor: not-allowed; }
                 .lp-btn svg { transition: transform var(--t); }
                 .lp-btn:hover:not(:disabled) svg { transform: translateX(2px); }
