@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, ReactNode } from "react";
+import { useEffect, useRef, useState, ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import {
@@ -859,7 +859,7 @@ export function ClientDrawer({ isOpen, onClose, client, onUpdate, onDelete }: Cl
         tone: "indigo" | "emerald" | "amber" | "slate";
     };
 
-    const timeline: TimelineEvent[] = useMemo(() => {
+    const timeline: TimelineEvent[] = (() => {
         const events: TimelineEvent[] = [];
         events.push({
             id: `client-${client.id}`,
@@ -902,7 +902,7 @@ export function ClientDrawer({ isOpen, onClose, client, onUpdate, onDelete }: Cl
             });
         });
         return events.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    }, [client, missions, usersList, interlocuteurs]);
+    })();
 
     const toneToClass: Record<string, string> = {
         indigo: "bg-indigo-500",
