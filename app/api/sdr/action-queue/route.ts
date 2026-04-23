@@ -263,13 +263,49 @@ export const GET = withErrorHandler(async (request: NextRequest) => {
 
     const config = await configPromise;
 
-    // Cooldown already filtered in SQL; apply config-driven priority and sort
     const callbackResultCodes = buildCallbackResultCodes(config);
+
+    const bookedContactIds = rawResult
+        .filter((r) => r.last_action_result === "MEETING_BOOKED" && r.contact_id)
+        .map((r) => r.contact_id!);
+    const bookedCompanyIds = rawResult
+        .filter((r) => r.last_action_result === "MEETING_BOOKED" && !r.contact_id)
+        .map((r) => r.company_id);
+
+    let absentContactIds = new Set<string>();
+    let absentCompanyIds = new Set<string>();
+
+    if (bookedContactIds.length > 0 || bookedCompanyIds.length > 0) {
+        const absentActions = await prisma.action.findMany({
+            where: {
+                result: "MEETING_BOOKED",
+                sdrId,
+                meetingFeedback: { outcome: "NO_SHOW" },
+                OR: [
+                    ...(bookedContactIds.length > 0 ? [{ contactId: { in: bookedContactIds } }] : []),
+                    ...(bookedCompanyIds.length > 0 ? [{ companyId: { in: bookedCompanyIds }, contactId: null }] : []),
+                ],
+            },
+            select: { contactId: true, companyId: true },
+        });
+        absentContactIds = new Set(absentActions.filter((a) => a.contactId).map((a) => a.contactId!));
+        absentCompanyIds = new Set(absentActions.filter((a) => !a.contactId && a.companyId).map((a) => a.companyId!));
+    }
+
     const withPriority = rawResult.map((row) => {
+        const isAbsentRdv = row.contact_id
+            ? absentContactIds.has(row.contact_id)
+            : absentCompanyIds.has(row.company_id);
+
+        if (isAbsentRdv) {
+            return { ...row, _priorityOrder: 0, _priorityLabel: "ABSENT_RDV" };
+        }
         const { priorityOrder, priorityLabel } = statusConfigService.getPriorityForResult(row.last_action_result, config);
         return { ...row, _priorityOrder: priorityOrder, _priorityLabel: priorityLabel };
     });
     const filtered = withPriority.filter((r) => {
+        if (r._priorityLabel === "ABSENT_RDV") return true;
+
         const isInCooldown = !!r.last_action_created && new Date(r.last_action_created).getTime() >= cooldownDate.getTime();
         const isOwnedCallback = !!r.last_action_result && callbackResultCodes.has(r.last_action_result) && r.last_action_sdr_id === sdrId;
 

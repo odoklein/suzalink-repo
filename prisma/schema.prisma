@@ -456,6 +456,9 @@ model User {
   authEventViews   AuthEventView[] @relation("AuthEventViewer")
   viewedAuthEvents AuthEventView[] @relation("AuthEventTarget")
 
+  // Broadcast Emails sent by this user (MANAGER)
+  broadcastEmails  BroadcastEmail[] @relation("BroadcastEmailSender")
+
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   
@@ -3495,4 +3498,49 @@ model SupportManagerState {
 
   @@unique([conversationId, managerId])
   @@index([managerId])
+}
+
+// ============================================
+// BROADCAST EMAIL MODULE
+// Platform-level email campaigns sent by managers
+// to clients, commercials, or a manual selection.
+// ============================================
+
+enum BroadcastAudienceType {
+  ALL_CLIENTS
+  ALL_COMMERCIALS
+  SELECTION
+}
+
+enum BroadcastEmailStatus {
+  SENDING
+  SENT
+  PARTIAL
+  FAILED
+}
+
+model BroadcastEmail {
+  id              String                @id @default(cuid())
+  subject         String
+  bodyHtml        String                @db.Text
+
+  audienceType    BroadcastAudienceType
+
+  // Snapshot of recipients at send time: { email: string; name: string }[]
+  recipientEmails Json
+
+  recipientCount  Int                   @default(0)
+  sentCount       Int                   @default(0)
+  failedCount     Int                   @default(0)
+
+  status          BroadcastEmailStatus
+
+  sentById        String
+  sentBy          User                  @relation("BroadcastEmailSender", fields: [sentById], references: [id])
+
+  sentAt          DateTime?
+  createdAt       DateTime              @default(now())
+
+  @@index([sentById])
+  @@index([createdAt])
 }

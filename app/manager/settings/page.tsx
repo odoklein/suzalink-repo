@@ -6,7 +6,7 @@ import {
   Mail, RotateCcw, Save, Eye, Info,
   CheckCircle2, AlertCircle, Sparkles, Code2,
   ChevronRight, Zap, Variable, Key, ShieldCheck, Link2,
-  ListOrdered
+  ListOrdered, Megaphone
 } from "lucide-react";
 import { RDV_TEMPLATE_VARIABLES } from "@/lib/email/templates/rdv-notification";
 
@@ -454,6 +454,21 @@ export default function ManagerSettingsPage() {
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-slate-900 group-hover:text-indigo-700">Statuts et catégories de résultat</p>
             <p className="text-sm text-slate-500">Gérer les catégories (RDV, Rappel, Intéressé…) et associer chaque statut d&apos;action à une catégorie pour les rapports et l&apos;Activité client.</p>
+          </div>
+          <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-indigo-500 shrink-0" />
+        </Link>
+
+        {/* Quick link: Campagne email plateforme */}
+        <Link
+          href="/manager/settings/broadcast"
+          className="flex items-center gap-4 p-4 rounded-2xl border border-slate-200 bg-white hover:border-indigo-200 hover:bg-indigo-50/30 transition-all group"
+        >
+          <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center group-hover:bg-indigo-200 transition-colors">
+            <Megaphone className="w-5 h-5 text-indigo-600" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-slate-900 group-hover:text-indigo-700">Campagne email plateforme</p>
+            <p className="text-sm text-slate-500">Envoyez un email HTML à tous les clients, tous les commerciaux ou une sélection manuelle. Historique des campagnes inclus.</p>
           </div>
           <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-indigo-500 shrink-0" />
         </Link>

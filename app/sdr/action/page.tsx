@@ -269,6 +269,7 @@ const TABLE_QUEUE_LIMIT = 120;
 const STATS_QUEUE_LIMIT = 250;
 
 const PRIORITY_LABELS: Record<string, { label: string; color: string }> = {
+    ABSENT_RDV: { label: "⚠ RDV Absent", color: "bg-red-100 text-red-800 border-red-300 font-bold animate-pulse" },
     CALLBACK: { label: "Rappel", color: "bg-amber-50 text-amber-700 border-amber-200" },
     FOLLOW_UP: { label: "Suivi", color: "bg-blue-50 text-blue-700 border-blue-200" },
     NEW: { label: "Nouveau", color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
@@ -370,11 +371,17 @@ function ActionStatsModalBody({
                                     const name = row._displayName ?? (row.contact ? `${row.contact.firstName ?? ""} ${row.contact.lastName ?? ""}`.trim() || row.company.name : row.company.name);
                                     const status = row.lastAction ? (statusLabels[row.lastAction.result] ?? row.lastAction.result) : "Jamais contacté";
                                     const pri = priorityLabels[row.priority];
+                                    const isAbsent = row.priority === "ABSENT_RDV";
                                     return (
                                         <tr
                                             key={queueRowKey(row)}
                                             onClick={() => onRowClick(row)}
-                                            className="border-b border-slate-100 last:border-0 hover:bg-indigo-50/80 cursor-pointer transition-colors"
+                                            className={cn(
+                                                "border-b last:border-0 cursor-pointer transition-colors",
+                                                isAbsent
+                                                    ? "bg-red-50 border-red-100 hover:bg-red-100/80"
+                                                    : "border-slate-100 hover:bg-indigo-50/80"
+                                            )}
                                         >
                                             <td className="py-2.5 px-3">
                                                 <span className="font-medium text-slate-900">{name}</span>
@@ -1896,6 +1903,17 @@ export default function SDRActionPage() {
                 key: "priority",
                 header: "Urgence",
                 render: (_, row) => {
+                    if (row.priority === "ABSENT_RDV") {
+                        return (
+                            <div className="space-y-1">
+                                <Badge className="text-xs font-bold border bg-red-100 text-red-800 border-red-300 animate-pulse gap-1">
+                                    <AlertCircle className="w-3 h-3" />
+                                    RDV ABSENT
+                                </Badge>
+                                <p className="text-[10px] font-semibold text-red-600">A rappeler en priorité</p>
+                            </div>
+                        );
+                    }
                     const isCallbackRow = !!row.lastAction && isCallbackResult(row.lastAction.result);
                     const callbackDateRaw = row.lastAction?.callbackDate;
                     const callbackTs = callbackDateRaw ? new Date(callbackDateRaw).getTime() : NaN;
@@ -2527,7 +2545,7 @@ export default function SDRActionPage() {
                                 <h1 className="text-[22px] font-[500] text-white leading-tight tracking-tight">Actions</h1>
                                 <p className="text-[13px] text-white/50 mt-0.5 truncate max-w-[280px]">{currentAction.missionName || "Gérez vos actions commerciales"}</p>
                             </div>
-                            {currentAction.priority && (
+                            {currentAction.priority && PRIORITY_LABELS[currentAction.priority] && (
                                 <Badge className={cn("text-[11px] font-[500] uppercase tracking-wide", PRIORITY_LABELS[currentAction.priority].color)}>
                                     {PRIORITY_LABELS[currentAction.priority].label}
                                 </Badge>

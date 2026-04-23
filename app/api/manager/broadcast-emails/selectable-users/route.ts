@@ -1,0 +1,22 @@
+// GET /api/manager/broadcast-emails/selectable-users
+// Returns all active CLIENT and COMMERCIAL users for manual selection
+
+import { NextRequest } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { successResponse, requireRole, withErrorHandler } from "@/lib/api-utils";
+
+export const GET = withErrorHandler(async (request: NextRequest) => {
+  await requireRole(["MANAGER"], request);
+
+  const users = await prisma.user.findMany({
+    where: {
+      role: { in: ["CLIENT", "COMMERCIAL"] },
+      isActive: true,
+      email: { not: "" },
+    },
+    select: { id: true, name: true, email: true, role: true },
+    orderBy: [{ role: "asc" }, { name: "asc" }],
+  });
+
+  return successResponse(users);
+});
