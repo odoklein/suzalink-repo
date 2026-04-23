@@ -1,4 +1,3 @@
-import { useCallback, useEffect, useState } from "react";
 "use client";
 
 import type { Channel } from "@/lib/types";
@@ -59,7 +58,7 @@ export function ProspectionChannelWorkspace({
     if (channel === "CALL") {
         return <>{callContent ?? null}</>;
     }
-    if (channel === "EMAIL" && role === "SDR") {
+    if (channel === "EMAIL") {
         return (
             <EmailProspectionPanel
                 missionId={missionId}
@@ -67,7 +66,7 @@ export function ProspectionChannelWorkspace({
             />
         );
     }
-    if (channel === "LINKEDIN" && role === "SDR") {
+    if (channel === "LINKEDIN") {
         return (
             <LinkedInProspectionPanel
                 missionId={missionId}
@@ -75,7 +74,5 @@ export function ProspectionChannelWorkspace({
             />
         );
     }
-// Lazy-load panels to avoid pulling in heavy deps until needed
-
     return null;
 }

@@ -67,8 +67,12 @@ const LEGACY_PRIORITY: Record<string, { order: number; label: ActionPriorityLabe
     INVALIDE: { order: 4, label: "RETRY" },
     MEETING_BOOKED: { order: 999, label: "SKIP" },
     BAD_CONTACT: { order: 999, label: "SKIP" },
-    BARRAGE_STANDARD: { order: 999, label: "SKIP" },
+    // Gatekeeper barriers: retryable — the contact still exists behind them
+    BARRAGE_STANDARD: { order: 4, label: "RETRY" },
+    BARRAGE_SECRETAIRE: { order: 4, label: "RETRY" },
+    // Confirmed dead data: stop requeuing
     NUMERO_KO: { order: 999, label: "SKIP" },
+    FAUX_NUMERO: { order: 999, label: "SKIP" },
     DISQUALIFIED: { order: 999, label: "SKIP" },
     ENVOIE_MAIL: { order: 999, label: "SKIP" },
     CONNECTION_SENT: { order: 999, label: "SKIP" },
@@ -79,13 +83,11 @@ const LEGACY_PRIORITY: Record<string, { order: number; label: ActionPriorityLabe
     REFUS_ARGU: { order: 999, label: "SKIP" },
     REFUS_CATEGORIQUE: { order: 999, label: "SKIP" },
     RELANCE: { order: 1, label: "CALLBACK" },
-    RAPPEL: { order: 1, label: "CALLBACK" },
+    RAPPEL: { order: 2, label: "CALLBACK" },
     GERE_PAR_SIEGE: { order: 999, label: "SKIP" },
-    FAUX_NUMERO: { order: 999, label: "SKIP" },
     PROJET_A_SUIVRE: { order: 2, label: "FOLLOW_UP" },
     MAUVAIS_INTERLOCUTEUR: { order: 999, label: "SKIP" },
     MAIL_UNIQUEMENT: { order: 999, label: "SKIP" },
-    BARRAGE_SECRETAIRE: { order: 999, label: "SKIP" },
     MAIL_DOC: { order: 999, label: "SKIP" },
     HORS_CIBLE: { order: 999, label: "SKIP" },
 };

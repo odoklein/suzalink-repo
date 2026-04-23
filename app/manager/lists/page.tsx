@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, Badge, Button, Select, ConfirmModal, ContextMenu, useContextMenu, useToast } from "@/components/ui";
@@ -22,14 +22,26 @@ import {
     Edit,
     Archive,
     ArchiveRestore,
+    AlertTriangle,
 } from "lucide-react";
 import Link from "next/link";
 import { ListingSearchTab } from "@/components/listing/ListingSearchTab";
 import type { ListingResult } from "@/components/listing/ListingSearchTab";
 import { ImportToListModal } from "@/components/listing/ImportToListModal";
 import { ListHealthDashboard } from "@/components/lists/ListHealthDashboard";
-import { ProspectionHealthBadge } from "@/components/lists/ProspectionHealthBadge";
+import {
+    ProspectionHealthBadge,
+    ActivityScoreBar,
+    VelocityTrendBadge,
+} from "@/components/lists/ProspectionHealthBadge";
 import type { ListHealthSummary } from "@/lib/types/health";
+
+// Coverage near 100% = list nearing exhaustion (rose), low = lots of work still (emerald)
+function getCoverageColor(rate: number): string {
+    if (rate >= 70) return "text-rose-600";
+    if (rate >= 50) return "text-amber-600";
+    return "text-emerald-600";
+}
 
 // ============================================
 // TYPES
@@ -145,7 +157,7 @@ export default function ListsPage() {
     const { data: healthByListId = new Map<string, ListHealthSummary>() } = useQuery({
         queryKey: ["manager", "lists-health", visibleListIds],
         queryFn: () => fetchHealthByListIds(visibleListIds),
-        enabled: activeTab === "lists" && visibleListIds.length > 0,
+        enabled: (activeTab === "lists" || activeTab === "health") && visibleListIds.length > 0,
         staleTime: 2 * 60 * 1000,
     });
 
@@ -313,11 +325,19 @@ export default function ListsPage() {
     // STATS
     // ============================================
 
-    const stats = {
-        total: lists.length,
-        companies: lists.reduce((acc, l) => acc + (l._count?.companies || 0), 0),
-        contacts: lists.reduce((acc, l) => acc + (l.stats?.contactCount || 0), 0),
-    };
+    const stats = useMemo(() => {
+        const visibleLists = lists.filter((l) => !l.isArchived);
+        const total = visibleLists.length;
+        const companies = visibleLists.reduce((acc, l) => acc + (l._count?.companies || 0), 0);
+        const contacts = visibleLists.reduce((acc, l) => acc + (l.stats?.contactCount || 0), 0);
+        let atRisk = 0;
+        let stalled = 0;
+        for (const health of healthByListId.values()) {
+            if (health.status === "AT_RISK") atRisk++;
+            else if (health.status === "STALLED") stalled++;
+        }
+        return { total, companies, contacts, atRisk, stalled, toWatch: atRisk + stalled };
+    }, [lists, healthByListId]);
 
     return (
         <div className="space-y-6">
@@ -388,13 +408,14 @@ export default function ListsPage() {
                 <>
                     {/* Premium Stats Cards */}
                     {isLoading ? (
-                        <div className="grid grid-cols-3 gap-5">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+                            <div className="mgr-stat-card animate-pulse"><div className="h-16 bg-slate-100 rounded-xl" /></div>
                             <div className="mgr-stat-card animate-pulse"><div className="h-16 bg-slate-100 rounded-xl" /></div>
                             <div className="mgr-stat-card animate-pulse"><div className="h-16 bg-slate-100 rounded-xl" /></div>
                             <div className="mgr-stat-card animate-pulse"><div className="h-16 bg-slate-100 rounded-xl" /></div>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-3 gap-5">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
                             <div className="mgr-stat-card">
                                 <div className="flex items-center gap-4">
                                     <div className="w-12 h-12 rounded-xl bg-indigo-100 flex items-center justify-center">
@@ -402,7 +423,7 @@ export default function ListsPage() {
                                     </div>
                                     <div>
                                         <p className="text-2xl font-bold text-slate-900">{stats.total}</p>
-                                        <p className="text-sm font-medium text-slate-500">Listes totales</p>
+                                        <p className="text-sm font-medium text-slate-500">Listes actives</p>
                                     </div>
                                 </div>
                             </div>
@@ -428,6 +449,37 @@ export default function ListsPage() {
                                     </div>
                                 </div>
                             </div>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    if (stats.toWatch > 0) setActiveTab("health");
+                                }}
+                                className={`mgr-stat-card text-left transition-shadow ${
+                                    stats.toWatch > 0 ? "cursor-pointer hover:shadow-md" : "cursor-default"
+                                }`}
+                            >
+                                <div className="flex items-center gap-4">
+                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                                        stats.toWatch > 0 ? "bg-rose-100" : "bg-slate-100"
+                                    }`}>
+                                        <AlertTriangle className={`w-6 h-6 ${
+                                            stats.toWatch > 0 ? "text-rose-600" : "text-slate-400"
+                                        }`} />
+                                    </div>
+                                    <div className="min-w-0">
+                                        <p className="text-2xl font-bold text-slate-900">{stats.toWatch}</p>
+                                        <p className="text-sm font-medium text-slate-500 truncate">
+                                            À surveiller
+                                            {stats.toWatch > 0 && (
+                                                <span className="ml-1 text-[11px] text-slate-400 font-normal">
+                                                    · {stats.atRisk} à risque
+                                                    {stats.stalled > 0 && <>, {stats.stalled} stagnantes</>}
+                                                </span>
+                                            )}
+                                        </p>
+                                    </div>
+                                </div>
+                            </button>
                         </div>
                     )}
 
@@ -480,8 +532,32 @@ export default function ListsPage() {
 
                         <div className="h-5 w-px bg-slate-200" />
 
-                        {/* Quality filter */}
-                       
+                        {/* Quality filter — based on actionable % */}
+                        <div className="flex items-center gap-1">
+                            {[
+                                { value: "all", label: "Qualité" },
+                                { value: "low", label: "< 50%" },
+                                { value: "medium", label: "50–80%" },
+                                { value: "high", label: "80%+" },
+                            ].map((q) => (
+                                <button
+                                    key={q.value}
+                                    onClick={() => setQualityFilter(q.value)}
+                                    className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all ${
+                                        qualityFilter === q.value
+                                            ? "bg-indigo-50 text-indigo-700 border border-indigo-200"
+                                            : "text-slate-500 hover:text-slate-700 hover:bg-slate-50 border border-transparent"
+                                    }`}
+                                    title={
+                                        q.value === "all"
+                                            ? "Toutes les listes"
+                                            : `Contacts ACTIONABLE ${q.label}`
+                                    }
+                                >
+                                    {q.label}
+                                </button>
+                            ))}
+                        </div>
 
                         <div className="h-5 w-px bg-slate-200" />
 
@@ -559,13 +635,13 @@ export default function ListsPage() {
                     ) : (
                         <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
                             {/* Table header */}
-                            <div className="grid grid-cols-[minmax(0,2fr)_minmax(0,1.2fr)_80px_80px_80px_120px_100px_36px] gap-3 px-5 py-2.5 bg-slate-50/80 border-b border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                            <div className="grid grid-cols-[minmax(0,2fr)_minmax(0,1fr)_70px_65px_65px_190px_90px_36px] gap-3 px-5 py-2.5 bg-slate-50/80 border-b border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
                                 <span>Nom</span>
                                 <span>Mission</span>
                                 <span className="text-center">Type</span>
                                 <span className="text-center">Sociétés</span>
                                 <span className="text-center">Contacts</span>
-                                <span className="text-center">Santé</span>
+                                <span className="text-center">Santé &amp; activité</span>
                                 <span className="text-center">Source</span>
                                 <span></span>
                             </div>
@@ -577,24 +653,39 @@ export default function ListsPage() {
                                         ? Math.round(((list.stats?.completeness?.ACTIONABLE || 0) / totalContacts) * 100)
                                         : 0;
 
+                                    const health = healthByListId.get(list.id);
+
                                     return (
                                         <div
                                             key={list.id}
                                             onClick={() => router.push(`/manager/lists/${list.id}`)}
                                             onContextMenu={(e) => handleContextMenu(e, list)}
-                                            className={`group grid grid-cols-[minmax(0,2fr)_minmax(0,1.2fr)_80px_80px_80px_120px_100px_36px] gap-3 px-5 py-3 cursor-pointer transition-colors hover:bg-indigo-50/40 ${list.isArchived ? "opacity-60" : ""}`}
+                                            className={`group grid grid-cols-[minmax(0,2fr)_minmax(0,1fr)_70px_65px_65px_190px_90px_36px] gap-3 px-5 py-3 cursor-pointer transition-colors hover:bg-indigo-50/40 ${list.isArchived ? "opacity-60" : ""}`}
                                         >
                                             {/* Name + badges */}
                                             <div className="flex items-center gap-3 min-w-0">
                                                 <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200 flex items-center justify-center flex-shrink-0 group-hover:border-indigo-200 transition-colors">
                                                     <List className="w-4 h-4 text-slate-400 group-hover:text-indigo-500 transition-colors" />
                                                 </div>
-                                                <div className="min-w-0 flex items-center gap-2">
-                                                    <span className="text-sm font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors truncate">{list.name}</span>
-                                                    {list.isArchived && (
-                                                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-500 border border-slate-200 flex-shrink-0">
-                                                            Archivée
-                                                        </span>
+                                                <div className="min-w-0">
+                                                    <div className="flex items-center gap-2 min-w-0">
+                                                        <span className="text-sm font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors truncate">{list.name}</span>
+                                                        {list.isArchived && (
+                                                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-500 border border-slate-200 flex-shrink-0">
+                                                                Archivée
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    {totalContacts > 0 && (
+                                                        <p className="text-[10px] font-medium text-slate-400 mt-0.5 truncate">
+                                                            {actionablePercent}% actionnable
+                                                            {health && health.actions7d > 0 && (
+                                                                <> · {health.actions7d} action{health.actions7d > 1 ? "s" : ""} 7j</>
+                                                            )}
+                                                            {health && health.daysSinceLastAction !== null && health.daysSinceLastAction >= 7 && (
+                                                                <span className="text-amber-600"> · {health.daysSinceLastAction}j sans action</span>
+                                                            )}
+                                                        </p>
                                                     )}
                                                 </div>
                                             </div>
@@ -623,23 +714,47 @@ export default function ListsPage() {
                                                 <span className="text-sm font-semibold text-slate-700">{totalContacts}</span>
                                             </div>
 
-                                            
-
-                                            {/* Health */}
-                                            <div className="flex items-center justify-center">
-                                                {(() => {
-                                                    const health = healthByListId.get(list.id);
-                                                    if (!health) {
-                                                        return <span className="text-[11px] text-slate-400">—</span>;
-                                                    }
-                                                    return (
-                                                        <ProspectionHealthBadge
-                                                            status={health.status}
-                                                            statusLabel={health.statusLabel}
-                                                            compact
-                                                        />
-                                                    );
-                                                })()}
+                                            {/* Health + activity mini-dashboard */}
+                                            <div
+                                                className="flex items-center min-w-0"
+                                                onClick={(e) => e.stopPropagation()}
+                                            >
+                                                {!health ? (
+                                                    <div className="w-full flex items-center justify-center">
+                                                        <span className="text-[11px] text-slate-400">—</span>
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex flex-col gap-1 w-full min-w-0">
+                                                        <div className="flex items-center justify-between gap-2">
+                                                            <ProspectionHealthBadge
+                                                                status={health.status}
+                                                                statusLabel={health.statusLabel}
+                                                                compact
+                                                            />
+                                                            <VelocityTrendBadge
+                                                                trend={health.velocity.trend}
+                                                                explanation={health.velocity.trendExplanation}
+                                                            />
+                                                        </div>
+                                                        <div className="flex items-center gap-2 min-w-0">
+                                                            <div className="flex-1 min-w-0">
+                                                                <ActivityScoreBar
+                                                                    score={health.activityScore}
+                                                                    size="sm"
+                                                                    explanation={`Score composite 0–100`}
+                                                                />
+                                                            </div>
+                                                            {health.coverageRate !== null && (
+                                                                <span
+                                                                    className={`text-[10px] font-bold tabular-nums flex-shrink-0 ${getCoverageColor(health.coverageRate)}`}
+                                                                    title={`Couverture: ${health.coverageRate.toFixed(1)}%`}
+                                                                >
+                                                                    {Math.round(health.coverageRate)}%
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
 
                                             {/* Source */}

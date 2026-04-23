@@ -118,16 +118,26 @@ function MiniStatCard({
 // ============================================
 
 
-function StatusDistributionBar({ intel }: { intel: ClientListsIntelligence }) {
-    const total = intel.totalLists;
+interface StatusCounts {
+    totalLists: number;
+    fullyProspectedCount: number;
+    inProgressCount: number;
+    atRiskCount: number;
+    stalledCount: number;
+    insufficientDataCount: number;
+}
+
+
+function StatusDistributionBar({ counts }: { counts: StatusCounts }) {
+    const total = counts.totalLists;
     if (total === 0) return null;
 
 
     type StatusSegment = HealthStatus | 'ACTIVE' | 'INACTIVE';
     const segments: { count: number; status: StatusSegment }[] = [
-        { count: intel.fullyProspectedCount + intel.inProgressCount, status: 'ACTIVE' },
-        { count: intel.atRiskCount, status: 'AT_RISK' },
-        { count: intel.stalledCount + intel.insufficientDataCount, status: 'INACTIVE' },
+        { count: counts.fullyProspectedCount + counts.inProgressCount, status: 'ACTIVE' },
+        { count: counts.atRiskCount, status: 'AT_RISK' },
+        { count: counts.stalledCount + counts.insufficientDataCount, status: 'INACTIVE' },
     ].filter(s => s.count > 0);
 
 
@@ -382,12 +392,22 @@ function MissionCard({
         IN_PROGRESS: 3,
         FULLY_PROSPECTED: 4,
     };
-    const worstStatus = lists.reduce((worst, l) => 
+    const worstStatus = lists.reduce((worst, l) =>
         statusPriority[l.status] < statusPriority[worst.status] ? l : worst
     );
 
+    // Left border reflects the worst status for quick visual scanning
+    const BORDER_BY_STATUS: Record<HealthStatus, string> = {
+        STALLED: 'border-l-4 border-l-rose-400',
+        AT_RISK: 'border-l-4 border-l-amber-400',
+        INSUFFICIENT_DATA: 'border-l-4 border-l-slate-300',
+        IN_PROGRESS: 'border-l-4 border-l-blue-400',
+        FULLY_PROSPECTED: 'border-l-4 border-l-emerald-400',
+    };
+    const borderAccent = BORDER_BY_STATUS[worstStatus.status];
+
     return (
-        <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
+        <div className={`bg-white border border-slate-200 rounded-lg overflow-hidden ${borderAccent}`}>
             {/* Mission header */}
             <button
                 onClick={onToggle}
@@ -516,6 +536,80 @@ export function ListHealthDashboard({
     const isLoading = intelligenceQuery.isLoading || bulkHealthQuery.isLoading;
 
 
+    // ── Aggregate stats derived locally when no client intelligence is loaded
+    // (i.e. the "Santé Prospection" tab from the manager lists page).
+    // Gives the manager view the same KPIs / distribution / alerts / top performers
+    // as the per-client intelligence view, derived from the bulk summaries we
+    // already have in memory — no extra roundtrip needed.
+    const aggregateStats = useMemo(() => {
+        if (intel || allSummaries.length === 0) return null;
+
+        const total = allSummaries.length;
+        const fullyProspected = allSummaries.filter(s => s.status === 'FULLY_PROSPECTED').length;
+        const inProgress = allSummaries.filter(s => s.status === 'IN_PROGRESS').length;
+        const atRisk = allSummaries.filter(s => s.status === 'AT_RISK').length;
+        const stalled = allSummaries.filter(s => s.status === 'STALLED').length;
+        const insufficientData = allSummaries.filter(s => s.status === 'INSUFFICIENT_DATA').length;
+
+        const totalActions7d = allSummaries.reduce((sum, s) => sum + s.actions7d, 0);
+        const totalTargets = allSummaries.reduce((sum, s) => sum + s.totalTargets, 0);
+        const totalContactedTargets = allSummaries.reduce((sum, s) => sum + s.contactedTargets, 0);
+        const overallCoverage = totalTargets > 0
+            ? (totalContactedTargets / totalTargets) * 100
+            : null;
+        const totalContacts = allSummaries.reduce((sum, s) => sum + s.totalContacts, 0);
+        const activeScoreSum = allSummaries.reduce((sum, s) => sum + s.activityScore, 0);
+        const avgActivityScore = total > 0 ? Math.round(activeScoreSum / total) : 0;
+
+        const topPerformers = [...allSummaries]
+            .filter(s => !s.hasSparseData && s.activityScore > 0)
+            .sort((a, b) => b.activityScore - a.activityScore)
+            .slice(0, 3);
+
+        const stagnationAlerts: StagnationAlert[] = allSummaries
+            .filter(s =>
+                s.daysSinceLastAction !== null &&
+                s.daysSinceLastAction >= HEALTH_THRESHOLDS.STAGNATION_MODERATE_DAYS
+            )
+            .map(s => ({
+                listId: s.listId,
+                listName: s.listName,
+                missionId: s.missionId,
+                missionName: s.missionName,
+                daysSinceLastAction: s.daysSinceLastAction!,
+                lastActionAt: null,
+                coverageRate: s.coverageRate,
+                totalContacts: s.totalContacts,
+                severity:
+                    s.daysSinceLastAction! >= HEALTH_THRESHOLDS.STAGNATION_CRITICAL_DAYS
+                        ? 'CRITICAL'
+                        : s.daysSinceLastAction! >= HEALTH_THRESHOLDS.STAGNATION_HIGH_DAYS
+                            ? 'HIGH'
+                            : 'MODERATE',
+            }))
+            .sort((a, b) => b.daysSinceLastAction - a.daysSinceLastAction)
+            .slice(0, 5);
+
+        return {
+            // StatusCounts-shaped (compatible with StatusDistributionBar)
+            totalLists: total,
+            fullyProspectedCount: fullyProspected,
+            inProgressCount: inProgress,
+            atRiskCount: atRisk,
+            stalledCount: stalled,
+            insufficientDataCount: insufficientData,
+            // Aggregates
+            totalActions7d,
+            overallCoverage,
+            totalContacts,
+            avgActivityScore,
+            // Rankings & alerts
+            topPerformers,
+            stagnationAlerts,
+        };
+    }, [intel, allSummaries]);
+
+
     // Apply client-side filters & sort
     const filteredSummaries = useMemo(() => {
         let items = [...allSummaries];
@@ -628,6 +722,81 @@ export function ListHealthDashboard({
 
     return (
         <div className="space-y-6">
+            {/* ── Manager aggregate stats (no specific client) ── */}
+            {!intel && aggregateStats && (
+                <div className="space-y-4">
+                    {/* KPI row */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <MiniStatCard
+                            label="Listes actives"
+                            value={aggregateStats.fullyProspectedCount + aggregateStats.inProgressCount}
+                            sub={`sur ${aggregateStats.totalLists} liste${aggregateStats.totalLists !== 1 ? 's' : ''}`}
+                            color="border-emerald-200"
+                            icon={<Target className="w-4 h-4 text-emerald-500" />}
+                        />
+                        <MiniStatCard
+                            label="À surveiller"
+                            value={aggregateStats.atRiskCount + aggregateStats.stalledCount}
+                            sub={`${aggregateStats.atRiskCount} à risque · ${aggregateStats.stalledCount} stagnantes`}
+                            color="border-rose-200"
+                            icon={<AlertTriangle className="w-4 h-4 text-rose-500" />}
+                        />
+                        <MiniStatCard
+                            label="Actions (7 jours)"
+                            value={aggregateStats.totalActions7d}
+                            sub={`Score moyen: ${aggregateStats.avgActivityScore}/100`}
+                            color="border-blue-200"
+                            icon={<Zap className="w-4 h-4 text-blue-500" />}
+                        />
+                        <MiniStatCard
+                            label="Couverture globale"
+                            value={aggregateStats.overallCoverage !== null
+                                ? `${aggregateStats.overallCoverage.toFixed(1)}%`
+                                : '—'
+                            }
+                            sub={`${aggregateStats.totalContacts} contact${aggregateStats.totalContacts !== 1 ? 's' : ''} suivis`}
+                            color="border-indigo-200"
+                            icon={<Trophy className="w-4 h-4 text-indigo-500" />}
+                        />
+                    </div>
+
+
+                    {/* Status distribution */}
+                    <StatusDistributionBar counts={aggregateStats} />
+
+
+                    {/* Top performers + Stagnation alerts (two columns when both present) */}
+                    {(aggregateStats.topPerformers.length > 0 || aggregateStats.stagnationAlerts.length > 0) && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {aggregateStats.topPerformers.length > 0 && (
+                                <div className="space-y-2">
+                                    <h3 className="text-xs font-bold text-slate-600 uppercase tracking-wider flex items-center gap-1.5">
+                                        <Flame className="w-3.5 h-3.5 text-amber-500" />
+                                        Listes les plus actives
+                                    </h3>
+                                    {aggregateStats.topPerformers.map((s, i) => (
+                                        <PerformerCard key={s.listId} summary={s} rank={i + 1} variant="top" />
+                                    ))}
+                                </div>
+                            )}
+
+                            {aggregateStats.stagnationAlerts.length > 0 && (
+                                <div className="space-y-2">
+                                    <h3 className="text-xs font-bold text-slate-600 uppercase tracking-wider flex items-center gap-1.5">
+                                        <Clock className="w-3.5 h-3.5 text-rose-500" />
+                                        Alertes de stagnation ({aggregateStats.stagnationAlerts.length})
+                                    </h3>
+                                    {aggregateStats.stagnationAlerts.map(alert => (
+                                        <StagnationAlertCard key={alert.listId} alert={alert} />
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            )}
+
+
             {/* ── Intelligence stats (client view) ── */}
             {intel && (
                 <div className="space-y-4">
@@ -668,7 +837,7 @@ export function ListHealthDashboard({
 
 
                     {/* Status distribution */}
-                    <StatusDistributionBar intel={intel} />
+                    <StatusDistributionBar counts={intel} />
 
 
                     {/* Top/Bottom + Stagnation */}

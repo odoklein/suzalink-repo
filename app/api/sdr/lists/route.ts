@@ -67,7 +67,15 @@ export async function GET(request: NextRequest) {
 
         const listIds = lists.map((list) => list.id);
 
-        const [statusRows, contactedRows] = await Promise.all([
+        // Terminal results: contacts that were confirmed dead and should not count as "in progress"
+        // DISQUALIFIED, HORS_CIBLE, NOT_INTERESTED, REFUS_CATEGORIQUE are permanent stops.
+        // BAD_CONTACT, NUMERO_KO, FAUX_NUMERO, MAUVAIS_INTERLOCUTEUR, INVALIDE are data-quality dead-ends.
+        const TERMINAL_RESULTS = [
+            'DISQUALIFIED', 'HORS_CIBLE', 'NOT_INTERESTED', 'REFUS_CATEGORIQUE',
+            'BAD_CONTACT', 'NUMERO_KO', 'FAUX_NUMERO', 'MAUVAIS_INTERLOCUTEUR', 'INVALIDE',
+        ] as const;
+
+        const [statusRows, contactedRows, terminalRows] = await Promise.all([
             prisma.$queryRaw<Array<{ listId: string; status: string; count: bigint }>>`
                 SELECT
                     co."listId" AS "listId",
@@ -78,6 +86,7 @@ export async function GET(request: NextRequest) {
                 WHERE co."listId" IN (${Prisma.join(listIds)})
                 GROUP BY co."listId", c.status
             `,
+            // "Contacted" = contacts with at least one action that is NOT a terminal dead-end
             prisma.$queryRaw<Array<{ listId: string; count: bigint }>>`
                 SELECT
                     co."listId" AS "listId",
@@ -89,6 +98,25 @@ export async function GET(request: NextRequest) {
                     SELECT 1
                     FROM "Action" a
                     WHERE a."contactId" = c.id
+                      AND a.result::text NOT IN (${Prisma.join(TERMINAL_RESULTS)})
+                  )
+                GROUP BY co."listId"
+            `,
+            // Terminal = contacts whose LAST action is a confirmed dead-end (excluded from progress denominator)
+            prisma.$queryRaw<Array<{ listId: string; count: bigint }>>`
+                SELECT
+                    co."listId" AS "listId",
+                    COUNT(DISTINCT c.id)::bigint AS count
+                FROM "Contact" c
+                INNER JOIN "Company" co ON c."companyId" = co.id
+                WHERE co."listId" IN (${Prisma.join(listIds)})
+                  AND EXISTS (
+                    SELECT 1 FROM "Action" a
+                    WHERE a."contactId" = c.id
+                      AND a.result::text IN (${Prisma.join(TERMINAL_RESULTS)})
+                      AND a."createdAt" = (
+                          SELECT MAX(a2."createdAt") FROM "Action" a2 WHERE a2."contactId" = c.id
+                      )
                   )
                 GROUP BY co."listId"
             `,
@@ -114,6 +142,7 @@ export async function GET(request: NextRequest) {
         }
 
         const contactedByList = new Map(contactedRows.map((row) => [row.listId, Number(row.count)]));
+        const terminalByList = new Map(terminalRows.map((row) => [row.listId, Number(row.count)]));
 
         const listsWithStats = lists.map((list) => {
             const stats = completenessByList.get(list.id) ?? {
@@ -123,6 +152,9 @@ export async function GET(request: NextRequest) {
                 incomplete: 0,
             };
             const contactedCount = contactedByList.get(list.id) ?? 0;
+            const terminalCount = terminalByList.get(list.id) ?? 0;
+            // Exclude confirmed-dead contacts from the denominator so progress reflects real work
+            const activeTotal = stats.total - terminalCount;
 
             return {
                 id: list.id,
@@ -133,14 +165,16 @@ export async function GET(request: NextRequest) {
                 companiesCount: list._count.companies,
                 contactsCount: stats.total,
                 contactedCount,
+                terminalCount,
                 completeness: {
                     actionable: stats.actionable,
                     partial: stats.partial,
                     incomplete: stats.incomplete,
                 },
-                progress: stats.total > 0
-                    ? Math.round((contactedCount / stats.total) * 100)
-                    : 0,
+                // Progress = meaningful contacts worked / contacts that are not confirmed dead
+                progress: activeTotal > 0
+                    ? Math.min(100, Math.round((contactedCount / activeTotal) * 100))
+                    : stats.total > 0 ? 100 : 0,
                 createdAt: list.createdAt,
             };
         });

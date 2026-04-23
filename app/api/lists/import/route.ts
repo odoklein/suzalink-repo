@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import type { ActionResult } from "@prisma/client";
+import { calculateContactCompleteness } from "@/lib/scoring";
 
 // ============================================
 // CSV IMPORT API (streaming + batched for performance)
@@ -830,11 +831,41 @@ async function processBatch(
                 phone: c.phone,
                 title: c.title,
                 linkedin: c.linkedin,
+                // Compute completeness at import time so the queue and stats are immediately accurate
+                status: calculateContactCompleteness({
+                    firstName: c.firstName,
+                    lastName: c.lastName,
+                    title: c.title,
+                    email: c.email,
+                    phone: c.phone,
+                    linkedin: c.linkedin,
+                }),
                 ...(c.additionalPhones ? { additionalPhones: c.additionalPhones } : {}),
                 ...(c.customData ? { customData: c.customData } : {}),
             })),
         });
         contactsCreated = contactsToCreate.length;
+
+        // Update company statuses to reflect newly imported contacts
+        const affectedCompanyIds = [...new Set(contactsToCreate.map((c) => c.companyId))];
+        const contactsByCompany = await prisma.contact.findMany({
+            where: { companyId: { in: affectedCompanyIds } },
+            select: { companyId: true, status: true },
+        });
+        const statusByCompany = new Map<string, 'INCOMPLETE' | 'PARTIAL' | 'ACTIONABLE'>();
+        for (const row of contactsByCompany) {
+            const prev = statusByCompany.get(row.companyId) ?? 'INCOMPLETE';
+            if (row.status === 'ACTIONABLE') statusByCompany.set(row.companyId, 'ACTIONABLE');
+            else if (row.status === 'PARTIAL' && prev !== 'ACTIONABLE') statusByCompany.set(row.companyId, 'PARTIAL');
+            else if (!statusByCompany.has(row.companyId)) statusByCompany.set(row.companyId, 'INCOMPLETE');
+        }
+        if (statusByCompany.size > 0) {
+            await Promise.all(
+                [...statusByCompany.entries()].map(([companyId, status]) =>
+                    prisma.company.update({ where: { id: companyId }, data: { status } })
+                )
+            );
+        }
     }
 
     // 5) Actions: create historical actions if configured

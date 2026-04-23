@@ -242,10 +242,22 @@ export class ActionService {
  }
  }
 
- // 3. Update contact completeness if enriched (only for contacts)
- if (input.contactId && input.note && resolvedResult === 'BAD_CONTACT') {
- await this.handleBadContact(tx, input.contactId, input.note);
- }
+            // 3. Data-cleaning side-effects (contacts only)
+            if (input.contactId) {
+                if (resolvedResult === 'BAD_CONTACT') {
+                    await this.handleBadContact(tx, input.contactId, input.note);
+                } else if (resolvedResult === 'NUMERO_KO' || resolvedResult === 'FAUX_NUMERO') {
+                    // Confirmed bad phone: clear it so the contact drops out of CALL queues
+                    await this.handleDeadPhone(tx, input.contactId);
+                } else if (resolvedResult === 'DISQUALIFIED' || resolvedResult === 'HORS_CIBLE') {
+                    // Hard disqualification: downgrade completeness so reporting is accurate
+                    await tx.contact.update({
+                        where: { id: input.contactId },
+                        data: { status: 'INCOMPLETE' },
+                    });
+                    await this.propagateCompanyStatus(tx, input.contactId);
+                }
+            }
 
  return action;
  });
@@ -355,27 +367,95 @@ export class ActionService {
  });
  }
 
- // ============================================
- // BAD CONTACT HANDLING
- // ============================================
- private async handleBadContact(
- tx: Prisma.TransactionClient,
- contactId: string,
- note: string
- ): Promise<void> {
- // If note indicates contact left company, mark as INCOMPLETE
- const leftCompanyKeywords = ['quitté', 'parti', 'left', 'no longer'];
- const shouldMarkIncomplete = leftCompanyKeywords.some(keyword =>
- note.toLowerCase().includes(keyword)
- );
+    // ============================================
+    // BAD CONTACT / DATA CLEANING HANDLERS
+    // ============================================
 
- if (shouldMarkIncomplete) {
- await tx.contact.update({
- where: { id: contactId },
- data: { status: 'INCOMPLETE' },
- });
- }
- }
+    private async handleBadContact(
+        tx: Prisma.TransactionClient,
+        contactId: string,
+        note: string | undefined
+    ): Promise<void> {
+        const lower = (note ?? '').toLowerCase();
+        // Person left the company or is otherwise unreachable
+        const leftKeywords = [
+            'quitté', 'a quitté', 'parti', 'n\'est plus', 'ne travaille plus',
+            'plus dans', 'n est plus', 'retraite', 'décédé', 'licencié',
+            'left', 'no longer', 'not there', 'wrong person', 'departed',
+        ];
+        if (leftKeywords.some((kw) => lower.includes(kw))) {
+            await tx.contact.update({
+                where: { id: contactId },
+                data: { status: 'INCOMPLETE' },
+            });
+            await this.propagateCompanyStatus(tx, contactId);
+        }
+    }
+
+    private async handleDeadPhone(
+        tx: Prisma.TransactionClient,
+        contactId: string
+    ): Promise<void> {
+        // Clear the confirmed-dead phone number so the contact exits CALL queues
+        const contact = await tx.contact.findUnique({
+            where: { id: contactId },
+            select: { phone: true, email: true, linkedin: true, firstName: true, lastName: true, title: true },
+        });
+        if (!contact || !contact.phone) return;
+
+        await tx.contact.update({
+            where: { id: contactId },
+            data: {
+                phone: null,
+                // Re-score without the dead phone
+                status: this.computeStatusInline({
+                    firstName: contact.firstName,
+                    lastName: contact.lastName,
+                    title: contact.title,
+                    email: contact.email,
+                    phone: null,
+                    linkedin: contact.linkedin,
+                }),
+            },
+        });
+        await this.propagateCompanyStatus(tx, contactId);
+    }
+
+    private computeStatusInline(c: {
+        firstName?: string | null; lastName?: string | null; title?: string | null;
+        email?: string | null; phone?: string | null; linkedin?: string | null;
+    }): 'INCOMPLETE' | 'PARTIAL' | 'ACTIONABLE' {
+        const hasName = !!(c.firstName || c.lastName);
+        const channels = [c.phone, c.email, c.linkedin].filter(Boolean);
+        const hasChannel = channels.length > 0;
+        if (hasName && (channels.length >= 2 || (!!c.title && hasChannel))) return 'ACTIONABLE';
+        if (hasName || hasChannel) return 'PARTIAL';
+        return 'INCOMPLETE';
+    }
+
+    private async propagateCompanyStatus(
+        tx: Prisma.TransactionClient,
+        contactId: string
+    ): Promise<void> {
+        const contact = await tx.contact.findUnique({
+            where: { id: contactId },
+            select: { companyId: true },
+        });
+        if (!contact) return;
+
+        const siblings = await tx.contact.findMany({
+            where: { companyId: contact.companyId },
+            select: { status: true },
+        });
+        let companyStatus: 'INCOMPLETE' | 'PARTIAL' | 'ACTIONABLE' = 'INCOMPLETE';
+        if (siblings.some((s) => s.status === 'ACTIONABLE')) companyStatus = 'ACTIONABLE';
+        else if (siblings.some((s) => s.status === 'PARTIAL')) companyStatus = 'PARTIAL';
+
+        await tx.company.update({
+            where: { id: contact.companyId },
+            data: { status: companyStatus },
+        });
+    }
 
  // ============================================
  // TEAM LEAD HELPERS

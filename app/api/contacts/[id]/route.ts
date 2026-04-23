@@ -7,6 +7,7 @@ import {
     withErrorHandler,
     validateRequest,
 } from '@/lib/api-utils';
+import { calculateContactCompleteness } from '@/lib/scoring';
 import { z } from 'zod';
 
 // ============================================
@@ -29,27 +30,6 @@ const updateContactSchema = z.object({
     ),
     linkedin: z.preprocess(emptyStringToNull, z.string().optional().nullable()),
 });
-
-// ============================================
-// HELPER: Calculate contact status
-// ============================================
-
-function calculateContactStatus(contact: {
-    firstName?: string | null;
-    lastName?: string | null;
-    email?: string | null;
-    phone?: string | null;
-    linkedin?: string | null;
-}): 'INCOMPLETE' | 'PARTIAL' | 'ACTIONABLE' {
-    const hasChannel = !!(contact.phone || contact.email || contact.linkedin);
-    const hasName = !!(contact.firstName || contact.lastName);
-    if (hasChannel && hasName) {
-        return 'ACTIONABLE';
-    } else if (hasChannel || hasName) {
-        return 'PARTIAL';
-    }
-    return 'INCOMPLETE';
-}
 
 // ============================================
 // HELPER: Update company completeness
@@ -154,7 +134,7 @@ export const PUT = withErrorHandler(async (
         title: data.title ?? contact.title,
     };
 
-    const status = calculateContactStatus(mergedData);
+    const status = calculateContactCompleteness(mergedData);
 
     const updated = await prisma.contact.update({
         where: { id },

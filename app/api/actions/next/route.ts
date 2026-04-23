@@ -240,10 +240,13 @@ export const GET = withErrorHandler(async (request: NextRequest) => {
         SELECT *
         FROM targets_with_last_action
         WHERE 1=1
-        ORDER BY 
+        -- SQL pre-sort is a hint only; JavaScript re-sorts by config-driven priority after the fetch.
+        -- LIMIT must be large enough that callbacks (which may have recent last_action_created) are not cut
+        -- before the JS priority pass. 2000 covers most production lists while keeping the payload bounded.
+        ORDER BY
             CASE WHEN contact_status = 'ACTIONABLE' THEN 0 WHEN contact_status = 'PARTIAL' THEN 1 WHEN contact_status = 'INCOMPLETE' THEN 2 ELSE 3 END,
             COALESCE(last_action_created, '1970-01-01'::timestamp) ASC
-        LIMIT 500
+        LIMIT 2000
     `, ...(isBooker || shouldBypassAssignmentGate ? [cooldownDate] : [sdrId, cooldownDate]));
 
     // Resolve missionId for config and fetch interlocuteurs in parallel
