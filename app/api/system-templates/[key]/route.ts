@@ -8,8 +8,18 @@ import {
 } from "@/lib/api-utils";
 import { z } from "zod";
 import { DEFAULT_RDV_TEMPLATE_HTML, DEFAULT_RDV_TEMPLATE_SUBJECT } from "@/lib/email/templates/rdv-notification";
+import {
+  DEFAULT_PASSWORD_RECOVERY_HTML,
+  DEFAULT_PASSWORD_RECOVERY_SUBJECT,
+  DEFAULT_PASSWORD_OTP_HTML,
+  DEFAULT_PASSWORD_OTP_SUBJECT,
+} from "@/lib/email/templates/security-auth";
 
-const ALLOWED_KEYS = ["rdv_notification"] as const;
+const ALLOWED_KEYS = [
+  "rdv_notification",
+  "password_recovery",
+  "password_otp",
+] as const;
 type AllowedKey = (typeof ALLOWED_KEYS)[number];
 
 const DEFAULT_TEMPLATES: Record<AllowedKey, { name: string; subject: string; bodyHtml: string }> = {
@@ -17,6 +27,16 @@ const DEFAULT_TEMPLATES: Record<AllowedKey, { name: string; subject: string; bod
     name: "Notification nouveau RDV",
     subject: DEFAULT_RDV_TEMPLATE_SUBJECT,
     bodyHtml: DEFAULT_RDV_TEMPLATE_HTML,
+  },
+  password_recovery: {
+    name: "Recuperation mot de passe (lien)",
+    subject: DEFAULT_PASSWORD_RECOVERY_SUBJECT,
+    bodyHtml: DEFAULT_PASSWORD_RECOVERY_HTML,
+  },
+  password_otp: {
+    name: "Code OTP recuperation mot de passe",
+    subject: DEFAULT_PASSWORD_OTP_SUBJECT,
+    bodyHtml: DEFAULT_PASSWORD_OTP_HTML,
   },
 };
 

@@ -460,6 +460,20 @@ export default function ManagerSettingsPage() {
 
         {/* Quick link: Campagne email plateforme */}
         <Link
+          href="/manager/settings/security-email"
+          className="flex items-center gap-4 p-4 rounded-2xl border border-slate-200 bg-white hover:border-indigo-200 hover:bg-indigo-50/30 transition-all group"
+        >
+          <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center group-hover:bg-indigo-200 transition-colors">
+            <ShieldCheck className="w-5 h-5 text-indigo-600" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-slate-900 group-hover:text-indigo-700">Templates emails securite</p>
+            <p className="text-sm text-slate-500">Configurez les templates de recuperation de mot de passe (lien) et OTP.</p>
+          </div>
+          <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-indigo-500 shrink-0" />
+        </Link>
+
+        <Link
           href="/manager/settings/broadcast"
           className="flex items-center gap-4 p-4 rounded-2xl border border-slate-200 bg-white hover:border-indigo-200 hover:bg-indigo-50/30 transition-all group"
         >
