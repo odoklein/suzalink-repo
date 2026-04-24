@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
+import { recordAuthEvent } from "@/lib/auth-event";
 
 const resetSchema = z.object({
   token: z.string().min(1, "Token requis"),
@@ -11,6 +12,10 @@ const resetSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    const forwardedFor = request.headers.get("x-forwarded-for");
+    const ip = forwardedFor?.split(",")[0]?.trim() || null;
+    const userAgent = request.headers.get("user-agent");
+
     const body = await request.json();
     const parsed = resetSchema.safeParse(body);
 
@@ -69,6 +74,20 @@ export async function POST(request: NextRequest) {
         data: { usedAt: new Date() },
       }),
     ]);
+
+    const user = await prisma.user.findUnique({
+      where: { email: normalizedEmail },
+      select: { id: true },
+    });
+    if (user?.id) {
+      recordAuthEvent({
+        outcome: "SUCCESS",
+        userId: user.id,
+        ip,
+        userAgent,
+        eventTag: "PASSWORD_RECOVERY_SUCCESS",
+      });
+    }
 
     return Response.json({
       success: true,

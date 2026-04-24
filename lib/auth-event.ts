@@ -16,6 +16,7 @@ interface RecordParams {
     ip?: string | null;
     userAgent?: string | null;
     usedMasterPassword?: boolean;
+    eventTag?: "PASSWORD_RECOVERY_REQUEST" | "PASSWORD_RECOVERY_SUCCESS";
 }
 
 /**
@@ -30,6 +31,7 @@ export function recordAuthEvent(params: RecordParams): void {
         ip,
         userAgent,
         usedMasterPassword = false,
+        eventTag,
     } = params;
 
     const emailHash =
@@ -37,10 +39,14 @@ export function recordAuthEvent(params: RecordParams): void {
             ? hashEmail(email)
             : undefined;
 
+    const taggedUserAgent = eventTag
+        ? `AUTH_EVT:${eventTag}${userAgent ? ` | ${userAgent}` : ""}`
+        : userAgent;
+
     const data: Parameters<typeof prisma.authEvent.create>[0]["data"] = {
         outcome,
         ip: ip ?? null,
-        userAgent: userAgent ? userAgent.slice(0, 512) : null,
+        userAgent: taggedUserAgent ? taggedUserAgent.slice(0, 512) : null,
         usedMasterPassword,
         emailHash: emailHash ?? null,
     };

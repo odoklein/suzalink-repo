@@ -76,6 +76,19 @@ const OUTCOME_CONFIG: Record<string, { label: string; cls: string; dot: string }
     RATE_LIMITED: { label: "Trop de tentatives",   cls: "bg-amber-50 border-amber-200",  dot: "bg-amber-500" },
 };
 
+const AUTH_EVENT_TAG_CONFIG: Record<string, { label: string; cls: string; dot: string }> = {
+    PASSWORD_RECOVERY_REQUEST: {
+        label: "Demande de recuperation du mot de passe",
+        cls: "bg-indigo-50 border-indigo-200",
+        dot: "bg-indigo-500",
+    },
+    PASSWORD_RECOVERY_SUCCESS: {
+        label: "Mot de passe reinitialise",
+        cls: "bg-violet-50 border-violet-200",
+        dot: "bg-violet-500",
+    },
+};
+
 const ACTION_RESULT_LABELS: Record<string, string> = {
     MEETING_BOOKED: "RDV pris", INTERESTED: "Intéressé",
     CALLBACK_REQUESTED: "Rappel", NO_RESPONSE: "Pas de réponse",
@@ -118,6 +131,7 @@ function isOnline(user: UserDetail) {
 
 function browserFromUA(ua: string | null): string {
     if (!ua) return "—";
+    if (ua.startsWith("AUTH_EVT:")) return "Action securite";
     if (ua.includes("Edg")) return "Edge";
     if (ua.includes("Chrome")) return "Chrome";
     if (ua.includes("Firefox")) return "Firefox";
@@ -127,12 +141,20 @@ function browserFromUA(ua: string | null): string {
 
 function osFromUA(ua: string | null): string {
     if (!ua) return "";
+    if (ua.startsWith("AUTH_EVT:")) return "";
     if (ua.includes("Windows")) return "Windows";
     if (ua.includes("Mac")) return "macOS";
     if (ua.includes("Linux")) return "Linux";
     if (ua.includes("Android")) return "Android";
     if (ua.includes("iPhone") || ua.includes("iPad")) return "iOS";
     return "";
+}
+
+function parseAuthEventTag(ua: string | null): string | null {
+    if (!ua || !ua.startsWith("AUTH_EVT:")) return null;
+    const raw = ua.slice("AUTH_EVT:".length);
+    const [tag] = raw.split("|");
+    return tag?.trim() || null;
 }
 
 // ============================================
@@ -608,8 +630,10 @@ function SecuriteTab({ userId }: { userId: string }) {
                                 {/* Connecting line */}
                                 <div className="absolute left-2 top-3 bottom-3 w-px bg-slate-200" />
                                 {group.events.map((e) => {
-                                    const cfg = OUTCOME_CONFIG[e.outcome] ?? { label: e.outcome, cls: "bg-slate-50 border-slate-200", dot: "bg-slate-400" };
-                                    const isSuccess = e.outcome === "SUCCESS";
+                                    const eventTag = parseAuthEventTag(e.userAgent);
+                                    const tagCfg = eventTag ? AUTH_EVENT_TAG_CONFIG[eventTag] : null;
+                                    const cfg = tagCfg ?? OUTCOME_CONFIG[e.outcome] ?? { label: e.outcome, cls: "bg-slate-50 border-slate-200", dot: "bg-slate-400" };
+                                    const isSuccess = tagCfg ? true : e.outcome === "SUCCESS";
                                     const browser = browserFromUA(e.userAgent);
                                     const os = osFromUA(e.userAgent);
                                     const time = new Date(e.createdAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });

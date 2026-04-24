@@ -6,6 +6,7 @@ export interface TransactionalEmailOptions {
   subject: string;
   html: string;
   text?: string;
+  from?: string;
 }
 
 const TRANSACTIONAL_EMAIL_FROM_CONFIG_KEY = "transactionalEmailFrom";
@@ -64,7 +65,7 @@ export async function sendTransactionalEmail(
     return false;
   }
 
-  const from = await getConfiguredFromAddress();
+  const from = options.from?.trim() || (await getConfiguredFromAddress());
 
   try {
     await transporter.sendMail({

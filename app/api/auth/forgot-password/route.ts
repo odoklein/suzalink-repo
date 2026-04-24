@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
 import { sendTransactionalEmail } from "@/lib/email/transactional";
+import { recordAuthEvent } from "@/lib/auth-event";
 import {
   DEFAULT_PASSWORD_RECOVERY_HTML,
   DEFAULT_PASSWORD_RECOVERY_SUBJECT,
@@ -19,6 +20,9 @@ export async function POST(request: NextRequest) {
     }
 
     const normalizedEmail = email.toLowerCase().trim();
+    const forwardedFor = request.headers.get("x-forwarded-for");
+    const ip = forwardedFor?.split(",")[0]?.trim() || null;
+    const userAgent = request.headers.get("user-agent");
 
     const user = await prisma.user.findUnique({
       where: { email: normalizedEmail },
@@ -49,6 +53,14 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    recordAuthEvent({
+      outcome: "SUCCESS",
+      userId: user.id,
+      ip,
+      userAgent,
+      eventTag: "PASSWORD_RECOVERY_REQUEST",
+    });
+
     // Build reset URL
     const baseUrl =
       process.env.NEXT_PUBLIC_APP_URL ||
@@ -75,6 +87,7 @@ export async function POST(request: NextRequest) {
       subject: applyEmailTemplateVariables(subjectTemplate, templateVars),
       html: applyEmailTemplateVariables(htmlTemplate, templateVars),
       text: `Bonjour ${user.name},\n\nCliquez sur ce lien pour réinitialiser votre mot de passe :\n${resetUrl}\n\nCe lien expire dans 1 heure.\n\nSi vous n'avez pas demandé cette réinitialisation, ignorez cet email.`,
+      from: process.env.SYSTEM_SMTP_FROM || undefined,
     });
 
     return Response.json({ success: true });
