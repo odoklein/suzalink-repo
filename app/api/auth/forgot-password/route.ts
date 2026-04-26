@@ -81,14 +81,19 @@ export async function POST(request: NextRequest) {
       "{{expiryMinutes}}": "60",
     };
 
-    // Send email
-    await sendTransactionalEmail({
+    // Send email (still returns success to the client to prevent enumeration)
+    const emailSent = await sendTransactionalEmail({
       to: normalizedEmail,
       subject: applyEmailTemplateVariables(subjectTemplate, templateVars),
       html: applyEmailTemplateVariables(htmlTemplate, templateVars),
       text: `Bonjour ${user.name},\n\nCliquez sur ce lien pour réinitialiser votre mot de passe :\n${resetUrl}\n\nCe lien expire dans 1 heure.\n\nSi vous n'avez pas demandé cette réinitialisation, ignorez cet email.`,
       from: process.env.SYSTEM_SMTP_FROM || undefined,
     });
+    if (!emailSent) {
+      console.error("[forgot-password] Transactional email send failed", {
+        email: normalizedEmail,
+      });
+    }
 
     return Response.json({ success: true });
   } catch (error) {

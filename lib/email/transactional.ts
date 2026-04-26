@@ -12,10 +12,17 @@ export interface TransactionalEmailOptions {
 const TRANSACTIONAL_EMAIL_FROM_CONFIG_KEY = "transactionalEmailFrom";
 
 function getTransporter() {
-  const host = process.env.SYSTEM_SMTP_HOST;
-  const port = parseInt(process.env.SYSTEM_SMTP_PORT || "587", 10);
-  const user = process.env.SYSTEM_SMTP_USER;
-  const pass = process.env.SYSTEM_SMTP_PASS;
+  const host = process.env.SYSTEM_SMTP_HOST || process.env.SMTP_HOST;
+  const port = parseInt(
+    process.env.SYSTEM_SMTP_PORT || process.env.SMTP_PORT || "587",
+    10
+  );
+  const user = process.env.SYSTEM_SMTP_USER || process.env.SMTP_USER;
+  const pass =
+    process.env.SYSTEM_SMTP_PASS ||
+    process.env.SYSTEM_SMTP_PASSWORD ||
+    process.env.SMTP_PASS ||
+    process.env.SMTP_PASSWORD;
 
   if (!host || !user || !pass) {
     return null;
@@ -45,12 +52,13 @@ async function getConfiguredFromAddress(): Promise<string> {
 
   return (
     process.env.SYSTEM_SMTP_FROM ||
-    `Captain Prospect <${process.env.SYSTEM_SMTP_USER}>`
+    process.env.SMTP_FROM ||
+    `Captain Prospect <${process.env.SYSTEM_SMTP_USER || process.env.SMTP_USER}>`
   );
 }
 
 /**
- * Send a system transactional email using SYSTEM_SMTP_* env vars.
+ * Send a system transactional email using SYSTEM_SMTP_* (or SMTP_*) env vars.
  * Returns true on success, false if SMTP is not configured or sending fails.
  */
 export async function sendTransactionalEmail(
@@ -60,7 +68,7 @@ export async function sendTransactionalEmail(
 
   if (!transporter) {
     console.warn(
-      "[transactional-email] SYSTEM_SMTP_* env vars not configured — skipping email send."
+      "[transactional-email] SMTP env vars not configured (SYSTEM_SMTP_* or SMTP_*) — skipping email send."
     );
     return false;
   }
