@@ -60,6 +60,7 @@ export interface SupportConversationSummaryDTO {
     resolvedBy: { id: string; name: string } | null;
     updatedAt: string;
     isPinned?: boolean;
+    emailNotificationOnReply: boolean;
 }
 
 export interface SupportConversationDetailDTO extends SupportConversationSummaryDTO {

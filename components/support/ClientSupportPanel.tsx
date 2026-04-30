@@ -103,6 +103,7 @@ export function ClientSupportPanel({
     const pageLabel = useMemo(() => currentPageLabel(pathname), [pathname]);
 
     const [inputValue, setInputValue] = useState("");
+    const [emailNotif, setEmailNotif] = useState(conversation.emailNotificationOnReply);
     const [selectedIntent, setSelectedIntent] = useState<SupportIntent | null>(null);
     const [showIntentCard, setShowIntentCard] = useState(
         conversation.messageCount === 0 ||
@@ -318,6 +319,20 @@ export function ClientSupportPanel({
         setInputValue(reply);
         setShowQuickReplies(false);
         textareaRef.current?.focus();
+    };
+
+    const handleEmailNotifToggle = async () => {
+        const next = !emailNotif;
+        setEmailNotif(next);
+        try {
+            await fetch("/api/support/conversation/email-notification", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ enabled: next }),
+            });
+        } catch {
+            setEmailNotif(!next);
+        }
     };
 
     const handleReopen = async () => {
@@ -995,19 +1010,47 @@ export function ClientSupportPanel({
                         </button>
                     </div>
 
-                    <p
-                        className="cp-support-root-mono"
+                    <div
                         style={{
-                            fontSize: 10.5,
-                            color: T.ink4,
-                            textAlign: "center",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
                             marginTop: 8,
-                            fontWeight: 500,
-                            letterSpacing: "0.02em",
+                            gap: 8,
                         }}
                     >
-                        Entrée pour envoyer · Maj+Entrée pour saut de ligne
-                    </p>
+                        <p
+                            className="cp-support-root-mono"
+                            style={{
+                                fontSize: 10.5,
+                                color: T.ink4,
+                                fontWeight: 500,
+                                letterSpacing: "0.02em",
+                                margin: 0,
+                            }}
+                        >
+                            Entrée pour envoyer · Maj+Entrée pour saut de ligne
+                        </p>
+                        <label
+                            style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 5,
+                                cursor: "pointer",
+                                flexShrink: 0,
+                            }}
+                        >
+                            <input
+                                type="checkbox"
+                                checked={emailNotif}
+                                onChange={handleEmailNotifToggle}
+                                style={{ cursor: "pointer", accentColor: T.brand }}
+                            />
+                            <span style={{ fontSize: 10.5, color: T.ink3, fontWeight: 500, whiteSpace: "nowrap" }}>
+                                M'avertir par email
+                            </span>
+                        </label>
+                    </div>
                 </div>
             )}
         </div>

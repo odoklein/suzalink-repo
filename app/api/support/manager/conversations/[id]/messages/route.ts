@@ -11,7 +11,7 @@ import {
     withErrorHandler,
     validateRequest,
 } from "@/lib/api-utils";
-import { postMessage } from "@/lib/support/service";
+import { postMessage, notifyClientByEmailIfEnabled } from "@/lib/support/service";
 
 const PostBody = z.object({
     content: z.string().min(1).max(4000),
@@ -30,5 +30,10 @@ export const POST = withErrorHandler(async (
         { content: body.content },
         "MANAGER",
     );
+
+    notifyClientByEmailIfEnabled(id, session.user.name ?? "L'équipe support", body.content).catch(
+        () => undefined,
+    );
+
     return successResponse(message, 201);
 });

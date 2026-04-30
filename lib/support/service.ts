@@ -186,6 +186,7 @@ function buildSummary(core: Awaited<ReturnType<typeof loadConversationCore>>, un
             : null,
         updatedAt: core.updatedAt.toISOString(),
         isPinned,
+        emailNotificationOnReply: core.emailNotificationOnReply,
     };
 }
 
@@ -523,6 +524,71 @@ export async function togglePin(
         where: { conversationId_managerId: { conversationId, managerId } },
         update: { isPinned: pinned },
         create: { conversationId, managerId, isPinned: pinned },
+    });
+}
+
+/**
+ * Toggle the client's email-on-reply preference for their support conversation.
+ */
+export async function setEmailNotificationPreference(
+    conversationId: string,
+    enabled: boolean,
+): Promise<void> {
+    await prisma.supportConversation.update({
+        where: { id: conversationId },
+        data: { emailNotificationOnReply: enabled },
+    });
+}
+
+/**
+ * If the conversation has emailNotificationOnReply enabled, send a notification
+ * email to the client. Called after a manager posts a reply.
+ */
+export async function notifyClientByEmailIfEnabled(
+    conversationId: string,
+    managerName: string,
+    messagePreview: string,
+): Promise<void> {
+    const conv = await prisma.supportConversation.findUnique({
+        where: { id: conversationId },
+        select: {
+            emailNotificationOnReply: true,
+            client: {
+                select: {
+                    name: true,
+                    users: {
+                        where: { role: "CLIENT" },
+                        select: { email: true, name: true },
+                        take: 1,
+                    },
+                },
+            },
+        },
+    });
+    if (!conv?.emailNotificationOnReply) return;
+    const clientUser = conv.client.users[0];
+    if (!clientUser?.email) return;
+
+    const { sendTransactionalEmail } = await import("@/lib/email/transactional");
+    const preview = messagePreview.length > 200
+        ? messagePreview.slice(0, 199) + "…"
+        : messagePreview;
+
+    await sendTransactionalEmail({
+        to: clientUser.email,
+        subject: `Nouvelle réponse de l'équipe support — Captain Prospect`,
+        html: `
+<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1f2b1f">
+  <p style="font-size:15px">Bonjour ${clientUser.name ?? ""},</p>
+  <p style="font-size:15px">L'équipe support Captain Prospect vous a répondu :</p>
+  <blockquote style="border-left:3px solid #6366f1;margin:16px 0;padding:10px 16px;background:#f5f4ff;border-radius:4px;font-size:14px;color:#2b3a2b">
+    ${preview.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>")}
+  </blockquote>
+  <p style="font-size:13px;color:#6b7280">
+    Connectez-vous à votre espace client pour répondre ou consulter la conversation complète.
+  </p>
+</div>`,
+        text: `Bonjour ${clientUser.name ?? ""},\n\nL'équipe support Captain Prospect vous a répondu :\n\n${preview}\n\nConnectez-vous à votre espace client pour répondre.`,
     });
 }
 

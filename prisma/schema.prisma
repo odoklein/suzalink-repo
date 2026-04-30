@@ -3449,6 +3449,9 @@ model SupportConversation {
   lastMessageAt DateTime?
   lastIntent    SupportIntent?
 
+  // Client notification preference
+  emailNotificationOnReply Boolean @default(false)
+
   messages       SupportMessage[]
   managerStates  SupportManagerState[]
 
