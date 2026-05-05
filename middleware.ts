@@ -60,14 +60,15 @@ export default withAuth(
 );
 
 export const config = {
-    // Liste des routes protégées par ce middleware
     matcher: [
-        "/sdr/:path*", 
-        "/manager/:path*", 
-        "/client/:path*", 
-        "/developer/:path*", 
-        "/bd/:path*", 
+        "/sdr/:path*",
+        "/manager/:path*",
+        "/client/:path*",
+        "/developer/:path*",
+        "/bd/:path*",
         "/commercial/:path*",
-        "/api/:path*" // Assure-toi que tes routes API sont bien incluses ici
+        "/dashboard",
+        // All /api routes except /api/auth/* (NextAuth handles its own routes)
+        "/api/((?!auth/).*)",
     ],
 };

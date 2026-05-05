@@ -184,7 +184,7 @@ export const authOptions: NextAuthOptions = {
         }),
     ],
     callbacks: {
-        async jwt({ token, user }) {
+        async jwt({ token, user, trigger }) {
             if (user) {
                 token.id = user.id;
                 token.role = user.role;
@@ -192,6 +192,15 @@ export const authOptions: NextAuthOptions = {
                 token.clientId = user.clientId;
                 token.interlocuteurId = user.interlocuteurId;
                 token.clientOnboardingDismissedPermanently = user.clientOnboardingDismissedPermanently ?? false;
+            }
+            // Re-read dismissed flag from DB only when the client explicitly triggers a session
+            // update (e.g. after calling PATCH /api/client/onboarding-dismissed).
+            if (trigger === "update" && token.role === "CLIENT") {
+                const u = await prisma.user.findUnique({
+                    where: { id: token.id },
+                    select: { clientOnboardingDismissedPermanently: true },
+                });
+                token.clientOnboardingDismissedPermanently = u?.clientOnboardingDismissedPermanently ?? false;
             }
             return token;
         },
@@ -202,16 +211,7 @@ export const authOptions: NextAuthOptions = {
                 session.user.isActive = token.isActive;
                 session.user.clientId = token.clientId;
                 session.user.interlocuteurId = token.interlocuteurId;
-                // For CLIENT users, fetch fresh onboarding preference so update() reflects DB changes
-                if (token.role === "CLIENT") {
-                    const u = await prisma.user.findUnique({
-                        where: { id: token.id },
-                        select: { clientOnboardingDismissedPermanently: true },
-                    });
-                    session.user.clientOnboardingDismissedPermanently = u?.clientOnboardingDismissedPermanently ?? false;
-                } else {
-                    session.user.clientOnboardingDismissedPermanently = token.clientOnboardingDismissedPermanently ?? false;
-                }
+                session.user.clientOnboardingDismissedPermanently = token.clientOnboardingDismissedPermanently ?? false;
             }
             return session;
         },

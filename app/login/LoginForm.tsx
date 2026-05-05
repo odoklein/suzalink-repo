@@ -2,17 +2,16 @@
 
 import { useState, useEffect } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Mail, Lock, Eye, EyeOff, AlertCircle, ArrowRight, Shield, Loader2, Zap } from "lucide-react";
 
 export default function LoginForm() {
-    const router = useRouter();
     const searchParams = useSearchParams();
-    const callbackUrl = searchParams.get("callbackUrl") || "/";
+    const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+    const errorCode = searchParams.get("error");
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [error, setError] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [emailFocused, setEmailFocused] = useState(false);
@@ -21,39 +20,20 @@ export default function LoginForm() {
 
     useEffect(() => { requestAnimationFrame(() => setMounted(true)); }, []);
 
+    const errorMessage = errorCode
+        ? errorCode.includes("verrouillé") || errorCode.includes("Trop")
+            ? errorCode
+            : errorCode === "CredentialsSignin"
+                ? "Email ou mot de passe incorrect"
+                : "Une erreur est survenue"
+        : "";
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setError("");
         setIsLoading(true);
-
-        try {
-            const result = await signIn("credentials", { email, password, redirect: false });
-
-            if (result?.error) {
-                setError("Email ou mot de passe incorrect");
-                setIsLoading(false);
-                return;
-            }
-
-            const response = await fetch("/api/auth/session");
-            const session = await response.json();
-
-            if (session?.user?.role) {
-                const redirectPaths: Record<string, string> = {
-                    SDR: "/sdr/action",
-                    MANAGER: "/manager/dashboard",
-                    CLIENT: "/client/portal",
-                    DEVELOPER: "/developer/dashboard",
-                    BUSINESS_DEVELOPER: "/bd/dashboard",
-                };
-                router.push(redirectPaths[session.user.role] || "/");
-            } else {
-                router.push(callbackUrl);
-            }
-        } catch {
-            setError("Une erreur est survenue");
-            setIsLoading(false);
-        }
+        await signIn("credentials", { email, password, callbackUrl });
+        // Reached only if signIn itself throws before redirecting
+        setIsLoading(false);
     };
 
     return (
@@ -309,7 +289,7 @@ export default function LoginForm() {
                         {/* Email */}
                         <div className="lp-field">
                             <label className="lp-label" htmlFor="lp-email">Email</label>
-                            <div className={`lp-wrap${emailFocused ? " f" : ""}${error ? " err" : ""}`}>
+                            <div className={`lp-wrap${emailFocused ? " f" : ""}${errorMessage ? " err" : ""}`}>
                                 <div className="lp-ico"><Mail size={15} /></div>
                                 <input
                                     id="lp-email"
@@ -329,7 +309,7 @@ export default function LoginForm() {
                         {/* Password */}
                         <div className="lp-field">
                             <label className="lp-label" htmlFor="lp-pass">Mot de passe</label>
-                            <div className={`lp-wrap${passFocused ? " f" : ""}${error ? " err" : ""}`}>
+                            <div className={`lp-wrap${passFocused ? " f" : ""}${errorMessage ? " err" : ""}`}>
                                 <div className="lp-ico"><Lock size={15} /></div>
                                 <input
                                     id="lp-pass"
@@ -369,10 +349,10 @@ export default function LoginForm() {
                         </div>
 
                         {/* Error */}
-                        {error && (
+                        {errorMessage && (
                             <div className="lp-err">
                                 <AlertCircle size={14} style={{ flexShrink: 0 }} />
-                                <span>{error}</span>
+                                <span>{errorMessage}</span>
                             </div>
                         )}
 
