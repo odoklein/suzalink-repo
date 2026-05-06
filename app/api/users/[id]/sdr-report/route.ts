@@ -8,8 +8,10 @@ import { prisma } from "@/lib/prisma";
 // Returns: calls per mission, comments analysis, RDV stats
 // ============================================
 
-export const GET = withErrorHandler(async (request: NextRequest, { params }: { params: { id: string } }) => {
+export const GET = withErrorHandler(async (request: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
     await requireRole(["MANAGER", "DEVELOPER"], request);
+
+    const { id: sdrId } = await params;
 
     const { searchParams } = new URL(request.url);
     const from = searchParams.get("from")?.trim();
@@ -27,8 +29,6 @@ export const GET = withErrorHandler(async (request: NextRequest, { params }: { p
     if (isNaN(dateFrom.getTime()) || isNaN(dateTo.getTime()) || dateFrom > dateTo) {
         return NextResponse.json({ success: false, error: "Dates invalides" }, { status: 400 });
     }
-
-    const sdrId = params.id;
 
     // Verify user exists and is SDR/BOOKER
     const user = await prisma.user.findUnique({
