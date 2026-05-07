@@ -8,21 +8,21 @@ import {
     Target,
     Users,
     Calendar,
-    ChevronRight,
     RefreshCw,
     Phone,
     Mail,
     Linkedin,
     Loader2,
     X,
-    Activity,
     Zap,
-    TrendingUp,
     BarChart3,
     Clock,
-    Globe,
     ArrowUpRight,
     ListChecks,
+    AlertTriangle,
+    CheckCircle2,
+    Timer,
+    Hourglass,
 } from "lucide-react";
 import Link from "next/link";
 import { MissionQuickViewDrawer } from "./_components/MissionQuickViewDrawer";
@@ -93,12 +93,44 @@ const CHANNEL_CONFIG = {
 };
 
 // ============================================
-// HELPER: Days since start
+// HELPERS: Time calculations
 // ============================================
 function getDaysActive(startDate?: string): number | null {
     if (!startDate) return null;
     const diff = Date.now() - new Date(startDate).getTime();
     return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
+}
+
+function getDaysRemaining(endDate?: string): number | null {
+    if (!endDate) return null;
+    const diff = new Date(endDate).getTime() - Date.now();
+    return Math.floor(diff / (1000 * 60 * 60 * 24));
+}
+
+function getDaysWorked(startDate?: string, endDate?: string): number | null {
+    if (!startDate) return null;
+    const end = endDate ? Math.min(new Date(endDate).getTime(), Date.now()) : Date.now();
+    const diff = end - new Date(startDate).getTime();
+    return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
+}
+
+function getTimeProgress(startDate?: string, endDate?: string): number | null {
+    if (!startDate || !endDate) return null;
+    const total = new Date(endDate).getTime() - new Date(startDate).getTime();
+    if (total <= 0) return 100;
+    const elapsed = Date.now() - new Date(startDate).getTime();
+    return Math.min(100, Math.max(0, Math.round((elapsed / total) * 100)));
+}
+
+type MissionTimeState = "ended" | "overdue" | "ending-soon" | "normal";
+
+function getMissionTimeState(mission: Mission): MissionTimeState {
+    if (mission.status === "COMPLETED" || mission.status === "ARCHIVED") return "ended";
+    const daysLeft = getDaysRemaining(mission.endDate);
+    if (daysLeft === null) return "normal";
+    if (daysLeft < 0) return "overdue";
+    if (daysLeft <= 7) return "ending-soon";
+    return "normal";
 }
 
 function useDebounce<T>(value: T, delay: number): T {
@@ -408,30 +440,90 @@ export default function MissionsPage() {
                                 const channelsList = mission.channels?.length ? mission.channels : [mission.channel];
                                 const channel = CHANNEL_CONFIG[mission.channel];
                                 const ChannelIcon = channel.icon;
-                                const daysActive = getDaysActive(mission.startDate);
                                 const memberCount = mission._count.sdrAssignments;
                                 const listCount = mission._count.lists;
                                 const campaignCount = mission._count.campaigns;
+                                const daysWorked = getDaysWorked(mission.startDate, mission.endDate);
+                                const daysRemaining = getDaysRemaining(mission.endDate);
+                                const timeProgress = getTimeProgress(mission.startDate, mission.endDate);
+                                const timeState = getMissionTimeState(mission);
+
+                                // Card theme by time state
+                                const cardTheme = {
+                                    "ending-soon": {
+                                        card: "border-orange-200 bg-orange-50/40 hover:border-orange-300 hover:shadow-orange-500/10",
+                                        leftBar: "bg-gradient-to-b from-orange-400 to-orange-600",
+                                        shimmer: "from-orange-500/5",
+                                        arrowHover: "group-hover:bg-orange-500 group-hover:border-orange-500",
+                                    },
+                                    overdue: {
+                                        card: "border-rose-200 bg-rose-50/30 hover:border-rose-300 hover:shadow-rose-500/10",
+                                        leftBar: "bg-gradient-to-b from-rose-400 to-rose-600",
+                                        shimmer: "from-rose-500/5",
+                                        arrowHover: "group-hover:bg-rose-500 group-hover:border-rose-500",
+                                    },
+                                    ended: {
+                                        card: "border-slate-200 bg-slate-50/60 hover:border-slate-300 hover:shadow-slate-500/8 opacity-80",
+                                        leftBar: mission.status === "COMPLETED"
+                                            ? "bg-gradient-to-b from-blue-300 to-blue-500"
+                                            : "bg-gradient-to-b from-zinc-300 to-zinc-400",
+                                        shimmer: "from-slate-500/3",
+                                        arrowHover: "group-hover:bg-slate-500 group-hover:border-slate-500",
+                                    },
+                                    normal: {
+                                        card: "border-slate-200 bg-white hover:border-indigo-300 hover:shadow-indigo-500/8",
+                                        leftBar: mission.status === "ACTIVE"
+                                            ? "bg-gradient-to-b from-emerald-400 to-emerald-600"
+                                            : mission.status === "PAUSED"
+                                                ? "bg-gradient-to-b from-amber-300 to-amber-500"
+                                                : "bg-gradient-to-b from-slate-200 to-slate-300",
+                                        shimmer: "from-indigo-500/3",
+                                        arrowHover: "group-hover:bg-indigo-600 group-hover:border-indigo-600",
+                                    },
+                                }[timeState];
+
+                                const statusBadge = {
+                                    "ending-soon": { bg: "bg-orange-100", text: "text-orange-700", dot: "bg-orange-500" },
+                                    overdue: { bg: "bg-rose-100", text: "text-rose-700", dot: "bg-rose-500" },
+                                    ended: {
+                                        bg: mission.status === "COMPLETED" ? "bg-blue-100" : "bg-zinc-100",
+                                        text: mission.status === "COMPLETED" ? "text-blue-700" : "text-zinc-600",
+                                        dot: mission.status === "COMPLETED" ? "bg-blue-500" : "bg-zinc-400",
+                                    },
+                                    normal: {
+                                        bg: mission.status === "ACTIVE" ? "bg-emerald-100" : mission.status === "PAUSED" ? "bg-amber-100" : "bg-slate-100",
+                                        text: mission.status === "ACTIVE" ? "text-emerald-700" : mission.status === "PAUSED" ? "text-amber-700" : "text-slate-600",
+                                        dot: mission.status === "ACTIVE" ? "bg-emerald-500" : mission.status === "PAUSED" ? "bg-amber-500" : "bg-slate-400",
+                                    },
+                                }[timeState];
+
+                                // Time progress bar style
+                                const progressBarColor = timeState === "ending-soon"
+                                    ? "from-orange-400 to-orange-500"
+                                    : timeState === "overdue"
+                                        ? "from-rose-400 to-rose-500"
+                                        : timeState === "ended"
+                                            ? "from-blue-300 to-blue-400"
+                                            : "from-indigo-400 to-violet-500";
 
                                 return (
                                     <div
                                         key={mission.id}
                                         onClick={() => setSelectedMissionForDrawer(mission)}
-                                        className="group relative bg-white border border-slate-200 rounded-2xl overflow-hidden cursor-pointer hover:border-indigo-300 hover:shadow-xl hover:shadow-indigo-500/8 transition-all duration-300 hover:-translate-y-0.5"
+                                        className={`group relative border rounded-2xl overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 ${cardTheme.card}`}
                                         style={{ animationDelay: `${index * 40}ms` }}
                                     >
-                                        {/* Active status left bar */}
-                                        <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-2xl transition-all duration-300 ${mission.status === "ACTIVE" ? "bg-gradient-to-b from-emerald-400 to-emerald-600" : mission.status === "PAUSED" ? "bg-gradient-to-b from-amber-300 to-amber-500" : "bg-gradient-to-b from-slate-200 to-slate-300"}`} />
+                                        {/* Left status bar */}
+                                        <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-2xl transition-all duration-300 ${cardTheme.leftBar}`} />
 
                                         {/* Hover shimmer */}
-                                        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none bg-gradient-to-r from-indigo-500/3 via-transparent to-transparent" />
+                                        <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none bg-gradient-to-r ${cardTheme.shimmer} via-transparent to-transparent`} />
 
                                         <div className="flex items-center gap-5 px-6 py-5 pl-7">
 
-                                            {/* Client logo / avatar */}
-                                            <div className={`relative w-14 h-14 rounded-2xl bg-gradient-to-br ${channel.color} flex items-center justify-center text-xl font-bold text-white flex-shrink-0 shadow-md group-hover:scale-105 transition-transform duration-300`}>
+                                            {/* Client avatar */}
+                                            <div className={`relative w-14 h-14 rounded-2xl bg-gradient-to-br ${timeState === "ended" ? "from-slate-300 to-slate-400" : channel.color} flex items-center justify-center text-xl font-bold text-white flex-shrink-0 shadow-md group-hover:scale-105 transition-transform duration-300`}>
                                                 {mission.client?.name?.[0] || "M"}
-                                                {/* Channel icon badge */}
                                                 <div className={`absolute -bottom-1.5 -right-1.5 w-6 h-6 rounded-full ${channel.bgLight} border-2 border-white flex items-center justify-center shadow-sm`}>
                                                     <ChannelIcon className={`w-3 h-3 ${channel.textColor}`} />
                                                 </div>
@@ -440,18 +532,35 @@ export default function MissionsPage() {
                                             {/* Main info */}
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center gap-2.5 mb-1 flex-wrap">
-                                                    <h3 className="font-bold text-slate-900 group-hover:text-indigo-700 transition-colors text-base truncate">
+                                                    <h3 className={`font-bold text-base truncate transition-colors ${timeState === "ended" ? "text-slate-500 group-hover:text-slate-700" : "text-slate-900 group-hover:text-indigo-700"}`}>
                                                         {mission.name}
                                                     </h3>
-                                                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide ${mission.status === "ACTIVE"
-                                                        ? "bg-emerald-100 text-emerald-700"
-                                                        : mission.status === "PAUSED"
-                                                            ? "bg-amber-100 text-amber-700"
-                                                            : "bg-slate-100 text-slate-600"
-                                                        }`}>
-                                                        <span className={`w-1.5 h-1.5 rounded-full ${mission.status === "ACTIVE" ? "bg-emerald-500" : mission.status === "PAUSED" ? "bg-amber-500" : "bg-slate-400"}`} />
+
+                                                    {/* Status badge */}
+                                                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide ${statusBadge.bg} ${statusBadge.text}`}>
+                                                        <span className={`w-1.5 h-1.5 rounded-full ${statusBadge.dot}`} />
                                                         {MISSION_STATUS_CONFIG[mission.status]?.label ?? mission.status}
                                                     </span>
+
+                                                    {/* Ending soon / overdue alert badge */}
+                                                    {timeState === "ending-soon" && daysRemaining !== null && (
+                                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-orange-100 text-orange-700 border border-orange-200">
+                                                            <AlertTriangle className="w-3 h-3" />
+                                                            Fin dans {daysRemaining}j
+                                                        </span>
+                                                    )}
+                                                    {timeState === "overdue" && daysRemaining !== null && (
+                                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-700 border border-rose-200">
+                                                            <AlertTriangle className="w-3 h-3" />
+                                                            Dépassée de {Math.abs(daysRemaining)}j
+                                                        </span>
+                                                    )}
+                                                    {timeState === "ended" && mission.endDate && (
+                                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-500">
+                                                            <CheckCircle2 className="w-3 h-3" />
+                                                            {Math.abs(daysRemaining ?? 0)}j
+                                                        </span>
+                                                    )}
                                                 </div>
 
                                                 <p className="text-sm text-slate-500 truncate mb-3">
@@ -471,12 +580,21 @@ export default function MissionsPage() {
                                                         <ListChecks className="w-3.5 h-3.5 text-slate-400" />
                                                         <span>{listCount} liste{listCount !== 1 ? "s" : ""}</span>
                                                     </div>
-                                                    {daysActive !== null && (
-                                                        <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                                                            <Activity className="w-3.5 h-3.5 text-slate-400" />
-                                                            <span>{daysActive}j actif</span>
+                                                    {/* Days worked */}
+                                                    {daysWorked !== null && (
+                                                        <div className={`flex items-center gap-1.5 text-xs font-medium ${timeState === "ending-soon" ? "text-orange-600" : timeState === "overdue" ? "text-rose-600" : timeState === "ended" ? "text-slate-400" : "text-indigo-600"}`}>
+                                                            <Hourglass className="w-3.5 h-3.5" />
+                                                            <span>{daysWorked}j travaillés</span>
                                                         </div>
                                                     )}
+                                                    {/* Days remaining (only for active, non-ending-soon) */}
+                                                    {timeState === "normal" && daysRemaining !== null && mission.status === "ACTIVE" && (
+                                                        <div className="flex items-center gap-1.5 text-xs text-emerald-600 font-medium">
+                                                            <Timer className="w-3.5 h-3.5" />
+                                                            <span>{daysRemaining}j restants</span>
+                                                        </div>
+                                                    )}
+                                                    {/* Date range */}
                                                     {mission.startDate && (
                                                         <div className="flex items-center gap-1.5 text-xs text-slate-500">
                                                             <Calendar className="w-3.5 h-3.5 text-slate-400" />
@@ -491,7 +609,7 @@ export default function MissionsPage() {
                                                 </div>
                                             </div>
 
-                                            {/* Right side: avatars + channel badge + arrow */}
+                                            {/* Right side */}
                                             <div className="flex items-center gap-5 flex-shrink-0">
                                                 {/* Team avatars */}
                                                 <div className="hidden md:flex flex-col items-end gap-1">
@@ -501,7 +619,7 @@ export default function MissionsPage() {
                                                                 {mission.sdrAssignments.slice(0, 4).map((a, i) => (
                                                                     <div
                                                                         key={a.sdr.id}
-                                                                        className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-400 to-indigo-600 border-2 border-white flex items-center justify-center text-[10px] font-bold text-white shadow-sm"
+                                                                        className={`w-7 h-7 rounded-full border-2 border-white flex items-center justify-center text-[10px] font-bold text-white shadow-sm bg-gradient-to-br ${timeState === "ended" ? "from-slate-400 to-slate-500" : "from-indigo-400 to-indigo-600"}`}
                                                                         style={{ zIndex: 10 - i }}
                                                                         title={a.sdr.name}
                                                                     >
@@ -548,20 +666,25 @@ export default function MissionsPage() {
                                                 </div>
 
                                                 {/* Arrow */}
-                                                <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-slate-50 group-hover:bg-indigo-600 border border-slate-100 group-hover:border-indigo-600 transition-all duration-300 shadow-sm">
+                                                <div className={`w-9 h-9 rounded-xl flex items-center justify-center bg-slate-50 border border-slate-100 transition-all duration-300 shadow-sm ${cardTheme.arrowHover}`}>
                                                     <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-white transition-colors duration-300" />
                                                 </div>
                                             </div>
                                         </div>
 
-                                        {/* Bottom progress bar — visual only, represents activity ratio */}
-                                        {mission.status === "ACTIVE" && (
+                                        {/* Bottom time progress bar */}
+                                        {(mission.status === "ACTIVE" || mission.status === "PAUSED" || timeState === "ended") && timeProgress !== null && (
                                             <div className="px-7 pb-3">
-                                                <div className="h-0.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                                                    <div
-                                                        className="h-full rounded-full bg-gradient-to-r from-indigo-400 to-violet-500 transition-all duration-700"
-                                                        style={{ width: `${Math.min(100, ((listCount + campaignCount) / Math.max(1, listCount + campaignCount + 2)) * 100)}%` }}
-                                                    />
+                                                <div className="flex items-center gap-2">
+                                                    <div className="flex-1 h-1 bg-slate-100 rounded-full overflow-hidden">
+                                                        <div
+                                                            className={`h-full rounded-full bg-gradient-to-r ${progressBarColor} transition-all duration-700`}
+                                                            style={{ width: `${timeProgress}%` }}
+                                                        />
+                                                    </div>
+                                                    <span className={`text-[10px] font-semibold tabular-nums ${timeState === "ending-soon" ? "text-orange-500" : timeState === "overdue" ? "text-rose-500" : timeState === "ended" ? "text-slate-400" : "text-indigo-500"}`}>
+                                                        {timeProgress}%
+                                                    </span>
                                                 </div>
                                             </div>
                                         )}
