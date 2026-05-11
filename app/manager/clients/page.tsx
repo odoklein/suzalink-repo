@@ -39,6 +39,14 @@ interface OnboardingReadiness {
     missionCreated: boolean;
 }
 
+interface ClientMission {
+    id: string;
+    name: string;
+    endDate: string;
+    isActive: boolean;
+    status: string;
+}
+
 interface Client {
     id: string;
     name: string;
@@ -46,6 +54,7 @@ interface Client {
     email?: string;
     phone?: string;
     createdAt: string;
+    missions: ClientMission[];
     _count: {
         missions: number;
         users: number;
@@ -573,13 +582,32 @@ export default function ClientsPage() {
                                     </div>
                                 )}
 
-                                <div className="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400 font-medium">
-                                    <span className="flex items-center gap-1.5">
-                                        <Clock className="w-3.5 h-3.5" /> Créé le {new Date(client.createdAt).toLocaleDateString("fr-FR")}
-                                    </span>
-                                    <span className="text-indigo-600 font-semibold opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all flex items-center gap-1">
-                                        Gérer <ArrowRight className="w-3.5 h-3.5" />
-                                    </span>
+                                <div className="mt-auto pt-4 border-t border-slate-100 space-y-1.5">
+                                    {(() => {
+                                        const activeMission = client.missions?.find((m) => m.isActive && m.status === "ACTIVE");
+                                        const latestMission = client.missions?.[0];
+                                        const displayMission = activeMission ?? latestMission;
+                                        if (!displayMission) return null;
+                                        const ended = !displayMission.isActive || displayMission.status !== "ACTIVE";
+                                        const endDate = new Date(displayMission.endDate);
+                                        return (
+                                            <div className={`flex items-center gap-1.5 text-xs font-medium ${ended ? "text-red-400" : "text-emerald-600"}`}>
+                                                <Clock className="w-3.5 h-3.5 flex-shrink-0" />
+                                                <span>
+                                                    {ended ? "Mission terminée le " : "Fin de mission : "}
+                                                    {endDate.toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" })}
+                                                </span>
+                                            </div>
+                                        );
+                                    })()}
+                                    <div className="flex items-center justify-between text-xs text-slate-400 font-medium">
+                                        <span className="flex items-center gap-1.5">
+                                            <Clock className="w-3.5 h-3.5" /> Créé le {new Date(client.createdAt).toLocaleDateString("fr-FR")}
+                                        </span>
+                                        <span className="text-indigo-600 font-semibold opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all flex items-center gap-1">
+                                            Gérer <ArrowRight className="w-3.5 h-3.5" />
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         );

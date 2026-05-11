@@ -106,8 +106,8 @@ export const GET = withErrorHandler(async (request: NextRequest) => {
                     },
                 },
                 missions: {
-                    where: { isActive: true },
-                    select: { id: true, name: true },
+                    select: { id: true, name: true, endDate: true, isActive: true, status: true },
+                    orderBy: { endDate: 'desc' },
                     take: 5,
                 },
                 onboarding: {

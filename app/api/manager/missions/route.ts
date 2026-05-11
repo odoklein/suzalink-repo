@@ -15,12 +15,12 @@ export const GET = withErrorHandler(async (request: NextRequest) => {
 
   const missions = await prisma.mission.findMany({
     where: {
-      status: 'ACTIVE',
       ...(clientId && { clientId }),
     },
     select: {
       id: true,
       name: true,
+      status: true,
       client: {
         select: {
           name: true,
@@ -28,13 +28,15 @@ export const GET = withErrorHandler(async (request: NextRequest) => {
       },
     },
     orderBy: { updatedAt: 'desc' },
-    take: 100,
+    take: 200,
   });
 
-  // Format with client name for better identification
+  // Format with client name; label ended missions so they're distinguishable
   const formattedMissions = missions.map((m) => ({
     id: m.id,
-    name: `${m.name} (${m.client.name})`,
+    name: m.status !== 'ACTIVE'
+      ? `${m.name} (${m.client.name}) — Terminée`
+      : `${m.name} (${m.client.name})`,
   }));
 
   return successResponse(formattedMissions);
