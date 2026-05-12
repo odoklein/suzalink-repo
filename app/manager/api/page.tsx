@@ -71,10 +71,28 @@ interface NewKeyResponse {
   createdAt: string;
 }
 
+interface ApiRequestMetrics {
+  date: string;
+  totalCalls: number;
+  failedCalls: number;
+  topEndpoints: Array<{
+    endpoint: string;
+    method: string;
+    count: number;
+  }>;
+  failedRequests: Array<{
+    endpoint: string;
+    method: string;
+    statusCode: number;
+    count: number;
+  }>;
+}
+
 export default function ApiManagementPage() {
   const toast = useToast();
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
   const [endpoints, setEndpoints] = useState<ExternalEndpoint[]>([]);
+  const [apiMetrics, setApiMetrics] = useState<ApiRequestMetrics | null>(null);
   const [clients, setClients] = useState<Array<{ id: string; name: string }>>([]);
   const [missions, setMissions] = useState<Array<{ id: string; name: string }>>([]);
   const [loading, setLoading] = useState(true);
@@ -137,9 +155,10 @@ export default function ApiManagementPage() {
   async function loadData() {
     try {
       setLoading(true);
-      const [keysRes, endpointsRes, clientsRes, missionsRes] = await Promise.all([
+      const [keysRes, endpointsRes, metricsRes, clientsRes, missionsRes] = await Promise.all([
         fetch("/api/manager/api-keys"),
         fetch("/api/manager/api-keys/endpoints"),
+        fetch("/api/manager/api-keys/metrics"),
         fetch("/api/manager/clients"),
         fetch("/api/manager/missions"),
       ]);
@@ -151,6 +170,10 @@ export default function ApiManagementPage() {
       if (endpointsRes.ok) {
         const endpointsData = await endpointsRes.json();
         setEndpoints(endpointsData.data || []);
+      }
+      if (metricsRes.ok) {
+        const metricsData = await metricsRes.json();
+        setApiMetrics(metricsData.data || null);
       }
       if (clientsRes.ok) {
         const clientsData = await clientsRes.json();
@@ -286,7 +309,7 @@ export default function ApiManagementPage() {
 
         {/* Stats Cards */}
         {!loading && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
@@ -296,6 +319,22 @@ export default function ApiManagementPage() {
                   </div>
                   <div className="p-3 bg-blue-100 rounded-lg">
                     <Key className="w-5 h-5 text-blue-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-500 font-medium">API Calls Today</p>
+                    <p className="text-2xl font-bold text-gray-900 mt-1">
+                      {(apiMetrics?.totalCalls || 0).toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-cyan-100 rounded-lg">
+                    <Activity className="w-5 h-5 text-cyan-600" />
                   </div>
                 </div>
               </CardContent>
@@ -347,6 +386,68 @@ export default function ApiManagementPage() {
           </div>
         )}
 
+        {!loading && apiMetrics && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+            <Card>
+              <CardHeader className="mb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-cyan-600" />
+                  Top Endpoints Today
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {apiMetrics.topEndpoints.length > 0 ? (
+                  <div className="space-y-3">
+                    {apiMetrics.topEndpoints.map((item) => (
+                      <div key={`${item.method}-${item.endpoint}`} className="flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">
+                            <span className="text-cyan-700">{item.method}</span> {item.endpoint}
+                          </p>
+                        </div>
+                        <span className="text-sm font-semibold text-gray-900 shrink-0">
+                          {item.count.toLocaleString()}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500">No API calls recorded today.</p>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="mb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-amber-600" />
+                  Failed Requests Today
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {apiMetrics.failedRequests.length > 0 ? (
+                  <div className="space-y-3">
+                    {apiMetrics.failedRequests.map((item) => (
+                      <div key={`${item.method}-${item.endpoint}-${item.statusCode}`} className="flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">
+                            <span className="text-amber-700">{item.statusCode}</span> {item.method} {item.endpoint}
+                          </p>
+                        </div>
+                        <span className="text-sm font-semibold text-gray-900 shrink-0">
+                          {item.count.toLocaleString()}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500">No failed API calls recorded today.</p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
         {/* Search and Filter Bar */}
         {!loading && apiKeys.length > 0 && (
           <div className="flex flex-col sm:flex-row gap-4 mb-6">
@@ -366,7 +467,7 @@ export default function ApiManagementPage() {
                 { value: 'revoked', label: 'Revoked Only' },
               ]}
               value={filterStatus}
-              onChange={(value) => setFilterStatus(value as any)}
+              onChange={(value) => setFilterStatus(value as "all" | "active" | "revoked")}
             />
             <Button
               variant="outline"

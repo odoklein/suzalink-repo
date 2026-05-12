@@ -54,14 +54,41 @@ export function SyncRdvAudiosModal({
   const [selectedToSync, setSelectedToSync] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<string | null>(null);
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [phoneFilter, setPhoneFilter] = useState("");
 
   const selectedActionIds = useMemo(
     () => meetings.filter((m) => selectedIds.has(m.id)).map((m) => m.id),
     [meetings, selectedIds],
   );
   const visibleActionIds = useMemo(() => meetings.map((m) => m.id), [meetings]);
+  const normalizedPhoneFilter = phoneFilter.replace(/\D/g, "");
+  const filteredMeetings = useMemo(() => {
+    return meetings.filter((m) => {
+      if (scope === "selected" && !selectedIds.has(m.id)) return false;
 
-  const targetIds = scope === "selected" ? selectedActionIds : visibleActionIds;
+      const rawDate = m.callbackDate || m.createdAt;
+      if ((dateFrom || dateTo) && !rawDate) return false;
+      if (rawDate) {
+        const meetingDate = new Date(rawDate);
+        if (Number.isNaN(meetingDate.getTime())) return false;
+        if (dateFrom && meetingDate < new Date(`${dateFrom}T00:00:00`)) return false;
+        if (dateTo && meetingDate > new Date(`${dateTo}T23:59:59.999`)) return false;
+      }
+
+      if (normalizedPhoneFilter) {
+        const phones = [m.meetingPhone, m.contact?.phone, m.company?.phone]
+          .filter((p): p is string => !!p)
+          .map((p) => p.replace(/\D/g, ""));
+        return phones.some((p) => p.includes(normalizedPhoneFilter));
+      }
+
+      return true;
+    });
+  }, [dateFrom, dateTo, meetings, normalizedPhoneFilter, scope, selectedIds]);
+
+  const targetIds = filteredMeetings.map((m) => m.id);
 
   const runPreview = async () => {
     setError(null);
@@ -75,7 +102,12 @@ export function SyncRdvAudiosModal({
       const res = await fetch("/api/manager/rdv/audio-sync", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ actionIds: targetIds }),
+        body: JSON.stringify({
+          actionIds: targetIds,
+          dateFrom: dateFrom || undefined,
+          dateTo: dateTo || undefined,
+          phone: phoneFilter.trim() || undefined,
+        }),
       });
       const json = await res.json();
       if (!json.success) {
@@ -172,6 +204,43 @@ export function SyncRdvAudiosModal({
           >
             RDV visibles ({visibleActionIds.length})
           </button>
+          <span style={{ fontSize: 12, color: "var(--ink3)" }}>
+            {targetIds.length} RDV a analyser apres filtres
+          </span>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 10 }}>
+          <label style={{ display: "grid", gap: 6, fontSize: 11, color: "var(--ink3)", fontWeight: 600 }}>
+            Date debut
+            <input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              style={{ border: "1px solid var(--border)", borderRadius: 8, padding: "8px 10px", background: "var(--surface)", color: "var(--ink)" }}
+            />
+          </label>
+          <label style={{ display: "grid", gap: 6, fontSize: 11, color: "var(--ink3)", fontWeight: 600 }}>
+            Date fin
+            <input
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              style={{ border: "1px solid var(--border)", borderRadius: 8, padding: "8px 10px", background: "var(--surface)", color: "var(--ink)" }}
+            />
+          </label>
+          <label style={{ display: "grid", gap: 6, fontSize: 11, color: "var(--ink3)", fontWeight: 600 }}>
+            Numero
+            <input
+              type="tel"
+              value={phoneFilter}
+              onChange={(e) => setPhoneFilter(e.target.value)}
+              placeholder="Ex: 06 12 34 56 78"
+              style={{ border: "1px solid var(--border)", borderRadius: 8, padding: "8px 10px", background: "var(--surface)", color: "var(--ink)" }}
+            />
+          </label>
+        </div>
+
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
           <button className="rdv-btn rdv-btn-ghost" onClick={runPreview} disabled={loadingPreview || syncing}>
             {loadingPreview ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />} Prévisualiser
           </button>

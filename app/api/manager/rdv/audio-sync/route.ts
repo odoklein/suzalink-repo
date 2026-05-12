@@ -11,6 +11,9 @@ const ENRICHMENT_DAY_TZ = process.env.CALL_ENRICHMENT_DAY_TZ ?? "Europe/Paris";
 const MAX_ACTIONS = 150;
 const schema = z.object({
   actionIds: z.array(z.string().min(1)).min(1).max(MAX_ACTIONS),
+  dateFrom: z.string().date().optional(),
+  dateTo: z.string().date().optional(),
+  phone: z.string().trim().min(1).max(40).optional(),
 });
 const syncSchema = z.object({
   items: z
@@ -75,6 +78,12 @@ function normalizePhonesFromField(raw: string | null | undefined): string[] {
         .filter((p): p is string => p !== null),
     ),
   ];
+}
+
+function phoneMatchesFilter(phones: string[], filter: string | undefined): boolean {
+  const needle = filter?.replace(/\D/g, "");
+  if (!needle) return true;
+  return phones.some((phone) => phone.replace(/\D/g, "").includes(needle));
 }
 
 function extractAdditionalPhonesFromJson(data: unknown): string[] {
@@ -164,11 +173,16 @@ async function findBestMatchForAction(input: {
   return { match: null, attempts };
 }
 
-async function fetchRdvActions(actionIds: string[]) {
+async function fetchRdvActions(input: { actionIds: string[]; dateFrom?: string; dateTo?: string }) {
+  const callbackDate: { gte?: Date; lte?: Date } = {};
+  if (input.dateFrom) callbackDate.gte = DateTime.fromISO(input.dateFrom).startOf("day").toJSDate();
+  if (input.dateTo) callbackDate.lte = DateTime.fromISO(input.dateTo).endOf("day").toJSDate();
+
   return prisma.action.findMany({
     where: {
-      id: { in: actionIds },
+      id: { in: input.actionIds },
       result: { in: ["MEETING_BOOKED", "MEETING_CANCELLED"] },
+      ...(input.dateFrom || input.dateTo ? { callbackDate } : {}),
     },
     select: {
       id: true,
@@ -204,13 +218,17 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
   if (!parsed.success) return errorResponse("actionIds invalides", 400);
 
   const actionIds = [...new Set(parsed.data.actionIds)];
-  const actions = await fetchRdvActions(actionIds);
+  const actions = await fetchRdvActions({
+    actionIds,
+    dateFrom: parsed.data.dateFrom,
+    dateTo: parsed.data.dateTo,
+  });
   if (actions.length === 0) return successResponse({ items: [] });
   const alloNumbers = getAlloNumbers();
   if (alloNumbers.length === 0) return errorResponse("ALLO_NUMBERS manquant", 400);
 
-  const items = await Promise.all(
-    actions.map(async (a) => {
+  const actionsWithPhones = actions
+    .map((a) => {
       const phones = [
         ...normalizePhonesFromField(a.meetingPhone),
         ...normalizePhonesFromField(a.contact?.phone),
@@ -219,6 +237,14 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
         ...extractAdditionalPhonesFromJson(a.company?.customData).flatMap((p) => normalizePhonesFromField(p)),
       ];
       const dedupedPhones = [...new Set(phones)];
+      return { action: a, phones: dedupedPhones };
+    })
+    .filter(({ phones }) => phoneMatchesFilter(phones, parsed.data.phone));
+
+  if (actionsWithPhones.length === 0) return successResponse({ items: [], matchedCount: 0 });
+
+  const items = await Promise.all(
+    actionsWithPhones.map(async ({ action: a, phones: dedupedPhones }) => {
       const searchWays = [
         "meetingPhone",
         "contact.phone",

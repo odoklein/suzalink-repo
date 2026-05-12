@@ -3299,6 +3299,23 @@ model ApiKeyUsageLog {
   @@index([endpoint])
 }
 
+model ApiRequestDailyMetric {
+  id            String    @id @default(cuid())
+  date          DateTime  @db.Date
+  endpoint      String
+  method        String
+  statusCode    Int
+  count         Int       @default(0)
+  lastSeenAt    DateTime  @default(now())
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([date, endpoint, method, statusCode])
+  @@index([date])
+  @@index([date, endpoint])
+  @@index([date, statusCode])
+}
+
 // ============================================
 // AVAILABLE EXTERNAL ENDPOINTS CONFIGURATION
 // ============================================
