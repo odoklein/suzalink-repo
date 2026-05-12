@@ -9,10 +9,12 @@ import {
     Link2,
     Link2Off,
     Pencil,
-    ChevronDown,
     Loader2,
     CheckCircle2,
-    Circle,
+    AlertCircle,
+    Users,
+    Sparkles,
+    ChevronRight,
 } from "lucide-react";
 import { StrategyEditorDrawer } from "./StrategyEditorDrawer";
 
@@ -53,13 +55,26 @@ interface StrategyByListTabProps {
     onChange: () => void;
 }
 
-function StatusDot({ ok }: { ok: boolean }) {
-    return ok ? (
-        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-    ) : (
-        <Circle className="w-4 h-4 text-slate-300" />
-    );
-}
+// Explicit color palette — does not rely on global CSS variables
+const COLORS = {
+    text: "#0F172A",
+    textMuted: "#64748B",
+    textSubtle: "#94A3B8",
+    border: "#E2E8F0",
+    bg: "#FFFFFF",
+    bgSubtle: "#F8FAFC",
+    indigo: "#4F46E5",
+    indigoDark: "#3730A3",
+    indigoBg: "#EEF2FF",
+    emerald: "#059669",
+    emeraldBg: "#ECFDF5",
+    amber: "#D97706",
+    amberBg: "#FFFBEB",
+    sky: "#0284C7",
+    skyBg: "#F0F9FF",
+    rose: "#E11D48",
+    roseBg: "#FFF1F2",
+} as const;
 
 export function StrategyByListTab({ missionId, lists, campaigns, onChange }: StrategyByListTabProps) {
     const { success, error: showError } = useToast();
@@ -67,16 +82,19 @@ export function StrategyByListTab({ missionId, lists, campaigns, onChange }: Str
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [editingCampaignId, setEditingCampaignId] = useState<string | null>(null);
     const [initialAssignToListId, setInitialAssignToListId] = useState<string | null>(null);
-
-    const [menuOpenForList, setMenuOpenForList] = useState<string | null>(null);
     const [busyListId, setBusyListId] = useState<string | null>(null);
-    const [assignSubmenuForList, setAssignSubmenuForList] = useState<string | null>(null);
+    const [pickerListId, setPickerListId] = useState<string | null>(null);
 
     const sortedLists = useMemo(() => {
         return [...lists].sort((a, b) => {
-            const aReady = a.readiness?.isReady ? 1 : 0;
-            const bReady = b.readiness?.isReady ? 1 : 0;
-            if (aReady !== bReady) return aReady - bReady;
+            // Sort: missing strategy first (most urgent), then partial, then ready
+            const score = (l: ListItem) => {
+                if (!l.readiness?.hasStrategy) return 0;
+                if (!l.readiness.isReady) return 1;
+                return 2;
+            };
+            const diff = score(a) - score(b);
+            if (diff !== 0) return diff;
             return a.name.localeCompare(b.name);
         });
     }, [lists]);
@@ -94,7 +112,6 @@ export function StrategyByListTab({ missionId, lists, campaigns, onChange }: Str
 
     const handleDuplicate = async (sourceCampaignId: string, list: ListItem) => {
         setBusyListId(list.id);
-        setMenuOpenForList(null);
         try {
             const res = await fetch(`/api/campaigns/${sourceCampaignId}/duplicate`, {
                 method: "POST",
@@ -109,7 +126,7 @@ export function StrategyByListTab({ missionId, lists, campaigns, onChange }: Str
                 showError("Erreur", json.error || "Duplication échouée");
                 return;
             }
-            success("Stratégie dupliquée", `Liée à la liste « ${list.name} »`);
+            success("Stratégie créée par copie", `Liée à la liste « ${list.name} »`);
             onChange();
             setEditingCampaignId(json.data.id);
             setInitialAssignToListId(null);
@@ -123,8 +140,7 @@ export function StrategyByListTab({ missionId, lists, campaigns, onChange }: Str
 
     const handleAssign = async (list: ListItem, campaignId: string | null) => {
         setBusyListId(list.id);
-        setMenuOpenForList(null);
-        setAssignSubmenuForList(null);
+        setPickerListId(null);
         try {
             const res = await fetch(`/api/lists/${list.id}`, {
                 method: "PATCH",
@@ -138,9 +154,7 @@ export function StrategyByListTab({ missionId, lists, campaigns, onChange }: Str
             }
             success(
                 campaignId ? "Stratégie liée" : "Stratégie détachée",
-                campaignId
-                    ? `Liste « ${list.name} » mise à jour`
-                    : `Liste « ${list.name} » sans stratégie`
+                campaignId ? `Liste « ${list.name} » mise à jour` : `Liste « ${list.name} » sans stratégie`
             );
             onChange();
         } catch {
@@ -150,195 +164,350 @@ export function StrategyByListTab({ missionId, lists, campaigns, onChange }: Str
         }
     };
 
+    const defaultCampaign = campaigns.find((c) => c.isActive);
+
     return (
-        <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center">
-                        <Target className="w-5 h-5 text-indigo-600" />
-                    </div>
-                    <div>
-                        <h2 className="text-lg font-semibold text-slate-900">Stratégies par liste</h2>
-                        <p className="text-sm text-slate-500">
-                            Une stratégie (ICP, pitch, script) par segment. Les SDR reçoivent automatiquement le script de la liste sélectionnée.
-                        </p>
-                    </div>
+        <div className="animate-in fade-in slide-in-from-bottom-2 duration-500" style={{ color: COLORS.text }}>
+            {/* Header / explainer */}
+            <div
+                style={{
+                    background: `linear-gradient(135deg, ${COLORS.indigoBg} 0%, #FFFFFF 60%)`,
+                    border: `1px solid ${COLORS.border}`,
+                    borderRadius: 20,
+                    padding: 24,
+                    marginBottom: 20,
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: 16,
+                }}
+            >
+                <div
+                    style={{
+                        width: 48,
+                        height: 48,
+                        borderRadius: 14,
+                        background: `linear-gradient(135deg, ${COLORS.indigo}, ${COLORS.indigoDark})`,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
+                        boxShadow: "0 8px 24px rgba(79, 70, 229, 0.25)",
+                    }}
+                >
+                    <Sparkles style={{ width: 24, height: 24, color: "#FFFFFF" }} />
+                </div>
+                <div style={{ flex: 1 }}>
+                    <h2 style={{ fontSize: 20, fontWeight: 700, color: COLORS.text, margin: 0 }}>
+                        Une stratégie par liste
+                    </h2>
+                    <p style={{ fontSize: 14, color: COLORS.textMuted, margin: "6px 0 0", lineHeight: 1.5 }}>
+                        Pour chaque liste de prospects, définissez l’ICP, le pitch et le script.
+                        Les SDR utiliseront automatiquement le bon script quand ils travaillent cette liste.
+                    </p>
                 </div>
             </div>
 
             {sortedLists.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-slate-200 p-8 text-center text-slate-500">
-                    Aucune liste dans cette mission — créez ou importez une liste pour commencer.
+                <div
+                    style={{
+                        background: COLORS.bg,
+                        border: `2px dashed ${COLORS.border}`,
+                        borderRadius: 20,
+                        padding: 48,
+                        textAlign: "center",
+                        color: COLORS.textMuted,
+                    }}
+                >
+                    <Users style={{ width: 32, height: 32, color: COLORS.textSubtle, margin: "0 auto 12px" }} />
+                    <p style={{ fontSize: 15, fontWeight: 600, color: COLORS.text, margin: 0 }}>
+                        Aucune liste dans cette mission
+                    </p>
+                    <p style={{ fontSize: 13, marginTop: 6 }}>
+                        Importez ou créez une liste pour commencer.
+                    </p>
                 </div>
             ) : (
-                <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                    <table className="min-w-full text-sm">
-                        <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
-                            <tr>
-                                <th className="px-4 py-3 text-left font-medium">Liste</th>
-                                <th className="px-3 py-3 text-center font-medium">Sociétés</th>
-                                <th className="px-3 py-3 text-center font-medium">ICP</th>
-                                <th className="px-3 py-3 text-center font-medium">Pitch</th>
-                                <th className="px-3 py-3 text-center font-medium">Script</th>
-                                <th className="px-4 py-3 text-left font-medium">Stratégie liée</th>
-                                <th className="px-4 py-3 text-right font-medium">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100">
-                            {sortedLists.map((list) => {
-                                const r = list.readiness;
-                                const hasStrategy = !!list.campaign;
-                                const inactive = list.isActive === false;
-                                const isBusy = busyListId === list.id;
-                                const menuOpen = menuOpenForList === list.id;
-                                const submenu = assignSubmenuForList === list.id;
-                                const availableCampaignsForAssign = campaigns.filter(
-                                    (c) => c.isActive && c.id !== list.campaignId
-                                );
-                                return (
-                                    <tr key={list.id} className={inactive ? "bg-slate-50/50" : ""}>
-                                        <td className="px-4 py-3">
-                                            <div className="flex items-center gap-2">
-                                                <span className={`font-medium ${inactive ? "text-slate-500" : "text-slate-900"}`}>
-                                                    {list.name}
-                                                </span>
-                                                {inactive && (
-                                                    <span className="text-[10px] uppercase tracking-wide text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">
-                                                        inactive
-                                                    </span>
-                                                )}
+                <div style={{ display: "grid", gap: 16 }}>
+                    {sortedLists.map((list) => {
+                        const r = list.readiness;
+                        const hasStrategy = !!list.campaign;
+                        const isReady = !!r?.isReady;
+                        const inactive = list.isActive === false;
+                        const isBusy = busyListId === list.id;
+
+                        // Card accent + status colors
+                        const statusColor = !hasStrategy ? COLORS.amber : isReady ? COLORS.emerald : COLORS.sky;
+                        const statusBg = !hasStrategy ? COLORS.amberBg : isReady ? COLORS.emeraldBg : COLORS.skyBg;
+                        const statusLabel = !hasStrategy
+                            ? "Aucune stratégie"
+                            : isReady
+                                ? "Prête pour les SDR"
+                                : "À compléter";
+
+                        const availableCampaigns = campaigns.filter(
+                            (c) => c.isActive && c.id !== list.campaignId
+                        );
+
+                        return (
+                            <div
+                                key={list.id}
+                                style={{
+                                    background: COLORS.bg,
+                                    border: `1px solid ${COLORS.border}`,
+                                    borderRadius: 20,
+                                    boxShadow: "0 1px 3px rgba(15, 23, 42, 0.04)",
+                                    overflow: "hidden",
+                                    opacity: inactive ? 0.7 : 1,
+                                    transition: "box-shadow 200ms ease",
+                                }}
+                            >
+                                {/* Top bar: list name + status */}
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "space-between",
+                                        padding: "18px 24px",
+                                        borderBottom: `1px solid ${COLORS.border}`,
+                                        gap: 16,
+                                    }}
+                                >
+                                    <div style={{ display: "flex", alignItems: "center", gap: 14, minWidth: 0 }}>
+                                        <div
+                                            style={{
+                                                width: 44,
+                                                height: 44,
+                                                borderRadius: 12,
+                                                background: COLORS.indigoBg,
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                                flexShrink: 0,
+                                            }}
+                                        >
+                                            <Users style={{ width: 22, height: 22, color: COLORS.indigo }} />
+                                        </div>
+                                        <div style={{ minWidth: 0 }}>
+                                            <div
+                                                style={{
+                                                    fontSize: 17,
+                                                    fontWeight: 700,
+                                                    color: COLORS.text,
+                                                    overflow: "hidden",
+                                                    textOverflow: "ellipsis",
+                                                    whiteSpace: "nowrap",
+                                                }}
+                                            >
+                                                {list.name}
                                             </div>
-                                            <div className="text-xs text-slate-500">{list.type}</div>
-                                        </td>
-                                        <td className="px-3 py-3 text-center text-slate-700">
-                                            {list._count?.companies ?? 0}
-                                        </td>
-                                        <td className="px-3 py-3"><div className="flex justify-center"><StatusDot ok={!!r?.hasIcp} /></div></td>
-                                        <td className="px-3 py-3"><div className="flex justify-center"><StatusDot ok={!!r?.hasPitch} /></div></td>
-                                        <td className="px-3 py-3"><div className="flex justify-center"><StatusDot ok={!!r?.hasScript} /></div></td>
-                                        <td className="px-4 py-3">
-                                            {hasStrategy ? (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => openEdit(list.campaign!.id)}
-                                                    className="inline-flex items-center gap-1.5 text-sm font-medium text-indigo-700 hover:text-indigo-800 hover:underline"
-                                                >
-                                                    <Target className="w-3.5 h-3.5" />
+                                            <div style={{ fontSize: 13, color: COLORS.textMuted, marginTop: 2 }}>
+                                                {list._count?.companies ?? 0} sociétés · {list.type}
+                                                {inactive ? " · Désactivée" : ""}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <span
+                                        style={{
+                                            display: "inline-flex",
+                                            alignItems: "center",
+                                            gap: 6,
+                                            fontSize: 13,
+                                            fontWeight: 600,
+                                            color: statusColor,
+                                            background: statusBg,
+                                            padding: "8px 14px",
+                                            borderRadius: 999,
+                                            border: `1px solid ${statusColor}33`,
+                                            flexShrink: 0,
+                                        }}
+                                    >
+                                        {hasStrategy && isReady ? (
+                                            <CheckCircle2 style={{ width: 16, height: 16 }} />
+                                        ) : (
+                                            <AlertCircle style={{ width: 16, height: 16 }} />
+                                        )}
+                                        {statusLabel}
+                                    </span>
+                                </div>
+
+                                {/* Body */}
+                                <div style={{ padding: "20px 24px" }}>
+                                    {hasStrategy ? (
+                                        <>
+                                            <div
+                                                style={{
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    gap: 10,
+                                                    marginBottom: 14,
+                                                }}
+                                            >
+                                                <Target style={{ width: 18, height: 18, color: COLORS.indigo }} />
+                                                <span style={{ fontSize: 14, color: COLORS.textMuted }}>
+                                                    Stratégie liée :
+                                                </span>
+                                                <span style={{ fontSize: 15, fontWeight: 600, color: COLORS.text }}>
                                                     {list.campaign!.name}
-                                                </button>
-                                            ) : (
-                                                <span className="text-sm text-amber-600">Aucune</span>
-                                            )}
-                                        </td>
-                                        <td className="px-4 py-3 text-right">
-                                            <div className="relative inline-block">
-                                                <button
-                                                    type="button"
+                                                </span>
+                                            </div>
+
+                                            {/* Readiness pills */}
+                                            <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 18 }}>
+                                                <ReadinessPill label="ICP" ok={!!r?.hasIcp} />
+                                                <ReadinessPill label="Pitch" ok={!!r?.hasPitch} />
+                                                <ReadinessPill label="Script" ok={!!r?.hasScript} />
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <p
+                                            style={{
+                                                fontSize: 14,
+                                                color: COLORS.textMuted,
+                                                margin: "0 0 18px",
+                                                lineHeight: 1.5,
+                                            }}
+                                        >
+                                            Cette liste n’a pas encore de stratégie.
+                                            Choisissez une option ci-dessous pour démarrer.
+                                        </p>
+                                    )}
+
+                                    {/* Action buttons */}
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            flexWrap: "wrap",
+                                            gap: 10,
+                                        }}
+                                    >
+                                        {hasStrategy ? (
+                                            <PrimaryButton
+                                                onClick={() => openEdit(list.campaign!.id)}
+                                                icon={<Pencil style={{ width: 16, height: 16 }} />}
+                                                disabled={isBusy}
+                                            >
+                                                Modifier la stratégie
+                                            </PrimaryButton>
+                                        ) : (
+                                            <PrimaryButton
+                                                onClick={() => openCreateForList(list.id)}
+                                                icon={<Plus style={{ width: 16, height: 16 }} />}
+                                                disabled={isBusy}
+                                            >
+                                                Créer une stratégie
+                                            </PrimaryButton>
+                                        )}
+
+                                        {defaultCampaign && (!hasStrategy || list.campaign?.id !== defaultCampaign.id) && (
+                                            <SecondaryButton
+                                                onClick={() => handleDuplicate(defaultCampaign.id, list)}
+                                                icon={isBusy ? <Loader2 style={{ width: 16, height: 16 }} className="animate-spin" /> : <Copy style={{ width: 16, height: 16 }} />}
+                                                disabled={isBusy}
+                                            >
+                                                Copier la stratégie par défaut
+                                            </SecondaryButton>
+                                        )}
+
+                                        {availableCampaigns.length > 0 && (
+                                            <div style={{ position: "relative" }}>
+                                                <SecondaryButton
+                                                    onClick={() => setPickerListId(pickerListId === list.id ? null : list.id)}
+                                                    icon={<Link2 style={{ width: 16, height: 16 }} />}
                                                     disabled={isBusy}
-                                                    onClick={() => {
-                                                        setMenuOpenForList(menuOpen ? null : list.id);
-                                                        setAssignSubmenuForList(null);
-                                                    }}
-                                                    className="inline-flex items-center gap-1 h-8 px-3 text-xs font-medium border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-50"
                                                 >
-                                                    {isBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
-                                                    {hasStrategy ? "Gérer" : "Configurer"}
-                                                    <ChevronDown className="w-3.5 h-3.5" />
-                                                </button>
-                                                {menuOpen && (
+                                                    Choisir une stratégie existante
+                                                </SecondaryButton>
+                                                {pickerListId === list.id && (
                                                     <>
                                                         <div
-                                                            className="fixed inset-0 z-10"
-                                                            onClick={() => {
-                                                                setMenuOpenForList(null);
-                                                                setAssignSubmenuForList(null);
+                                                            onClick={() => setPickerListId(null)}
+                                                            style={{
+                                                                position: "fixed",
+                                                                inset: 0,
+                                                                zIndex: 10,
                                                             }}
                                                         />
-                                                        <div className="absolute right-0 top-9 z-20 min-w-[240px] rounded-lg border border-slate-200 bg-white shadow-lg py-1 text-sm">
-                                                            {hasStrategy && (
+                                                        <div
+                                                            style={{
+                                                                position: "absolute",
+                                                                top: "calc(100% + 6px)",
+                                                                left: 0,
+                                                                zIndex: 20,
+                                                                minWidth: 260,
+                                                                maxHeight: 280,
+                                                                overflowY: "auto",
+                                                                background: COLORS.bg,
+                                                                border: `1px solid ${COLORS.border}`,
+                                                                borderRadius: 12,
+                                                                boxShadow: "0 12px 32px rgba(15, 23, 42, 0.12)",
+                                                                padding: 6,
+                                                            }}
+                                                        >
+                                                            {availableCampaigns.map((c) => (
                                                                 <button
+                                                                    key={c.id}
                                                                     type="button"
-                                                                    onClick={() => {
-                                                                        setMenuOpenForList(null);
-                                                                        openEdit(list.campaign!.id);
+                                                                    onClick={() => handleAssign(list, c.id)}
+                                                                    style={{
+                                                                        width: "100%",
+                                                                        textAlign: "left",
+                                                                        padding: "10px 12px",
+                                                                        fontSize: 14,
+                                                                        color: COLORS.text,
+                                                                        background: "transparent",
+                                                                        border: "none",
+                                                                        borderRadius: 8,
+                                                                        cursor: "pointer",
+                                                                        display: "flex",
+                                                                        alignItems: "center",
+                                                                        gap: 8,
                                                                     }}
-                                                                    className="w-full flex items-center gap-2 px-3 py-2 text-left text-slate-700 hover:bg-slate-50"
+                                                                    onMouseEnter={(e) => (e.currentTarget.style.background = COLORS.bgSubtle)}
+                                                                    onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                                                                 >
-                                                                    <Pencil className="w-3.5 h-3.5" />
-                                                                    Modifier la stratégie
+                                                                    <Target style={{ width: 14, height: 14, color: COLORS.indigo }} />
+                                                                    {c.name}
                                                                 </button>
-                                                            )}
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => {
-                                                                    setMenuOpenForList(null);
-                                                                    openCreateForList(list.id);
-                                                                }}
-                                                                className="w-full flex items-center gap-2 px-3 py-2 text-left text-slate-700 hover:bg-slate-50"
-                                                            >
-                                                                <Plus className="w-3.5 h-3.5" />
-                                                                Créer une stratégie vierge
-                                                            </button>
-                                                            {campaigns.length > 0 && (
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => handleDuplicate(campaigns[0].id, list)}
-                                                                    className="w-full flex items-center gap-2 px-3 py-2 text-left text-slate-700 hover:bg-slate-50"
-                                                                >
-                                                                    <Copy className="w-3.5 h-3.5" />
-                                                                    Dupliquer la stratégie par défaut
-                                                                </button>
-                                                            )}
-                                                            {availableCampaignsForAssign.length > 0 && (
-                                                                <div
-                                                                    onMouseEnter={() => setAssignSubmenuForList(list.id)}
-                                                                    onMouseLeave={() => setAssignSubmenuForList(null)}
-                                                                    className="relative"
-                                                                >
-                                                                    <button
-                                                                        type="button"
-                                                                        className="w-full flex items-center gap-2 px-3 py-2 text-left text-slate-700 hover:bg-slate-50"
-                                                                    >
-                                                                        <Link2 className="w-3.5 h-3.5" />
-                                                                        Assigner une stratégie existante
-                                                                        <ChevronDown className="w-3.5 h-3.5 -rotate-90 ml-auto" />
-                                                                    </button>
-                                                                    {submenu && (
-                                                                        <div className="absolute right-full top-0 mr-1 min-w-[220px] max-h-64 overflow-y-auto rounded-lg border border-slate-200 bg-white shadow-lg py-1">
-                                                                            {availableCampaignsForAssign.map((c) => (
-                                                                                <button
-                                                                                    key={c.id}
-                                                                                    type="button"
-                                                                                    onClick={() => handleAssign(list, c.id)}
-                                                                                    className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 truncate"
-                                                                                >
-                                                                                    {c.name}
-                                                                                </button>
-                                                                            ))}
-                                                                        </div>
-                                                                    )}
-                                                                </div>
-                                                            )}
-                                                            {hasStrategy && (
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => handleAssign(list, null)}
-                                                                    className="w-full flex items-center gap-2 px-3 py-2 text-left text-amber-700 hover:bg-amber-50 border-t border-slate-100 mt-1"
-                                                                >
-                                                                    <Link2Off className="w-3.5 h-3.5" />
-                                                                    Détacher la stratégie
-                                                                </button>
-                                                            )}
+                                                            ))}
                                                         </div>
                                                     </>
                                                 )}
                                             </div>
-                                        </td>
-                                    </tr>
-                                );
-                            })}
-                        </tbody>
-                    </table>
+                                        )}
+
+                                        {hasStrategy && (
+                                            <button
+                                                type="button"
+                                                onClick={() => handleAssign(list, null)}
+                                                disabled={isBusy}
+                                                style={{
+                                                    display: "inline-flex",
+                                                    alignItems: "center",
+                                                    gap: 8,
+                                                    padding: "10px 16px",
+                                                    fontSize: 14,
+                                                    fontWeight: 500,
+                                                    color: COLORS.rose,
+                                                    background: "transparent",
+                                                    border: "none",
+                                                    cursor: isBusy ? "not-allowed" : "pointer",
+                                                    borderRadius: 10,
+                                                    marginLeft: "auto",
+                                                    opacity: isBusy ? 0.6 : 1,
+                                                }}
+                                                onMouseEnter={(e) => (e.currentTarget.style.background = COLORS.roseBg)}
+                                                onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                                            >
+                                                <Link2Off style={{ width: 16, height: 16 }} />
+                                                Détacher
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })}
                 </div>
             )}
 
@@ -352,5 +521,125 @@ export function StrategyByListTab({ missionId, lists, campaigns, onChange }: Str
                 onSaved={onChange}
             />
         </div>
+    );
+}
+
+function ReadinessPill({ label, ok }: { label: string; ok: boolean }) {
+    const color = ok ? COLORS.emerald : COLORS.amber;
+    const bg = ok ? COLORS.emeraldBg : COLORS.amberBg;
+    return (
+        <span
+            style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                fontSize: 13,
+                fontWeight: 500,
+                color,
+                background: bg,
+                padding: "6px 12px",
+                borderRadius: 8,
+                border: `1px solid ${color}33`,
+            }}
+        >
+            {ok ? <CheckCircle2 style={{ width: 14, height: 14 }} /> : <AlertCircle style={{ width: 14, height: 14 }} />}
+            {label} {ok ? "OK" : "manquant"}
+        </span>
+    );
+}
+
+function PrimaryButton({
+    children,
+    onClick,
+    icon,
+    disabled,
+}: {
+    children: React.ReactNode;
+    onClick: () => void;
+    icon?: React.ReactNode;
+    disabled?: boolean;
+}) {
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            disabled={disabled}
+            style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "11px 18px",
+                fontSize: 14,
+                fontWeight: 600,
+                color: "#FFFFFF",
+                background: `linear-gradient(135deg, ${COLORS.indigo}, ${COLORS.indigoDark})`,
+                border: "none",
+                borderRadius: 10,
+                cursor: disabled ? "not-allowed" : "pointer",
+                opacity: disabled ? 0.6 : 1,
+                boxShadow: "0 4px 12px rgba(79, 70, 229, 0.25)",
+                transition: "transform 120ms ease, box-shadow 120ms ease",
+            }}
+            onMouseEnter={(e) => {
+                if (disabled) return;
+                e.currentTarget.style.transform = "translateY(-1px)";
+                e.currentTarget.style.boxShadow = "0 6px 18px rgba(79, 70, 229, 0.35)";
+            }}
+            onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow = "0 4px 12px rgba(79, 70, 229, 0.25)";
+            }}
+        >
+            {icon}
+            {children}
+            <ChevronRight style={{ width: 16, height: 16, marginLeft: 2 }} />
+        </button>
+    );
+}
+
+function SecondaryButton({
+    children,
+    onClick,
+    icon,
+    disabled,
+}: {
+    children: React.ReactNode;
+    onClick: () => void;
+    icon?: React.ReactNode;
+    disabled?: boolean;
+}) {
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            disabled={disabled}
+            style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "11px 16px",
+                fontSize: 14,
+                fontWeight: 500,
+                color: COLORS.text,
+                background: COLORS.bg,
+                border: `1px solid ${COLORS.border}`,
+                borderRadius: 10,
+                cursor: disabled ? "not-allowed" : "pointer",
+                opacity: disabled ? 0.6 : 1,
+                transition: "border-color 120ms ease, background 120ms ease",
+            }}
+            onMouseEnter={(e) => {
+                if (disabled) return;
+                e.currentTarget.style.borderColor = COLORS.indigo;
+                e.currentTarget.style.background = COLORS.indigoBg;
+            }}
+            onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = COLORS.border;
+                e.currentTarget.style.background = COLORS.bg;
+            }}
+        >
+            {icon}
+            {children}
+        </button>
     );
 }

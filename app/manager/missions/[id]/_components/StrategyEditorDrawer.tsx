@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { Drawer, useToast } from "@/components/ui";
-import { Loader2, Save, CheckCircle2, AlertCircle } from "lucide-react";
+import { Loader2, Save, CheckCircle2, AlertCircle, Target, Users, FileText, Sparkles } from "lucide-react";
 
 interface ListSummary {
     id: string;
@@ -14,15 +14,10 @@ interface ListSummary {
 interface StrategyEditorDrawerProps {
     isOpen: boolean;
     onClose: () => void;
-    /** Existing campaign to edit. Null = create mode. */
     campaignId: string | null;
-    /** Mission context — used for create mode and the linked-lists selector. */
     missionId: string;
-    /** All lists in the mission (for the linked-lists checkbox group). */
     lists: ListSummary[];
-    /** When in create mode, pre-select this list so the new strategy is auto-assigned. */
     initialAssignToListId?: string | null;
-    /** Called after a successful save/create/delete. Parent should refetch mission. */
     onSaved?: () => void;
 }
 
@@ -33,6 +28,61 @@ interface CampaignDetail {
     pitch: string;
     script?: string | null;
     isActive: boolean;
+}
+
+const C = {
+    text: "#0F172A",
+    textMuted: "#64748B",
+    textSubtle: "#94A3B8",
+    border: "#E2E8F0",
+    borderFocus: "#4F46E5",
+    bg: "#FFFFFF",
+    bgSubtle: "#F8FAFC",
+    indigo: "#4F46E5",
+    indigoDark: "#3730A3",
+    indigoBg: "#EEF2FF",
+    emerald: "#059669",
+    emeraldBg: "#ECFDF5",
+    amber: "#D97706",
+    amberBg: "#FFFBEB",
+} as const;
+
+const labelStyle: React.CSSProperties = {
+    display: "block",
+    fontSize: 13,
+    fontWeight: 600,
+    color: C.text,
+    marginBottom: 8,
+    letterSpacing: 0.1,
+};
+
+const hintStyle: React.CSSProperties = {
+    fontSize: 12,
+    color: C.textMuted,
+    marginTop: 6,
+    lineHeight: 1.5,
+};
+
+const inputStyle: React.CSSProperties = {
+    width: "100%",
+    padding: "12px 14px",
+    fontSize: 14,
+    color: C.text,
+    background: C.bg,
+    border: `1px solid ${C.border}`,
+    borderRadius: 10,
+    outline: "none",
+    transition: "border-color 120ms ease, box-shadow 120ms ease",
+    boxSizing: "border-box",
+};
+
+function fieldFocus(e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) {
+    e.currentTarget.style.borderColor = C.borderFocus;
+    e.currentTarget.style.boxShadow = `0 0 0 4px ${C.indigoBg}`;
+}
+function fieldBlur(e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) {
+    e.currentTarget.style.borderColor = C.border;
+    e.currentTarget.style.boxShadow = "none";
 }
 
 export function StrategyEditorDrawer({
@@ -55,7 +105,6 @@ export function StrategyEditorDrawer({
     const [script, setScript] = useState("");
     const [linkedListIds, setLinkedListIds] = useState<Set<string>>(new Set());
 
-    // Load existing campaign or initialize create form
     useEffect(() => {
         if (!isOpen) return;
         let cancelled = false;
@@ -110,7 +159,7 @@ export function StrategyEditorDrawer({
 
     const handleSave = async () => {
         if (!name.trim()) {
-            showError("Nom requis", "Donnez un nom à cette stratégie");
+            showError("Nom requis", "Donnez un nom à cette stratégie (ex: SaaS SMB France)");
             return;
         }
         setSaving(true);
@@ -141,12 +190,7 @@ export function StrategyEditorDrawer({
                 const res = await fetch(`/api/campaigns/${campaignId}`, {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        name: name.trim(),
-                        icp,
-                        pitch,
-                        script,
-                    }),
+                    body: JSON.stringify({ name: name.trim(), icp, pitch, script }),
                 });
                 const json = await res.json();
                 if (!json.success) {
@@ -155,7 +199,6 @@ export function StrategyEditorDrawer({
                     return;
                 }
 
-                // Sync linked-list memberships: connect newly checked, disconnect newly unchecked
                 const previouslyLinked = new Set(
                     lists.filter((l) => l.campaignId === campaignId).map((l) => l.id)
                 );
@@ -190,16 +233,8 @@ export function StrategyEditorDrawer({
         }
     };
 
-    const readinessRow = (label: string, ok: boolean) => (
-        <div className="flex items-center gap-2 text-xs">
-            {ok ? (
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-            ) : (
-                <AlertCircle className="w-3.5 h-3.5 text-amber-500" />
-            )}
-            <span className={ok ? "text-emerald-700" : "text-amber-700"}>{label}</span>
-        </div>
-    );
+    const readyCount = [icp, pitch, script].filter((v) => !!v.trim()).length;
+    const allReady = readyCount === 3;
 
     return (
         <Drawer
@@ -208,76 +243,149 @@ export function StrategyEditorDrawer({
             size="xl"
             title={isCreate ? "Créer une stratégie" : "Modifier la stratégie"}
             description={isCreate
-                ? "Définissez ICP, pitch et script pour la ou les listes ciblées."
-                : "Modifiez la stratégie et ses listes liées."}
+                ? "Donnez à vos SDR exactement ce qu’il faut dire à cette liste."
+                : "Modifiez la stratégie et choisissez quelles listes l’utilisent."}
             footer={
-                <div className="flex items-center justify-end gap-2">
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        className="h-9 px-4 text-sm font-medium text-slate-600 hover:text-slate-900"
-                    >
-                        Annuler
-                    </button>
-                    <button
-                        type="button"
-                        onClick={handleSave}
-                        disabled={saving || loading}
-                        className="inline-flex items-center gap-2 h-9 px-4 text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg disabled:opacity-60"
-                    >
-                        {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                        {isCreate ? "Créer" : "Sauvegarder"}
-                    </button>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, width: "100%" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: C.textMuted }}>
+                        {allReady ? (
+                            <>
+                                <CheckCircle2 style={{ width: 16, height: 16, color: C.emerald }} />
+                                <span style={{ color: C.emerald, fontWeight: 600 }}>Prête pour les SDR</span>
+                            </>
+                        ) : (
+                            <>
+                                <AlertCircle style={{ width: 16, height: 16, color: C.amber }} />
+                                <span style={{ color: C.amber, fontWeight: 600 }}>{readyCount}/3 sections remplies</span>
+                            </>
+                        )}
+                    </div>
+                    <div style={{ display: "flex", gap: 10 }}>
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            style={{
+                                padding: "10px 18px",
+                                fontSize: 14,
+                                fontWeight: 500,
+                                color: C.text,
+                                background: C.bg,
+                                border: `1px solid ${C.border}`,
+                                borderRadius: 10,
+                                cursor: "pointer",
+                            }}
+                        >
+                            Annuler
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleSave}
+                            disabled={saving || loading}
+                            style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: 8,
+                                padding: "10px 20px",
+                                fontSize: 14,
+                                fontWeight: 600,
+                                color: "#FFFFFF",
+                                background: saving || loading
+                                    ? "#A5B4FC"
+                                    : `linear-gradient(135deg, ${C.indigo}, ${C.indigoDark})`,
+                                border: "none",
+                                borderRadius: 10,
+                                cursor: saving || loading ? "not-allowed" : "pointer",
+                                boxShadow: "0 4px 12px rgba(79, 70, 229, 0.25)",
+                            }}
+                        >
+                            {saving ? <Loader2 className="animate-spin" style={{ width: 16, height: 16 }} /> : <Save style={{ width: 16, height: 16 }} />}
+                            {isCreate ? "Créer la stratégie" : "Sauvegarder"}
+                        </button>
+                    </div>
                 </div>
             }
         >
             {loading ? (
-                <div className="flex items-center justify-center py-16">
-                    <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+                <div style={{ display: "flex", justifyContent: "center", padding: "64px 0" }}>
+                    <Loader2 className="animate-spin" style={{ width: 24, height: 24, color: C.textSubtle }} />
                 </div>
             ) : (
-                <div className="space-y-6">
-                    {/* Name */}
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Nom de la stratégie</label>
+                <div style={{ color: C.text, display: "grid", gap: 24 }}>
+                    {/* Step 1: Name */}
+                    <Step number={1} icon={<Target style={{ width: 18, height: 18, color: C.indigo }} />} title="Nom de la stratégie">
                         <input
                             type="text"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             placeholder="ex: SaaS SMB France"
-                            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            style={inputStyle}
+                            onFocus={fieldFocus}
+                            onBlur={fieldBlur}
                         />
-                    </div>
+                        <p style={hintStyle}>Un nom court qui décrit le segment (industrie, taille, géo).</p>
+                    </Step>
 
-                    {/* Linked lists */}
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">Listes liées</label>
+                    {/* Step 2: Linked lists */}
+                    <Step number={2} icon={<Users style={{ width: 18, height: 18, color: C.indigo }} />} title="Listes utilisant cette stratégie">
                         {lists.length === 0 ? (
-                            <p className="text-xs text-slate-500">Aucune liste dans cette mission.</p>
+                            <p style={{ fontSize: 13, color: C.textMuted }}>Aucune liste dans cette mission.</p>
                         ) : (
-                            <div className="space-y-1 rounded-lg border border-slate-200 p-2 max-h-44 overflow-y-auto">
+                            <div
+                                style={{
+                                    display: "grid",
+                                    gap: 6,
+                                    border: `1px solid ${C.border}`,
+                                    borderRadius: 10,
+                                    padding: 6,
+                                    maxHeight: 200,
+                                    overflowY: "auto",
+                                    background: C.bgSubtle,
+                                }}
+                            >
                                 {lists.map((l) => {
                                     const checked = linkedListIds.has(l.id);
                                     const linkedElsewhere = !!l.campaignId && l.campaignId !== campaignId && !checked;
                                     return (
                                         <label
                                             key={l.id}
-                                            className="flex items-center gap-2 px-2 py-1.5 text-sm rounded hover:bg-slate-50 cursor-pointer"
+                                            style={{
+                                                display: "flex",
+                                                alignItems: "center",
+                                                gap: 10,
+                                                padding: "10px 12px",
+                                                fontSize: 14,
+                                                color: C.text,
+                                                background: checked ? C.indigoBg : C.bg,
+                                                border: `1px solid ${checked ? C.indigo + "40" : C.border}`,
+                                                borderRadius: 8,
+                                                cursor: "pointer",
+                                            }}
                                         >
                                             <input
                                                 type="checkbox"
                                                 checked={checked}
                                                 onChange={() => toggleListLink(l.id)}
-                                                className="rounded border-slate-300"
+                                                style={{ width: 18, height: 18, accentColor: C.indigo, cursor: "pointer" }}
                                             />
-                                            <span className="flex-1 text-slate-700">{l.name}</span>
+                                            <span style={{ flex: 1, fontWeight: checked ? 600 : 400 }}>{l.name}</span>
                                             {linkedElsewhere && (
-                                                <span className="text-[10px] uppercase tracking-wide font-medium text-amber-600">
+                                                <span
+                                                    style={{
+                                                        fontSize: 11,
+                                                        fontWeight: 600,
+                                                        textTransform: "uppercase",
+                                                        letterSpacing: 0.3,
+                                                        color: C.amber,
+                                                        background: C.amberBg,
+                                                        padding: "2px 8px",
+                                                        borderRadius: 6,
+                                                    }}
+                                                >
                                                     déjà liée
                                                 </span>
                                             )}
                                             {l.isActive === false && (
-                                                <span className="text-[10px] uppercase tracking-wide text-slate-400">
+                                                <span style={{ fontSize: 11, color: C.textSubtle, textTransform: "uppercase" }}>
                                                     inactive
                                                 </span>
                                             )}
@@ -286,63 +394,99 @@ export function StrategyEditorDrawer({
                                 })}
                             </div>
                         )}
-                        <p className="mt-1 text-xs text-slate-500">
-                            Cocher transfère la liste vers cette stratégie au moment de la sauvegarde.
+                        <p style={hintStyle}>
+                            Cochez les listes qui doivent utiliser cette stratégie. Les SDR verront automatiquement le bon script.
                         </p>
-                    </div>
+                    </Step>
 
-                    {/* ICP */}
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">ICP — profil cible</label>
+                    {/* Step 3: ICP */}
+                    <Step number={3} icon={<Target style={{ width: 18, height: 18, color: C.indigo }} />} title="Profil cible (ICP)">
                         <textarea
                             value={icp}
                             onChange={(e) => setIcp(e.target.value)}
                             rows={4}
-                            placeholder="Qui appelez-vous ? Industrie, taille, fonction, signaux…"
-                            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            placeholder="Qui appelons-nous ? Ex: « DSI dans des PME industrielles françaises de 50-200 employés, en transition digitale »."
+                            style={{ ...inputStyle, fontFamily: "inherit", resize: "vertical", minHeight: 100 }}
+                            onFocus={fieldFocus}
+                            onBlur={fieldBlur}
                         />
-                    </div>
+                    </Step>
 
-                    {/* Pitch */}
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Pitch</label>
+                    {/* Step 4: Pitch */}
+                    <Step number={4} icon={<Sparkles style={{ width: 18, height: 18, color: C.indigo }} />} title="Pitch — message à porter">
                         <textarea
                             value={pitch}
                             onChange={(e) => setPitch(e.target.value)}
                             rows={5}
-                            placeholder="Message à porter — valeur, preuve, accroche."
-                            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            placeholder="Quelle est la valeur que vous apportez ? Quelle est l'accroche ? Quelles preuves chiffrées ?"
+                            style={{ ...inputStyle, fontFamily: "inherit", resize: "vertical", minHeight: 120 }}
+                            onFocus={fieldFocus}
+                            onBlur={fieldBlur}
                         />
-                    </div>
+                    </Step>
 
-                    {/* Base script */}
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Script de base</label>
+                    {/* Step 5: Script */}
+                    <Step number={5} icon={<FileText style={{ width: 18, height: 18, color: C.indigo }} />} title="Script d’appel">
                         <textarea
                             value={script}
                             onChange={(e) => setScript(e.target.value)}
                             rows={10}
-                            placeholder="Script utilisé par les SDR sur cette liste."
-                            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            placeholder="Le script que les SDR liront. Décrochage, accroche, qualification, gestion des objections, clôture."
+                            style={{ ...inputStyle, fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", resize: "vertical", minHeight: 220, fontSize: 13 }}
+                            onFocus={fieldFocus}
+                            onBlur={fieldBlur}
                         />
-                        <p className="mt-1 text-xs text-slate-500">
-                            Pour les scripts additionnels ou améliorés par IA, utilisez l’onglet « Stratégie & Scripts ».
+                        <p style={hintStyle}>
+                            Pour les scripts additionnels ou améliorés par IA, utilisez l’onglet « Stratégie &amp; Scripts (avancé) ».
                         </p>
-                    </div>
-
-                    {/* Readiness summary */}
-                    <div className="rounded-lg border border-slate-200 p-3 space-y-1.5 bg-slate-50">
-                        <p className="text-xs font-medium text-slate-600 mb-1">État de préparation</p>
-                        {readinessRow("ICP renseigné", !!icp.trim())}
-                        {readinessRow("Pitch renseigné", !!pitch.trim())}
-                        {readinessRow("Script renseigné", !!script.trim())}
-                        {readinessRow(
-                            `${linkedListIds.size} liste${linkedListIds.size > 1 ? "s" : ""} liée${linkedListIds.size > 1 ? "s" : ""}`,
-                            linkedListIds.size > 0
-                        )}
-                    </div>
+                    </Step>
                 </div>
             )}
         </Drawer>
+    );
+}
+
+function Step({
+    number,
+    icon,
+    title,
+    children,
+}: {
+    number: number;
+    icon: React.ReactNode;
+    title: string;
+    children: React.ReactNode;
+}) {
+    return (
+        <section
+            style={{
+                background: C.bg,
+                border: `1px solid ${C.border}`,
+                borderRadius: 14,
+                padding: 20,
+            }}
+        >
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
+                <div
+                    style={{
+                        width: 28,
+                        height: 28,
+                        borderRadius: 8,
+                        background: C.indigoBg,
+                        color: C.indigoDark,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: 13,
+                        fontWeight: 700,
+                    }}
+                >
+                    {number}
+                </div>
+                {icon}
+                <h3 style={{ fontSize: 15, fontWeight: 700, color: C.text, margin: 0 }}>{title}</h3>
+            </div>
+            {children}
+        </section>
     );
 }

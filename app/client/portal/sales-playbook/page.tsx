@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { BookOpen, Loader2, Target, FileText, Info, ChevronDown, Copy, Check } from "lucide-react";
+import { BookOpen, Loader2, Target, FileText, Info, ChevronDown, Copy, Check, Users, Link2, CheckCircle2, AlertCircle } from "lucide-react";
 import { useToast } from "@/components/ui";
 import { cn } from "@/lib/utils";
 
@@ -12,16 +12,42 @@ type MissionItem = {
     campaigns: Array<{ id: string; name: string; isActive: boolean }>;
 };
 
-type CampaignData = {
+type ListInMission = {
+    id: string;
+    name: string;
+    type: string;
+    isActive?: boolean;
+    campaignId?: string | null;
+    campaign?: {
+        id: string;
+        name: string;
+    } | null;
+    readiness?: {
+        hasStrategy: boolean;
+        hasIcp: boolean;
+        hasPitch: boolean;
+        hasScript: boolean;
+        isReady: boolean;
+    };
+    _count?: { companies: number };
+};
+
+type MissionDetail = {
+    id: string;
+    name: string;
+    objective?: string | null;
+    lists: ListInMission[];
+    campaigns: Array<{ id: string; name: string; isActive: boolean }>;
+};
+
+type StrategyDetail = {
     id: string;
     name: string;
     icp: string;
     pitch: string;
     script?: string | null;
-};
-
-type CompanionData = {
     additionalShared?: string;
+    linkedLists: ListInMission[];
 };
 
 type ScriptSections = {
@@ -72,10 +98,10 @@ export default function ClientSalesPlaybookPage() {
     const { error: showError } = useToast();
     const [missions, setMissions] = useState<MissionItem[]>([]);
     const [selectedMissionId, setSelectedMissionId] = useState("");
-    const [campaign, setCampaign] = useState<CampaignData | null>(null);
-    const [additionalShared, setAdditionalShared] = useState("");
+    const [missionDetail, setMissionDetail] = useState<MissionDetail | null>(null);
+    const [strategies, setStrategies] = useState<StrategyDetail[]>([]);
     const [loadingMissions, setLoadingMissions] = useState(true);
-    const [loadingCampaign, setLoadingCampaign] = useState(false);
+    const [loadingDetail, setLoadingDetail] = useState(false);
 
     useEffect(() => {
         (async () => {
@@ -101,45 +127,74 @@ export default function ClientSalesPlaybookPage() {
     );
 
     useEffect(() => {
-        if (!selectedMission) { setCampaign(null); setAdditionalShared(""); return; }
-        const activeCampaign = selectedMission.campaigns.find((c) => c.isActive) ?? selectedMission.campaigns[0];
-        if (!activeCampaign) { setCampaign(null); setAdditionalShared(""); return; }
+        if (!selectedMissionId) {
+            setMissionDetail(null);
+            setStrategies([]);
+            return;
+        }
 
         (async () => {
-            setLoadingCampaign(true);
+            setLoadingDetail(true);
             try {
-                const [campaignRes, companionRes] = await Promise.all([
-                    fetch(`/api/campaigns/${activeCampaign.id}`),
-                    fetch(`/api/campaigns/${activeCampaign.id}/script-companion`),
-                ]);
-                const campaignJson = await campaignRes.json();
-                if (!campaignJson.success) throw new Error(campaignJson.error || "Impossible de charger la campagne");
-                setCampaign(campaignJson.data as CampaignData);
+                const missionRes = await fetch(`/api/missions/${selectedMissionId}`);
+                const missionJson = await missionRes.json();
+                if (!missionJson.success) throw new Error(missionJson.error || "Impossible de charger la mission");
+                const detail: MissionDetail = missionJson.data;
+                setMissionDetail(detail);
 
-                const companionJson = await companionRes.json();
-                if (companionJson.success) {
-                    const data = companionJson.data as CompanionData;
-                    setAdditionalShared(data.additionalShared || "");
-                } else {
-                    setAdditionalShared("");
+                // Active campaigns referenced by lists, plus all active mission campaigns
+                const activeCampaignIds = new Set<string>();
+                for (const list of detail.lists) {
+                    if (list.campaignId) activeCampaignIds.add(list.campaignId);
                 }
+                for (const c of detail.campaigns) {
+                    if (c.isActive) activeCampaignIds.add(c.id);
+                }
+
+                if (activeCampaignIds.size === 0) {
+                    setStrategies([]);
+                    return;
+                }
+
+                // Fetch each campaign + its script companion in parallel
+                const results = await Promise.all(
+                    Array.from(activeCampaignIds).map(async (campaignId) => {
+                        const [campaignRes, companionRes] = await Promise.all([
+                            fetch(`/api/campaigns/${campaignId}`),
+                            fetch(`/api/campaigns/${campaignId}/script-companion`),
+                        ]);
+                        const campaignJson = await campaignRes.json();
+                        if (!campaignJson.success) return null;
+                        const companionJson = await companionRes.json();
+                        const additionalShared =
+                            companionJson.success ? (companionJson.data?.additionalShared as string) || "" : "";
+                        const linkedLists = detail.lists.filter((l) => l.campaignId === campaignId);
+                        return {
+                            id: campaignJson.data.id,
+                            name: campaignJson.data.name,
+                            icp: campaignJson.data.icp || "",
+                            pitch: campaignJson.data.pitch || "",
+                            script: campaignJson.data.script,
+                            additionalShared,
+                            linkedLists,
+                        } as StrategyDetail;
+                    })
+                );
+                setStrategies(results.filter((r): r is StrategyDetail => r !== null));
             } catch (err) {
-                setCampaign(null);
-                setAdditionalShared("");
+                setMissionDetail(null);
+                setStrategies([]);
                 showError("Erreur", err instanceof Error ? err.message : "Impossible de charger le playbook");
             } finally {
-                setLoadingCampaign(false);
+                setLoadingDetail(false);
             }
         })();
-    }, [selectedMission, showError]);
+    }, [selectedMissionId, showError]);
 
-    const baseScriptSections = useMemo(() => parseBaseScript(campaign?.script), [campaign?.script]);
-    const scriptEntries = [
-        { key: "intro",     value: baseScriptSections.intro || "" },
-        { key: "discovery", value: baseScriptSections.discovery || "" },
-        { key: "objection", value: baseScriptSections.objection || "" },
-        { key: "closing",   value: baseScriptSections.closing || "" },
-    ].filter((entry) => Boolean(entry.value));
+    const unlinkedLists = useMemo(() => {
+        if (!missionDetail) return [] as ListInMission[];
+        return missionDetail.lists.filter((l) => !l.campaignId && l.isActive !== false);
+    }, [missionDetail]);
 
     return (
         <div className="min-h-full bg-gradient-to-br from-[#F8F9FC] via-[#F4F6F9] to-[#ECEEF4] p-4 md:p-6 space-y-5">
@@ -150,7 +205,7 @@ export default function ClientSalesPlaybookPage() {
                 </div>
                 <div>
                     <h1 className="text-xl font-bold text-[#12122A] tracking-tight">Sales Playbook</h1>
-                    <p className="text-xs text-[#6B7194] mt-0.5">ICP, cible et scripts de prospection</p>
+                    <p className="text-xs text-[#6B7194] mt-0.5">Stratégies, listes ciblées et scripts de prospection</p>
                 </div>
             </div>
 
@@ -185,99 +240,76 @@ export default function ClientSalesPlaybookPage() {
                         </div>
                     </div>
 
-                    {loadingCampaign ? (
+                    {/* Mission info card */}
+                    {selectedMission && (
+                        <section
+                            className="bg-white border border-[#E8EBF0] rounded-2xl p-5 shadow-sm"
+                            style={{ animation: "playbookFadeUp 0.35s ease both", animationDelay: "70ms" }}
+                        >
+                            <div className="flex items-center gap-2.5 mb-3">
+                                <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+                                    <Info className="w-4 h-4 text-blue-600" />
+                                </div>
+                                <h2 className="text-sm font-bold text-[#12122A] uppercase tracking-wider">Mission</h2>
+                            </div>
+                            <div className="space-y-2">
+                                <div className="flex gap-3">
+                                    <span className="text-xs font-bold text-[#A0A3BD] uppercase tracking-wide w-20 shrink-0 pt-0.5">Nom</span>
+                                    <span className="text-sm text-[#3D3E5C]">{selectedMission.name}</span>
+                                </div>
+                                {selectedMission.objective && (
+                                    <div className="flex gap-3">
+                                        <span className="text-xs font-bold text-[#A0A3BD] uppercase tracking-wide w-20 shrink-0 pt-0.5">Objectif</span>
+                                        <span className="text-sm text-[#3D3E5C] whitespace-pre-wrap">{selectedMission.objective}</span>
+                                    </div>
+                                )}
+                            </div>
+                        </section>
+                    )}
+
+                    {loadingDetail ? (
                         <div className="flex items-center justify-center py-12">
                             <Loader2 className="w-6 h-6 animate-spin text-[#7C5CFC]" />
                         </div>
-                    ) : !campaign ? (
+                    ) : strategies.length === 0 ? (
                         <div className="bg-white border border-[#E8EBF0] rounded-2xl p-6 text-sm text-[#6B7194] shadow-sm">
-                            Aucune campagne trouvée pour cette mission.
+                            Aucune stratégie pour cette mission.
                         </div>
                     ) : (
-                        <div className="grid gap-4">
-                            {/* ICP */}
-                            <section
-                                className="bg-white border border-[#E8EBF0] rounded-2xl p-5 shadow-sm"
-                                style={{ animation: "playbookFadeUp 0.35s ease both", animationDelay: "80ms" }}
-                            >
-                                <div className="flex items-center gap-2.5 mb-4">
-                                    <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
-                                        <Target className="w-4 h-4 text-emerald-600" />
-                                    </div>
-                                    <h2 className="text-sm font-bold text-[#12122A] uppercase tracking-wider">Cible (ICP)</h2>
-                                </div>
-                                <p className="text-sm text-[#3D3E5C] whitespace-pre-wrap leading-relaxed">{campaign.icp || "Non renseigné"}</p>
-                            </section>
+                        <div className="grid gap-5">
+                            {strategies.map((strat, idx) => (
+                                <StrategyCard
+                                    key={strat.id}
+                                    strategy={strat}
+                                    animationDelay={`${100 + idx * 60}ms`}
+                                />
+                            ))}
 
-                            {/* Mission info */}
-                            <section
-                                className="bg-white border border-[#E8EBF0] rounded-2xl p-5 shadow-sm"
-                                style={{ animation: "playbookFadeUp 0.35s ease both", animationDelay: "110ms" }}
-                            >
-                                <div className="flex items-center gap-2.5 mb-4">
-                                    <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
-                                        <Info className="w-4 h-4 text-blue-600" />
-                                    </div>
-                                    <h2 className="text-sm font-bold text-[#12122A] uppercase tracking-wider">Infos mission</h2>
-                                </div>
-                                <div className="space-y-3">
-                                    {[
-                                        { label: "Mission", value: selectedMission?.name },
-                                        { label: "Objectif", value: selectedMission?.objective },
-                                        { label: "Campagne", value: campaign.name },
-                                    ].map((item) => (
-                                        <div key={item.label} className="flex gap-3">
-                                            <span className="text-xs font-bold text-[#A0A3BD] uppercase tracking-wide w-20 shrink-0 pt-0.5">{item.label}</span>
-                                            <span className="text-sm text-[#3D3E5C] leading-relaxed">{item.value || "Non renseigné"}</span>
-                                        </div>
-                                    ))}
-                                    {campaign.pitch && (
-                                        <div className="flex gap-3">
-                                            <span className="text-xs font-bold text-[#A0A3BD] uppercase tracking-wide w-20 shrink-0 pt-0.5">Pitch</span>
-                                            <span className="text-sm text-[#3D3E5C] whitespace-pre-wrap leading-relaxed">{campaign.pitch}</span>
-                                        </div>
-                                    )}
-                                </div>
-                            </section>
-
-                            {/* Script */}
-                            {(scriptEntries.length > 0 || additionalShared) && (
+                            {unlinkedLists.length > 0 && (
                                 <section
-                                    className="bg-white border border-[#E8EBF0] rounded-2xl p-5 shadow-sm"
-                                    style={{ animation: "playbookFadeUp 0.35s ease both", animationDelay: "140ms" }}
+                                    className="bg-amber-50 border border-amber-200 rounded-2xl p-5"
+                                    style={{ animation: "playbookFadeUp 0.35s ease both" }}
                                 >
-                                    <div className="flex items-center gap-2.5 mb-4">
-                                        <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center">
-                                            <FileText className="w-4 h-4 text-[#7C5CFC]" />
-                                        </div>
-                                        <h2 className="text-sm font-bold text-[#12122A] uppercase tracking-wider">Script</h2>
+                                    <div className="flex items-center gap-2.5 mb-3">
+                                        <AlertCircle className="w-5 h-5 text-amber-600" />
+                                        <h2 className="text-sm font-bold text-amber-800 uppercase tracking-wider">
+                                            Listes sans stratégie ({unlinkedLists.length})
+                                        </h2>
                                     </div>
-                                    <div className="space-y-3">
-                                        {scriptEntries.map((entry) => {
-                                            const style = SCRIPT_SECTION_STYLES[entry.key] ?? SCRIPT_SECTION_STYLES.intro;
-                                            return (
-                                                <div
-                                                    key={entry.key}
-                                                    className={cn("rounded-xl border-l-4 p-4", style.bg, style.border)}
-                                                >
-                                                    <div className="flex items-center justify-between mb-2">
-                                                        <p className={cn("text-[11px] font-bold uppercase tracking-wider", style.color)}>{style.label}</p>
-                                                        <CopyButton text={entry.value} />
-                                                    </div>
-                                                    <p className="text-sm text-[#3D3E5C] whitespace-pre-wrap leading-relaxed">{entry.value}</p>
-                                                </div>
-                                            );
-                                        })}
-
-                                        {additionalShared && (
-                                            <div className="rounded-xl border-l-4 border-l-violet-400 bg-violet-50/60 p-4">
-                                                <div className="flex items-center justify-between mb-2">
-                                                    <p className="text-[11px] font-bold text-violet-700 uppercase tracking-wider">Script additionnel partagé</p>
-                                                    <CopyButton text={additionalShared} />
-                                                </div>
-                                                <p className="text-sm text-violet-900 whitespace-pre-wrap leading-relaxed">{additionalShared}</p>
-                                            </div>
-                                        )}
+                                    <p className="text-xs text-amber-700 mb-3">
+                                        Ces listes n&apos;ont pas encore de stratégie dédiée — votre Account Manager va les configurer.
+                                    </p>
+                                    <div className="flex flex-wrap gap-2">
+                                        {unlinkedLists.map((l) => (
+                                            <span
+                                                key={l.id}
+                                                className="inline-flex items-center gap-1.5 text-xs font-medium text-amber-800 bg-white border border-amber-200 rounded-lg px-3 py-1.5"
+                                            >
+                                                <Users className="w-3.5 h-3.5" />
+                                                {l.name}
+                                                <span className="text-amber-500">({l._count?.companies ?? 0})</span>
+                                            </span>
+                                        ))}
                                     </div>
                                 </section>
                             )}
@@ -293,5 +325,146 @@ export default function ClientSalesPlaybookPage() {
                 }
             `}</style>
         </div>
+    );
+}
+
+function StrategyCard({ strategy, animationDelay }: { strategy: StrategyDetail; animationDelay?: string }) {
+    const baseScriptSections = parseBaseScript(strategy.script);
+    const scriptEntries = [
+        { key: "intro",     value: baseScriptSections.intro || "" },
+        { key: "discovery", value: baseScriptSections.discovery || "" },
+        { key: "objection", value: baseScriptSections.objection || "" },
+        { key: "closing",   value: baseScriptSections.closing || "" },
+    ].filter((entry) => Boolean(entry.value));
+
+    const ready = !!strategy.icp.trim() && !!strategy.pitch.trim() && !!(strategy.script && strategy.script.trim());
+
+    return (
+        <section
+            className="bg-white border border-[#E8EBF0] rounded-2xl shadow-sm overflow-hidden"
+            style={{ animation: "playbookFadeUp 0.35s ease both", animationDelay }}
+        >
+            {/* Header */}
+            <div className="bg-gradient-to-r from-indigo-50 via-white to-white border-b border-[#E8EBF0] px-5 py-4">
+                <div className="flex items-start justify-between gap-4 flex-wrap">
+                    <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-md shadow-indigo-200">
+                            <Target className="w-5 h-5 text-white" />
+                        </div>
+                        <div className="min-w-0">
+                            <h2 className="text-lg font-bold text-[#12122A] truncate">{strategy.name}</h2>
+                            <p className="text-xs text-[#6B7194] mt-0.5">
+                                Stratégie de prospection
+                            </p>
+                        </div>
+                    </div>
+                    <span
+                        className={cn(
+                            "inline-flex items-center gap-1.5 text-xs font-bold rounded-full px-3 py-1.5 border",
+                            ready
+                                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                : "bg-amber-50 text-amber-700 border-amber-200"
+                        )}
+                    >
+                        {ready ? <CheckCircle2 className="w-3.5 h-3.5" /> : <AlertCircle className="w-3.5 h-3.5" />}
+                        {ready ? "Prête" : "En cours"}
+                    </span>
+                </div>
+
+                {/* Linked databases / lists */}
+                <div className="mt-4">
+                    <div className="flex items-center gap-2 mb-2">
+                        <Link2 className="w-3.5 h-3.5 text-[#7C5CFC]" />
+                        <span className="text-[11px] font-bold text-[#6B7194] uppercase tracking-wider">
+                            Base{strategy.linkedLists.length > 1 ? "s" : ""} ciblée{strategy.linkedLists.length > 1 ? "s" : ""}
+                        </span>
+                    </div>
+                    {strategy.linkedLists.length === 0 ? (
+                        <p className="text-xs text-[#A0A3BD] italic">Aucune liste assignée à cette stratégie</p>
+                    ) : (
+                        <div className="flex flex-wrap gap-2">
+                            {strategy.linkedLists.map((l) => (
+                                <span
+                                    key={l.id}
+                                    className={cn(
+                                        "inline-flex items-center gap-1.5 text-xs font-semibold rounded-lg px-3 py-1.5 border",
+                                        l.isActive === false
+                                            ? "bg-slate-50 text-slate-500 border-slate-200"
+                                            : "bg-indigo-50 text-indigo-700 border-indigo-200"
+                                    )}
+                                    title={`${l._count?.companies ?? 0} sociétés`}
+                                >
+                                    <Users className="w-3.5 h-3.5" />
+                                    {l.name}
+                                    <span className="text-[10px] font-bold opacity-70">
+                                        {l._count?.companies ?? 0}
+                                    </span>
+                                </span>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            <div className="p-5 space-y-4">
+                {/* ICP */}
+                <div className="rounded-xl bg-emerald-50/40 border border-emerald-100 p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                        <Target className="w-4 h-4 text-emerald-600" />
+                        <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-700">Cible (ICP)</p>
+                    </div>
+                    <p className="text-sm text-[#3D3E5C] whitespace-pre-wrap leading-relaxed">
+                        {strategy.icp || <span className="text-[#A0A3BD] italic">Non renseigné</span>}
+                    </p>
+                </div>
+
+                {/* Pitch */}
+                <div className="rounded-xl bg-blue-50/40 border border-blue-100 p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                        <Info className="w-4 h-4 text-blue-600" />
+                        <p className="text-[11px] font-bold uppercase tracking-wider text-blue-700">Pitch</p>
+                    </div>
+                    <p className="text-sm text-[#3D3E5C] whitespace-pre-wrap leading-relaxed">
+                        {strategy.pitch || <span className="text-[#A0A3BD] italic">Non renseigné</span>}
+                    </p>
+                </div>
+
+                {/* Script */}
+                {(scriptEntries.length > 0 || strategy.additionalShared) && (
+                    <div className="rounded-xl bg-[#F8F9FC] border border-[#E8EBF0] p-4">
+                        <div className="flex items-center gap-2 mb-3">
+                            <FileText className="w-4 h-4 text-[#7C5CFC]" />
+                            <p className="text-[11px] font-bold uppercase tracking-wider text-[#7C5CFC]">Script</p>
+                        </div>
+                        <div className="space-y-3">
+                            {scriptEntries.map((entry) => {
+                                const style = SCRIPT_SECTION_STYLES[entry.key] ?? SCRIPT_SECTION_STYLES.intro;
+                                return (
+                                    <div
+                                        key={entry.key}
+                                        className={cn("rounded-lg border-l-4 p-3 bg-white", style.border)}
+                                    >
+                                        <div className="flex items-center justify-between mb-2">
+                                            <p className={cn("text-[11px] font-bold uppercase tracking-wider", style.color)}>{style.label}</p>
+                                            <CopyButton text={entry.value} />
+                                        </div>
+                                        <p className="text-sm text-[#3D3E5C] whitespace-pre-wrap leading-relaxed">{entry.value}</p>
+                                    </div>
+                                );
+                            })}
+                            {strategy.additionalShared && (
+                                <div className="rounded-lg border-l-4 border-l-violet-400 bg-violet-50/60 p-3">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <p className="text-[11px] font-bold text-violet-700 uppercase tracking-wider">Script additionnel</p>
+                                        <CopyButton text={strategy.additionalShared} />
+                                    </div>
+                                    <p className="text-sm text-violet-900 whitespace-pre-wrap leading-relaxed">{strategy.additionalShared}</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+            </div>
+        </section>
     );
 }
