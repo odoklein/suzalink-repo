@@ -11,13 +11,14 @@ export type CallEnrichmentSyncStatus =
 
 /**
  * Nombre d’actions enrichies en parallèle (appels Allo + Prisma).
- * Défaut 20 — surchargez avec CALL_ENRICHMENT_SYNC_CONCURRENCY si besoin (max 40 en code).
+ * Réduit de 20 → 5 par défaut pour éviter les rafales de 429.
+ * Surchargez avec CALL_ENRICHMENT_SYNC_CONCURRENCY si besoin (max 10 en code).
  */
 export function getCallEnrichmentSyncConcurrency(): number {
-    const raw = process.env.CALL_ENRICHMENT_SYNC_CONCURRENCY ?? "20";
+    const raw = process.env.CALL_ENRICHMENT_SYNC_CONCURRENCY ?? "5";
     const n = parseInt(raw, 10);
     if (!Number.isFinite(n) || n < 1) return 1;
-    return Math.min(n, 40);
+    return Math.min(n, 10);
 }
 
 async function enrichOneAction(

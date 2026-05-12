@@ -98,6 +98,24 @@ export type MeetingCategoryFilter = "EXPLORATOIRE" | "BESOIN";
 export type OutcomeFilter = "POSITIVE" | "NEUTRAL" | "NEGATIVE" | "NO_SHOW" | "NONE";
 export type ConfirmationFilter = "all" | "PENDING" | "CONFIRMED" | "CANCELLED";
 export type PanelTab = "detail" | "fiche" | "feedback" | "audio" | "history";
+export type SortField = "createdAt" | "callbackDate" | "duration" | "contactName" | "companyName" | "sdrName";
+export type SortDir = "asc" | "desc";
+export type ChannelFilter = "CALL" | "EMAIL" | "LINKEDIN";
+
+export interface QuickPreset {
+  id: string;
+  label: string;
+  icon: string;
+  description: string;
+}
+
+export const QUICK_PRESETS: QuickPreset[] = [
+  { id: "to_confirm", label: "À confirmer", icon: "⏳", description: "RDV à venir en attente de confirmation" },
+  { id: "past_no_feedback", label: "Sans feedback", icon: "💬", description: "RDV passés sans retour renseigné" },
+  { id: "no_audio", label: "Sans audio", icon: "🎙️", description: "RDV sans enregistrement Allo lié" },
+  { id: "this_week", label: "Cette semaine", icon: "📅", description: "RDV créés cette semaine" },
+  { id: "positive", label: "Positifs", icon: "✅", description: "RDV avec feedback positif" },
+];
 
 export interface MeetingFilters {
   search: string;
@@ -112,6 +130,11 @@ export interface MeetingFilters {
   selectedMeetingTypes: Set<MeetingTypeFilter>;
   selectedMeetingCategories: Set<MeetingCategoryFilter>;
   selectedOutcomes: Set<OutcomeFilter>;
+  selectedChannels: Set<ChannelFilter>;
+  hasAudio: boolean | null;
+  hasFeedback: boolean | null;
+  sortBy: SortField;
+  sortDir: SortDir;
 }
 
 export interface LinkContactResult {

@@ -25,6 +25,12 @@ export const GET = withErrorHandler(async (request: NextRequest) => {
   const meetingCategories = sp.getAll("meetingCategory[]");
   const outcomes = sp.getAll("outcome[]");
   const confirmationStatuses = sp.getAll("confirmationStatus[]");
+  const channels = sp.getAll("channel[]");
+  const hasAudioParam = sp.get("hasAudio");
+  const hasFeedbackParam = sp.get("hasFeedback");
+  const sortByParam = sp.get("sortBy") ?? "createdAt";
+  const sortDirParam = (sp.get("sortDir") ?? "desc") as "asc" | "desc";
+  const sortDir: "asc" | "desc" = sortDirParam === "asc" ? "asc" : "desc";
 
   const { page, limit, skip } = getPaginationParams(sp);
 
@@ -158,6 +164,22 @@ export const GET = withErrorHandler(async (request: NextRequest) => {
     andClauses.push({ confirmationStatus: { in: confirmationStatuses as any[] } });
   }
 
+  if (channels.length > 0) {
+    andClauses.push({ channel: { in: channels as any[] } });
+  }
+
+  if (hasAudioParam === "1") {
+    andClauses.push({ callRecordingUrl: { not: null } });
+  } else if (hasAudioParam === "0") {
+    andClauses.push({ callRecordingUrl: null });
+  }
+
+  if (hasFeedbackParam === "1") {
+    andClauses.push({ meetingFeedback: { isNot: null } });
+  } else if (hasFeedbackParam === "0") {
+    andClauses.push({ meetingFeedback: null });
+  }
+
   if (andClauses.length > 0) where.AND = andClauses;
 
   const include = {
@@ -194,11 +216,29 @@ export const GET = withErrorHandler(async (request: NextRequest) => {
 
   // Fetch enough rows so that after excluding RDV cancelled with <10 min notice we can fill this page
   const fetchTake = Math.min(skip + limit + 200, 1000);
+  // Build dynamic orderBy from sortByParam
+  const orderBy: Prisma.ActionOrderByWithRelationInput[] = (() => {
+    switch (sortByParam) {
+      case "callbackDate":
+        return [{ callbackDate: sortDir }, { createdAt: "desc" as const }];
+      case "duration":
+        return [{ duration: sortDir }, { createdAt: "desc" as const }];
+      case "contactName":
+        return [{ contact: { lastName: sortDir } }, { contact: { firstName: sortDir } }, { createdAt: "desc" as const }];
+      case "companyName":
+        return [{ company: { name: sortDir } }, { contact: { company: { name: sortDir } } }, { createdAt: "desc" as const }];
+      case "sdrName":
+        return [{ sdr: { name: sortDir } }, { createdAt: "desc" as const }];
+      default:
+        return [{ createdAt: sortDir }];
+    }
+  })();
+
   const [rawMeetings, totalCount] = await Promise.all([
     prisma.action.findMany({
       where,
       include,
-      orderBy: { createdAt: "desc" },
+      orderBy,
       skip: 0,
       take: fetchTake,
     }),

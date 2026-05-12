@@ -6,9 +6,18 @@ import type { MeetingFiltersState } from "../_hooks/useMeetingFilters";
 import type { ViewMode, DatePreset } from "../_types";
 import { SearchInput } from "./shared/SearchInput";
 import { downloadCSV } from "../_lib/csv-export";
-import { List, CalendarDays, Download, Plus, Upload, Mic } from "lucide-react";
+import { List, CalendarDays, Download, Plus, Upload, Mic, SortAsc, SortDesc, X } from "lucide-react";
 import { AddRdvModal } from "./modals/AddRdvModal";
 import { ImportRdvModal } from "./modals/ImportRdvModal";
+
+const SORT_LABELS: Record<string, string> = {
+  createdAt: "Créé le",
+  callbackDate: "Date RDV",
+  duration: "Durée",
+  contactName: "Contact",
+  companyName: "Entreprise",
+  sdrName: "SDR",
+};
 
 interface CommandBarProps {
   view: ViewMode;
@@ -20,16 +29,16 @@ interface CommandBarProps {
 }
 
 export const CommandBar = memo(function CommandBar({ view, setView, filters, meetings, onRefresh, onOpenSyncAudios }: CommandBarProps) {
-  const { search, setSearch, datePreset, setDatePreset, filterSummary } = filters;
+  const { search, setSearch, datePreset, setDatePreset, filterSummary, sortBy, sortDir, toggleSort, activeFilterCount, hasAudio, setHasAudio, hasFeedback, setHasFeedback } = filters;
   const [addRdvOpen, setAddRdvOpen] = useState(false);
   const [importRdvOpen, setImportRdvOpen] = useState(false);
 
   return (
+    <div style={{ flexShrink: 0, zIndex: 30, background: "var(--surface)", borderBottom: "1px solid var(--border)" }}>
     <div
       style={{
-        height: 64, background: "var(--surface)", borderBottom: "1px solid var(--border)",
+        height: 64,
         display: "flex", alignItems: "center", padding: "0 32px", gap: 20,
-        flexShrink: 0, zIndex: 30,
       }}
     >
       <h1 className="rdv-serif" style={{ fontSize: 26, color: "var(--ink)", margin: 0, whiteSpace: "nowrap" }}>
@@ -87,10 +96,78 @@ export const CommandBar = memo(function CommandBar({ view, setView, filters, mee
         <button className="rdv-btn rdv-btn-ghost" onClick={() => onOpenSyncAudios?.()}>
           <Mic size={14} /> Sync audios
         </button>
+        {/* Sort indicator pill */}
+        <button
+          onClick={() => toggleSort(sortBy)}
+          className="rdv-btn rdv-btn-ghost"
+          title="Changer la direction du tri"
+          style={{
+            display: "flex", alignItems: "center", gap: 5, fontSize: 11, fontWeight: 600,
+            color: sortBy !== "createdAt" ? "var(--accent)" : "var(--ink3)",
+            background: sortBy !== "createdAt" ? "var(--accentLight)" : "transparent",
+            border: sortBy !== "createdAt" ? "1px solid var(--accent)" : "1px solid transparent",
+          }}
+        >
+          {sortDir === "asc" ? <SortAsc size={13} /> : <SortDesc size={13} />}
+          {SORT_LABELS[sortBy] ?? sortBy}
+        </button>
+
         <button className="rdv-btn rdv-btn-ghost" onClick={() => downloadCSV(meetings, filterSummary)}>
           <Download size={14} /> Exporter
         </button>
       </div>
+    </div>
+
+    {/* ─── Active filter chips bar ─── */}
+    {activeFilterCount > 0 && (
+      <div style={{
+        display: "flex", alignItems: "center", gap: 6, padding: "6px 32px 8px",
+        flexWrap: "wrap", borderTop: "1px solid var(--border)",
+      }}>
+        <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.07em", color: "var(--ink3)", whiteSpace: "nowrap" }}>
+          Filtres :
+        </span>
+        {hasAudio !== null && (
+          <span style={{
+            display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600,
+            background: "var(--accentLight)", color: "var(--accent)", borderRadius: 20,
+            padding: "2px 8px 2px 10px", border: "1px solid var(--accent)",
+          }}>
+            🎙 {hasAudio ? "Avec audio" : "Sans audio"}
+            <button onClick={() => setHasAudio(null)} style={{ background: "none", border: "none", color: "var(--accent)", cursor: "pointer", display: "flex", padding: 0 }}>
+              <X size={11} />
+            </button>
+          </span>
+        )}
+        {hasFeedback !== null && (
+          <span style={{
+            display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600,
+            background: "var(--accentLight)", color: "var(--accent)", borderRadius: 20,
+            padding: "2px 8px 2px 10px", border: "1px solid var(--accent)",
+          }}>
+            💬 {hasFeedback ? "Avec feedback" : "Sans feedback"}
+            <button onClick={() => setHasFeedback(null)} style={{ background: "none", border: "none", color: "var(--accent)", cursor: "pointer", display: "flex", padding: 0 }}>
+              <X size={11} />
+            </button>
+          </span>
+        )}
+        {search && (
+          <span style={{
+            display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600,
+            background: "var(--accentLight)", color: "var(--accent)", borderRadius: 20,
+            padding: "2px 8px 2px 10px", border: "1px solid var(--accent)",
+          }}>
+            🔍 &ldquo;{search}&rdquo;
+            <button onClick={() => setSearch("")} style={{ background: "none", border: "none", color: "var(--accent)", cursor: "pointer", display: "flex", padding: 0 }}>
+              <X size={11} />
+            </button>
+          </span>
+        )}
+        <span style={{ fontSize: 10, color: "var(--ink3)", marginLeft: "auto" }}>
+          {activeFilterCount} filtre{activeFilterCount > 1 ? "s" : ""} actif{activeFilterCount > 1 ? "s" : ""} · ouvrez le panneau pour gérer
+        </span>
+      </div>
+    )}
 
       <AddRdvModal
         isOpen={addRdvOpen}
@@ -105,3 +182,4 @@ export const CommandBar = memo(function CommandBar({ view, setView, filters, mee
     </div>
   );
 });
+

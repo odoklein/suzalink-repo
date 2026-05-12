@@ -20,7 +20,7 @@ function sleep(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
 }
 
-const FOR_CONTACT_GAP_MS = Math.max(0, parseInt(process.env.CALL_ENRICHMENT_ALLO_LINE_GAP_MS ?? '120', 10));
+const FOR_CONTACT_GAP_MS = Math.max(0, parseInt(process.env.CALL_ENRICHMENT_ALLO_LINE_GAP_MS ?? '400', 10));
 const FOR_CONTACT_429_RETRIES = Math.max(0, parseInt(process.env.CALL_ENRICHMENT_ALLO_429_RETRIES ?? '6', 10));
 const FOR_CONTACT_429_BASE_MS = Math.max(100, parseInt(process.env.CALL_ENRICHMENT_ALLO_429_BASE_MS ?? '750', 10));
 

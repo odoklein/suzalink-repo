@@ -3,9 +3,12 @@ import { ceDebug, isCallEnrichmentDebug } from './debug';
 import { parseAlloCallsListResponse } from './allo-response';
 
 const BASE_URL = 'https://api.withallo.com';
-const MAX_PAGES = Math.max(1, parseInt(process.env.CALL_ENRICHMENT_ALLO_MAX_PAGES ?? '60', 10));
+// Lowered from 60 → 15: the matching call is almost always in the first few pages.
+// Set CALL_ENRICHMENT_ALLO_MAX_PAGES in env if you need deeper history.
+const MAX_PAGES = Math.max(1, parseInt(process.env.CALL_ENRICHMENT_ALLO_MAX_PAGES ?? '15', 10));
 /** WithAllo rate-limits hard if we hit many lines at once; keep line searches serial. */
-const LINE_GAP_MS = Math.max(0, parseInt(process.env.CALL_ENRICHMENT_ALLO_LINE_GAP_MS ?? '120', 10));
+// Raised from 120ms → 400ms to reduce burst density across concurrent syncs.
+const LINE_GAP_MS = Math.max(0, parseInt(process.env.CALL_ENRICHMENT_ALLO_LINE_GAP_MS ?? '400', 10));
 /** Retries per page request when WithAllo returns 429. */
 const RETRIES_429 = Math.max(0, parseInt(process.env.CALL_ENRICHMENT_ALLO_429_RETRIES ?? '6', 10));
 const RETRY_429_BASE_MS = Math.max(100, parseInt(process.env.CALL_ENRICHMENT_ALLO_429_BASE_MS ?? '750', 10));

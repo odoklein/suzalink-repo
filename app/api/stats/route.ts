@@ -358,6 +358,8 @@ async function getClientIdFromSession(userId: string): Promise<string | null> {
 }
 
 const ALLO_BASE_URL = 'https://api.withallo.com';
+// Stats only needs recent data — 10 pages × 100 calls = 1 000 appels par ligne, largement suffisant.
+// Surcharge possible via STATS_ALLO_MAX_PAGES (indépendant de CALL_ENRICHMENT_ALLO_MAX_PAGES).
 const ALLO_CONNECTED_RESULTS = new Set([
     'ANSWERED',
     'TRANSFERRED_AI',
@@ -365,7 +367,14 @@ const ALLO_CONNECTED_RESULTS = new Set([
     'RECEIVED',
     'CLOSED',
 ]);
-const ALLO_MAX_PAGES = Math.max(1, parseInt(process.env.CALL_ENRICHMENT_ALLO_MAX_PAGES ?? '60', 10));
+const ALLO_MAX_PAGES = Math.max(1, parseInt(process.env.STATS_ALLO_MAX_PAGES ?? '10', 10));
+// Gap entre les pages pour ne pas saturer Allo (300ms par défaut pour les stats).
+const ALLO_STATS_PAGE_GAP_MS = Math.max(0, parseInt(process.env.STATS_ALLO_PAGE_GAP_MS ?? '300', 10));
+// Cache TTL en ms (défaut 5 min). Évite de refaire 300 requêtes à chaque reload du dashboard.
+const ALLO_STATS_CACHE_TTL_MS = Math.max(0, parseInt(process.env.STATS_ALLO_CACHE_TTL_MS ?? '300000', 10));
+
+/** Module-level in-process cache for Allo metrics (keyed by alloNumber|fromISO|toISO). */
+const alloMetricsCache = new Map<string, { data: { calls: number; connectedCalls: number }; expiresAt: number }>();
 
 function normalizeIsoDate(d: Date): string {
     return d.toISOString().split('T')[0];
@@ -380,8 +389,16 @@ async function fetchAlloCallMetricsByLine(
     const byNumber: Record<string, { calls: number; connectedCalls: number }> = {};
     const fromIso = normalizeIsoDate(dateFrom);
     const toIso = normalizeIsoDate(dateTo);
+    const now = Date.now();
 
     for (const alloNumber of alloNumbers) {
+        const cacheKey = `${alloNumber}|${fromIso}|${toIso}`;
+        const cached = alloMetricsCache.get(cacheKey);
+        if (cached && cached.expiresAt > now) {
+            byNumber[alloNumber] = cached.data;
+            continue;
+        }
+
         const totals = { calls: 0, connectedCalls: 0 };
         let page = 0;
 
@@ -395,15 +412,11 @@ async function fetchAlloCallMetricsByLine(
                 headers: { Authorization: apiKey },
                 cache: 'no-store',
             });
-            if (!res.ok) {
-                break;
-            }
+            if (!res.ok) break;
 
             const body = await res.json();
             const parsed = parseAlloCallsListResponse(body);
-            if (!parsed.rawCalls.length) {
-                break;
-            }
+            if (!parsed.rawCalls.length) break;
 
             let oldestCallDateOnPage: Date | null = null;
             for (const call of parsed.rawCalls) {
@@ -417,25 +430,26 @@ async function fetchAlloCallMetricsByLine(
                 }
 
                 const callDay = normalizeIsoDate(callDate);
-                if (callDay < fromIso || callDay > toIso) {
-                    continue;
-                }
+                if (callDay < fromIso || callDay > toIso) continue;
 
                 totals.calls += 1;
                 const result = typeof call.result === 'string' ? call.result.toUpperCase() : '';
-                if (ALLO_CONNECTED_RESULTS.has(result)) {
-                    totals.connectedCalls += 1;
-                }
+                if (ALLO_CONNECTED_RESULTS.has(result)) totals.connectedCalls += 1;
             }
 
-            if (oldestCallDateOnPage && oldestCallDateOnPage < dateFrom) {
-                break;
-            }
+            if (oldestCallDateOnPage && oldestCallDateOnPage < dateFrom) break;
 
             page += 1;
+            // Inter-page gap: évite les rafales sur le quota Allo
+            if (page < ALLO_MAX_PAGES && ALLO_STATS_PAGE_GAP_MS > 0) {
+                await new Promise<void>((r) => setTimeout(r, ALLO_STATS_PAGE_GAP_MS));
+            }
         }
 
         byNumber[alloNumber] = totals;
+        if (ALLO_STATS_CACHE_TTL_MS > 0) {
+            alloMetricsCache.set(cacheKey, { data: totals, expiresAt: Date.now() + ALLO_STATS_CACHE_TTL_MS });
+        }
     }
 
     return byNumber;

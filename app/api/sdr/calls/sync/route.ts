@@ -39,7 +39,7 @@ export async function POST() {
       callRecordingUrl: true,
     },
     orderBy: { createdAt: 'desc' },
-    take: 30,
+    take: 15,
   });
 
   console.log(`[sync-calls] found ${actions.length} unenriched CALL actions for sdrId=${session.user.id} since=${since.toISOString()}`);

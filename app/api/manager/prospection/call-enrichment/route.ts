@@ -16,7 +16,8 @@ const MAX_RANGE_DAYS = 120;
 const MAX_ACTIONS_FETCH = 500;
 /** Limite quand on agrège toutes les missions actives avec canal appel */
 const MAX_ACTIONS_FETCH_ALL = 2000;
-const MAX_ACTIONS_SYNC = 200;
+// Réduit de 200 → 50 pour éviter les rafales : 50 × 5 lignes × 15 pages = ~375 req max au lieu de 3 000.
+const MAX_ACTIONS_SYNC = 50;
 
 function missionSupportsCallChannel(m: {
     channel: string;

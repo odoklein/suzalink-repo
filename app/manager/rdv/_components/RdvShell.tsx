@@ -222,6 +222,9 @@ export function RdvShell() {
                 onLoadMore={loadMore}
                 updateMeeting={updateMeeting}
                 updateLocalMeeting={updateLocalMeeting}
+                sortBy={filters.sortBy}
+                sortDir={filters.sortDir}
+                onSort={filters.toggleSort}
               />
             )}
             {view === "calendar" && (

@@ -8,8 +8,11 @@ import type {
   MeetingTypeFilter,
   MeetingCategoryFilter,
   OutcomeFilter,
+  ChannelFilter,
   FilterOption,
   MeetingFilters,
+  SortField,
+  SortDir,
 } from "../_types";
 import { buildDateRange } from "../_lib/formatters";
 
@@ -26,6 +29,13 @@ export interface MeetingFiltersState extends MeetingFilters {
   setSelectedMeetingTypes: React.Dispatch<React.SetStateAction<Set<MeetingTypeFilter>>>;
   setSelectedMeetingCategories: React.Dispatch<React.SetStateAction<Set<MeetingCategoryFilter>>>;
   setSelectedOutcomes: React.Dispatch<React.SetStateAction<Set<OutcomeFilter>>>;
+  setSelectedChannels: React.Dispatch<React.SetStateAction<Set<ChannelFilter>>>;
+  setHasAudio: (v: boolean | null) => void;
+  setHasFeedback: (v: boolean | null) => void;
+  setSortBy: (v: SortField) => void;
+  setSortDir: (v: SortDir) => void;
+  toggleSort: (field: SortField) => void;
+  applyQuickPreset: (id: string) => void;
   clearAllFilters: () => void;
   activeFilterCount: number;
   dateRange: { from: string; to: string };
@@ -51,6 +61,11 @@ export function useMeetingFilters(): MeetingFiltersState {
   const [selectedMeetingTypes, setSelectedMeetingTypes] = useState<Set<MeetingTypeFilter>>(new Set());
   const [selectedMeetingCategories, setSelectedMeetingCategories] = useState<Set<MeetingCategoryFilter>>(new Set());
   const [selectedOutcomes, setSelectedOutcomes] = useState<Set<OutcomeFilter>>(new Set());
+  const [selectedChannels, setSelectedChannels] = useState<Set<ChannelFilter>>(new Set());
+  const [hasAudio, setHasAudio] = useState<boolean | null>(null);
+  const [hasFeedback, setHasFeedback] = useState<boolean | null>(null);
+  const [sortBy, setSortBy] = useState<SortField>("createdAt");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
 
   const [clientOptions, setClientOptions] = useState<FilterOption[]>([]);
   const [missionOptions, setMissionOptions] = useState<FilterOption[]>([]);
@@ -58,22 +73,73 @@ export function useMeetingFilters(): MeetingFiltersState {
 
   const dateRange = useMemo(
     () => buildDateRange(datePreset, dateFrom, dateTo),
-    [datePreset, dateFrom, dateTo]
+    [datePreset, dateFrom, dateTo],
   );
 
-  const activeFilterCount = useMemo(() => {
-    let c = 0;
-    if (search) c++;
-    if (statusFilter !== "all") c++;
-    if (confirmationFilter !== "all") c++;
-    if (selectedClients.size > 0) c++;
-    if (selectedMissions.size > 0) c++;
-    if (selectedSdrs.size > 0) c++;
-    if (selectedMeetingTypes.size > 0) c++;
-    if (selectedMeetingCategories.size > 0) c++;
-    if (selectedOutcomes.size > 0) c++;
-    return c;
-  }, [search, statusFilter, confirmationFilter, selectedClients, selectedMissions, selectedSdrs, selectedMeetingTypes, selectedMeetingCategories, selectedOutcomes]);
+  // Toggle sort: click same field → flip dir; click new field → set desc
+  const toggleSort = useCallback((field: SortField) => {
+    setSortBy((prev) => {
+      if (prev === field) {
+        setSortDir((d) => (d === "desc" ? "asc" : "desc"));
+        return field;
+      }
+      setSortDir("desc");
+      return field;
+    });
+  }, []);
+
+  // Apply a quick preset (resets to a clean state first)
+  const applyQuickPreset = useCallback((id: string) => {
+    // Reset everything first
+    setSearch("");
+    setStatusFilter("all");
+    setConfirmationFilter("all");
+    setDatePreset("3months");
+    setDateFrom("");
+    setDateTo("");
+    setSelectedClients(new Set());
+    setSelectedMissions(new Set());
+    setSelectedSdrs(new Set());
+    setSelectedMeetingTypes(new Set());
+    setSelectedMeetingCategories(new Set());
+    setSelectedOutcomes(new Set());
+    setSelectedChannels(new Set());
+    setHasAudio(null);
+    setHasFeedback(null);
+    setSortBy("createdAt");
+    setSortDir("desc");
+
+    // Then apply preset-specific overrides
+    switch (id) {
+      case "to_confirm":
+        setStatusFilter("upcoming");
+        setConfirmationFilter("PENDING");
+        setSortBy("callbackDate");
+        setSortDir("asc");
+        break;
+      case "past_no_feedback":
+        setStatusFilter("past");
+        setHasFeedback(false);
+        setSortBy("callbackDate");
+        setSortDir("desc");
+        break;
+      case "no_audio":
+        setHasAudio(false);
+        setSortBy("callbackDate");
+        setSortDir("desc");
+        break;
+      case "this_week":
+        setDatePreset("7days");
+        setSortBy("createdAt");
+        setSortDir("desc");
+        break;
+      case "positive":
+        setSelectedOutcomes(new Set(["POSITIVE"]));
+        setSortBy("callbackDate");
+        setSortDir("desc");
+        break;
+    }
+  }, []);
 
   const clearAllFilters = useCallback(() => {
     setSearch("");
@@ -88,49 +154,69 @@ export function useMeetingFilters(): MeetingFiltersState {
     setSelectedMeetingTypes(new Set());
     setSelectedMeetingCategories(new Set());
     setSelectedOutcomes(new Set());
+    setSelectedChannels(new Set());
+    setHasAudio(null);
+    setHasFeedback(null);
+    setSortBy("createdAt");
+    setSortDir("desc");
   }, []);
+
+  const activeFilterCount = useMemo(() => {
+    let c = 0;
+    if (search) c++;
+    if (statusFilter !== "all") c++;
+    if (confirmationFilter !== "all") c++;
+    if (selectedClients.size > 0) c++;
+    if (selectedMissions.size > 0) c++;
+    if (selectedSdrs.size > 0) c++;
+    if (selectedMeetingTypes.size > 0) c++;
+    if (selectedMeetingCategories.size > 0) c++;
+    if (selectedOutcomes.size > 0) c++;
+    if (selectedChannels.size > 0) c++;
+    if (hasAudio !== null) c++;
+    if (hasFeedback !== null) c++;
+    return c;
+  }, [
+    search, statusFilter, confirmationFilter,
+    selectedClients, selectedMissions, selectedSdrs,
+    selectedMeetingTypes, selectedMeetingCategories, selectedOutcomes,
+    selectedChannels, hasAudio, hasFeedback,
+  ]);
 
   const filterSummary = useMemo(() => {
     const parts: string[] = [];
     if (statusFilter !== "all") parts.push(statusFilter);
     if (selectedClients.size > 0) parts.push(`${selectedClients.size}clients`);
+    if (sortBy !== "createdAt") parts.push(sortBy);
     return parts.join("_");
-  }, [statusFilter, selectedClients]);
+  }, [statusFilter, selectedClients, sortBy]);
 
   return {
-    search,
-    setSearch,
-    statusFilter,
-    setStatusFilter,
-    confirmationFilter,
-    setConfirmationFilter,
-    datePreset,
-    setDatePreset,
-    dateFrom,
-    setDateFrom,
-    dateTo,
-    setDateTo,
-    selectedClients,
-    setSelectedClients,
-    selectedMissions,
-    setSelectedMissions,
-    selectedSdrs,
-    setSelectedSdrs,
-    selectedMeetingTypes,
-    setSelectedMeetingTypes,
-    selectedMeetingCategories,
-    setSelectedMeetingCategories,
-    selectedOutcomes,
-    setSelectedOutcomes,
+    search, setSearch,
+    statusFilter, setStatusFilter,
+    confirmationFilter, setConfirmationFilter,
+    datePreset, setDatePreset,
+    dateFrom, setDateFrom,
+    dateTo, setDateTo,
+    selectedClients, setSelectedClients,
+    selectedMissions, setSelectedMissions,
+    selectedSdrs, setSelectedSdrs,
+    selectedMeetingTypes, setSelectedMeetingTypes,
+    selectedMeetingCategories, setSelectedMeetingCategories,
+    selectedOutcomes, setSelectedOutcomes,
+    selectedChannels, setSelectedChannels,
+    hasAudio, setHasAudio,
+    hasFeedback, setHasFeedback,
+    sortBy, setSortBy,
+    sortDir, setSortDir,
+    toggleSort,
+    applyQuickPreset,
     clearAllFilters,
     activeFilterCount,
     dateRange,
     filterSummary,
-    clientOptions,
-    missionOptions,
-    sdrOptions,
-    setClientOptions,
-    setMissionOptions,
-    setSdrOptions,
+    clientOptions, setClientOptions,
+    missionOptions, setMissionOptions,
+    sdrOptions, setSdrOptions,
   };
 }

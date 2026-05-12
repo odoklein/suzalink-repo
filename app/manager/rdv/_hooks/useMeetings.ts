@@ -32,6 +32,11 @@ function buildQuery(filters: MeetingFiltersState, page = 1): string {
   filters.selectedOutcomes.forEach((o) => {
     if (o !== "NONE") p.append("outcome[]", o);
   });
+  filters.selectedChannels.forEach((ch) => p.append("channel[]", ch));
+  if (filters.hasAudio !== null) p.set("hasAudio", filters.hasAudio ? "1" : "0");
+  if (filters.hasFeedback !== null) p.set("hasFeedback", filters.hasFeedback ? "1" : "0");
+  if (filters.sortBy && filters.sortBy !== "createdAt") p.set("sortBy", filters.sortBy);
+  if (filters.sortDir && filters.sortDir !== "desc") p.set("sortDir", filters.sortDir);
   p.set("page", String(page));
   p.set("limit", "50");
   return p.toString();
@@ -101,6 +106,11 @@ export function useMeetings(filters: MeetingFiltersState): UseMeetingsReturn {
       filters.selectedMeetingTypes,
       filters.selectedMeetingCategories,
       filters.selectedOutcomes,
+      filters.selectedChannels,
+      filters.hasAudio,
+      filters.hasFeedback,
+      filters.sortBy,
+      filters.sortDir,
     ]
   );
 

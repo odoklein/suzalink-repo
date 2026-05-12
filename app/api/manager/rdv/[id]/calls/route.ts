@@ -6,7 +6,7 @@ import { parseAlloCallsListResponse } from "@/lib/call-enrichment/allo-response"
 
 const DEFAULT_COUNTRY = (process.env.PHONE_DEFAULT_COUNTRY ?? "FR") as Parameters<typeof isValidPhoneNumber>[1];
 const BASE_URL = "https://api.withallo.com";
-const GAP_MS = Math.max(0, parseInt(process.env.CALL_ENRICHMENT_ALLO_LINE_GAP_MS ?? "120", 10));
+const GAP_MS = Math.max(0, parseInt(process.env.CALL_ENRICHMENT_ALLO_LINE_GAP_MS ?? "400", 10));
 const RETRIES_429 = Math.max(0, parseInt(process.env.CALL_ENRICHMENT_ALLO_429_RETRIES ?? "6", 10));
 
 type PhoneSourceKey = "contact" | "company" | "meeting";

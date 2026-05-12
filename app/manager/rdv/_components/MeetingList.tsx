@@ -24,7 +24,8 @@ import {
   formatDuration,
 } from "../_lib/formatters";
 import type { ConfirmationFilter } from "../_types";
-import { Copy, Linkedin, RefreshCw, Check, X, Mic } from "lucide-react";
+import { Copy, Linkedin, RefreshCw, Check, X, Mic, ChevronUp, ChevronDown } from "lucide-react";
+import type { SortField, SortDir } from "../_types";
 
 interface MeetingListProps {
   meetings: Meeting[];
@@ -38,6 +39,9 @@ interface MeetingListProps {
   onLoadMore: () => void;
   updateMeeting: (id: string, data: Record<string, unknown>) => Promise<void>;
   updateLocalMeeting: (id: string, patch: Partial<Meeting>) => void;
+  sortBy?: SortField;
+  sortDir?: SortDir;
+  onSort?: (field: SortField) => void;
 }
 
 const MeetingRow = memo(function MeetingRow({
@@ -327,6 +331,34 @@ const MeetingRow = memo(function MeetingRow({
   );
 });
 
+function SortHeader({ label, field, sortBy, sortDir, onSort, style }: {
+  label: string; field: SortField; sortBy?: SortField; sortDir?: SortDir;
+  onSort?: (f: SortField) => void; style?: React.CSSProperties;
+}) {
+  const active = sortBy === field;
+  return (
+    <button
+      onClick={() => onSort?.(field)}
+      style={{
+        background: "none", border: "none", cursor: onSort ? "pointer" : "default",
+        display: "flex", alignItems: "center", gap: 3, padding: 0,
+        fontSize: 11, fontWeight: active ? 700 : 600,
+        color: active ? "var(--accent)" : "var(--ink3)",
+        textTransform: "uppercase", letterSpacing: "0.06em",
+        whiteSpace: "nowrap",
+        ...style,
+      }}
+    >
+      {label}
+      {active ? (
+        sortDir === "asc" ? <ChevronUp size={10} /> : <ChevronDown size={10} />
+      ) : onSort ? (
+        <ChevronDown size={10} style={{ opacity: 0.3 }} />
+      ) : null}
+    </button>
+  );
+}
+
 export function MeetingList({
   meetings,
   loading,
@@ -339,6 +371,9 @@ export function MeetingList({
   onLoadMore,
   updateMeeting,
   updateLocalMeeting,
+  sortBy,
+  sortDir,
+  onSort,
 }: MeetingListProps) {
   const scrollContainerRef = listRef as React.RefObject<HTMLDivElement>;
 
@@ -373,18 +408,30 @@ export function MeetingList({
             onChange={onToggleSelectAll}
           />
         </div>
-        <div style={{ width: 90, whiteSpace: "nowrap" }} title="Date de l'action (prise de RDV)">Créé le</div>
-        <div style={{ width: 80, whiteSpace: "nowrap" }} title="Date prévue du rendez-vous">Date RDV</div>
-        <div style={{ flex: 2, minWidth: 140, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>Contact</div>
-        <div style={{ flex: 2, minWidth: 120, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>Entreprise</div>
-        <div style={{ flex: 1, minWidth: 80, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>Client</div>
-        <div style={{ width: 100, whiteSpace: "nowrap" }}>SDR</div>
-        <div style={{ width: 120, whiteSpace: "nowrap" }}>Commercial</div>
-        <div style={{ width: 36, textAlign: "center" }}>Type</div>
-        <div style={{ width: 50, textAlign: "center" }}>Durée</div>
-        <div style={{ width: 70, textAlign: "center" }}>Statut</div>
-        <div style={{ width: 100, textAlign: "center" }}>Confirm.</div>
-        <div style={{ width: 36, textAlign: "center" }}>Audio</div>
+        <div style={{ width: 90 }}>
+          <SortHeader label="Créé le" field="createdAt" sortBy={sortBy} sortDir={sortDir} onSort={onSort} />
+        </div>
+        <div style={{ width: 80 }}>
+          <SortHeader label="Date RDV" field="callbackDate" sortBy={sortBy} sortDir={sortDir} onSort={onSort} />
+        </div>
+        <div style={{ flex: 2, minWidth: 140 }}>
+          <SortHeader label="Contact" field="contactName" sortBy={sortBy} sortDir={sortDir} onSort={onSort} />
+        </div>
+        <div style={{ flex: 2, minWidth: 120 }}>
+          <SortHeader label="Entreprise" field="companyName" sortBy={sortBy} sortDir={sortDir} onSort={onSort} />
+        </div>
+        <div style={{ flex: 1, minWidth: 80, fontSize: 11, fontWeight: 600, color: "var(--ink3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Client</div>
+        <div style={{ width: 100 }}>
+          <SortHeader label="SDR" field="sdrName" sortBy={sortBy} sortDir={sortDir} onSort={onSort} />
+        </div>
+        <div style={{ width: 120, fontSize: 11, fontWeight: 600, color: "var(--ink3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Commercial</div>
+        <div style={{ width: 36, textAlign: "center", fontSize: 11, fontWeight: 600, color: "var(--ink3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Type</div>
+        <div style={{ width: 50, textAlign: "center" }}>
+          <SortHeader label="Durée" field="duration" sortBy={sortBy} sortDir={sortDir} onSort={onSort} style={{ justifyContent: "center" }} />
+        </div>
+        <div style={{ width: 70, textAlign: "center", fontSize: 11, fontWeight: 600, color: "var(--ink3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Statut</div>
+        <div style={{ width: 100, textAlign: "center", fontSize: 11, fontWeight: 600, color: "var(--ink3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Confirm.</div>
+        <div style={{ width: 36, textAlign: "center", fontSize: 11, fontWeight: 600, color: "var(--ink3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Audio</div>
         <div style={{ width: 64 }} />
       </div>
 

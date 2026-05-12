@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { callProvider } from "./provider";
+import { acquireAlloSlot } from "./allo-semaphore";
 import { parsePhoneNumber, isValidPhoneNumber } from "libphonenumber-js";
 import { DateTime } from "luxon";
 
@@ -120,6 +121,9 @@ export interface AutoEnrichResult {
 }
 
 export async function autoEnrichAction(actionId: string): Promise<AutoEnrichResult> {
+  // Acquire global slot: prevents simultaneous bookings from all hitting Allo at once.
+  // Falls through immediately when ALLO_ENRICH_CONCURRENCY > 1 or on serverless.
+  const release = await acquireAlloSlot();
   try {
     const action = await prisma.action.findUnique({
       where: { id: actionId, result: { in: ["MEETING_BOOKED", "MEETING_CANCELLED"] } },
@@ -222,5 +226,7 @@ export async function autoEnrichAction(actionId: string): Promise<AutoEnrichResu
   } catch (e) {
     console.error("[auto-enrichment]", e);
     return { found: false, ficheGenerated: false, error: String(e) };
+  } finally {
+    release();
   }
 }
