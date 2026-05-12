@@ -97,6 +97,16 @@ export const GET = withErrorHandler(async (
                             title: true,
                         },
                     },
+                    campaign: {
+                        select: {
+                            id: true,
+                            name: true,
+                            icp: true,
+                            pitch: true,
+                            script: true,
+                            isActive: true,
+                        },
+                    },
                 },
             },
             defaultInterlocuteur: {
@@ -182,8 +192,43 @@ export const GET = withErrorHandler(async (
         },
     });
 
+    // Per-list strategy readiness + mission-level rollup
+    type LinkedCampaign = { icp: string | null; pitch: string | null; script: string | null } | null;
+    const computeReadiness = (campaign: LinkedCampaign) => {
+        const hasIcp = !!campaign?.icp?.trim();
+        const hasPitch = !!campaign?.pitch?.trim();
+        const hasScript = !!campaign?.script?.trim();
+        const hasStrategy = !!campaign;
+        return {
+            hasStrategy,
+            hasIcp,
+            hasPitch,
+            hasScript,
+            isReady: hasStrategy && hasIcp && hasPitch && hasScript,
+        };
+    };
+
+    const listsWithReadiness = mission.lists.map((l) => ({
+        ...l,
+        readiness: computeReadiness(l.campaign as LinkedCampaign),
+    }));
+
+    const activeListsWithReadiness = listsWithReadiness.filter(
+        (l) => l.isActive !== false && l.isArchived !== true
+    );
+    const missionReadiness = {
+        activeLists: activeListsWithReadiness.length,
+        readyLists: activeListsWithReadiness.filter((l) => l.readiness.isReady).length,
+        missingStrategy: activeListsWithReadiness.filter((l) => !l.readiness.hasStrategy).length,
+        missingIcp: activeListsWithReadiness.filter((l) => l.readiness.hasStrategy && !l.readiness.hasIcp).length,
+        missingPitch: activeListsWithReadiness.filter((l) => l.readiness.hasStrategy && !l.readiness.hasPitch).length,
+        missingScript: activeListsWithReadiness.filter((l) => l.readiness.hasStrategy && !l.readiness.hasScript).length,
+    };
+
     return successResponse({
         ...mission,
+        lists: listsWithReadiness,
+        missionReadiness,
         stats: {
             totalActions: stats._count,
             meetingsBooked: meetings,

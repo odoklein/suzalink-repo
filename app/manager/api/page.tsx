@@ -76,11 +76,13 @@ interface ApiRequestMetrics {
   totalCalls: number;
   failedCalls: number;
   topEndpoints: Array<{
+    provider: string;
     endpoint: string;
     method: string;
     count: number;
   }>;
   failedRequests: Array<{
+    provider: string;
     endpoint: string;
     method: string;
     statusCode: number;
@@ -328,7 +330,7 @@ export default function ApiManagementPage() {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-500 font-medium">API Calls Today</p>
+                    <p className="text-sm text-gray-500 font-medium">External API Calls Today</p>
                     <p className="text-2xl font-bold text-gray-900 mt-1">
                       {(apiMetrics?.totalCalls || 0).toLocaleString()}
                     </p>
@@ -392,7 +394,7 @@ export default function ApiManagementPage() {
               <CardHeader className="mb-3">
                 <CardTitle className="text-base flex items-center gap-2">
                   <TrendingUp className="w-4 h-4 text-cyan-600" />
-                  Top Endpoints Today
+                  Top External Endpoints Today
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -402,7 +404,7 @@ export default function ApiManagementPage() {
                       <div key={`${item.method}-${item.endpoint}`} className="flex items-center justify-between gap-3">
                         <div className="min-w-0">
                           <p className="text-sm font-medium text-gray-900 truncate">
-                            <span className="text-cyan-700">{item.method}</span> {item.endpoint}
+                            <span className="text-cyan-700">{item.provider}</span> {item.method} {item.endpoint}
                           </p>
                         </div>
                         <span className="text-sm font-semibold text-gray-900 shrink-0">
@@ -412,7 +414,7 @@ export default function ApiManagementPage() {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-500">No API calls recorded today.</p>
+                  <p className="text-sm text-gray-500">No external API calls recorded today.</p>
                 )}
               </CardContent>
             </Card>
@@ -421,7 +423,7 @@ export default function ApiManagementPage() {
               <CardHeader className="mb-3">
                 <CardTitle className="text-base flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 text-amber-600" />
-                  Failed Requests Today
+                  Failed External Requests Today
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -431,7 +433,7 @@ export default function ApiManagementPage() {
                       <div key={`${item.method}-${item.endpoint}-${item.statusCode}`} className="flex items-center justify-between gap-3">
                         <div className="min-w-0">
                           <p className="text-sm font-medium text-gray-900 truncate">
-                            <span className="text-amber-700">{item.statusCode}</span> {item.method} {item.endpoint}
+                            <span className="text-amber-700">{item.statusCode}</span> {item.provider} {item.method} {item.endpoint}
                           </p>
                         </div>
                         <span className="text-sm font-semibold text-gray-900 shrink-0">
@@ -441,7 +443,7 @@ export default function ApiManagementPage() {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-500">No failed API calls recorded today.</p>
+                  <p className="text-sm text-gray-500">No failed external API calls recorded today.</p>
                 )}
               </CardContent>
             </Card>

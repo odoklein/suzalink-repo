@@ -103,6 +103,9 @@ interface NextActionData {
         phone?: string | null;
     };
     campaignId?: string;
+    strategyName?: string | null;
+    sourceListId?: string | null;
+    sourceListName?: string | null;
     channel?: Channel;
     script?: string;
     scriptAdditional?: string;
@@ -513,7 +516,7 @@ export default function SDRActionPage() {
         })), []);
     const {
         data: queueItems = [],
-        isFetching: queueLoading,
+        isLoading: queueInitialLoading,
         error: queueFetchError,
     } = useQuery({
         queryKey: queueQueryKey,
@@ -2208,7 +2211,7 @@ export default function SDRActionPage() {
 
                 {/* Data Table */}
                 <div className="bg-white rounded-2xl border border-slate-200/60 shadow-lg shadow-slate-200/50 overflow-hidden">
-                    {queueLoading ? (
+                    {queueInitialLoading ? (
                         <TableSkeleton columns={6} rows={12} className="rounded-2xl" />
                     ) : queueFetchError ? (
                         <EmptyState
@@ -2877,6 +2880,20 @@ export default function SDRActionPage() {
                                     </span>
                                 )}
                             </div>
+                            {(currentAction?.strategyName || currentAction?.sourceListName) && (
+                                <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-500">
+                                    {currentAction.strategyName && (
+                                        <span>
+                                            Stratégie : <span className="font-medium text-slate-700">{currentAction.strategyName}</span>
+                                        </span>
+                                    )}
+                                    {currentAction.sourceListName && (
+                                        <span>
+                                            Liste source : <span className="font-medium text-slate-700">{currentAction.sourceListName}</span>
+                                        </span>
+                                    )}
+                                </div>
+                            )}
                         </div>
 
                         <div className="p-4">

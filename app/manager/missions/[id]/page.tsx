@@ -43,6 +43,8 @@ import {
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { EditMissionDialog } from "./_components/EditMissionDialog";
+import { ReadinessPanel } from "./_components/ReadinessPanel";
+import { StrategyByListTab } from "./_components/StrategyByListTab";
 import { MailboxManagerDialog } from "@/components/email/inbox/MailboxManagerDialog";
 import { MISSION_STATUS_CONFIG } from "@/lib/constants/missionStatus";
 import type { MissionStatusValue } from "@/lib/constants/missionStatus";
@@ -103,7 +105,31 @@ interface Mission {
             title?: string | null;
         } | null;
         _count?: { companies: number; contacts?: number };
+        campaignId?: string | null;
+        campaign?: {
+            id: string;
+            name: string;
+            icp: string | null;
+            pitch: string | null;
+            script: string | null;
+            isActive: boolean;
+        } | null;
+        readiness?: {
+            hasStrategy: boolean;
+            hasIcp: boolean;
+            hasPitch: boolean;
+            hasScript: boolean;
+            isReady: boolean;
+        };
     }>;
+    missionReadiness?: {
+        activeLists: number;
+        readyLists: number;
+        missingStrategy: number;
+        missingIcp: number;
+        missingPitch: number;
+        missingScript: number;
+    };
     _count: {
         sdrAssignments: number;
         campaigns: number;
@@ -1172,6 +1198,12 @@ export default function MissionDetailPage({ params }: { params: Promise<{ id: st
             </div>
 
 
+            {/* READINESS PANEL */}
+            <ReadinessPanel
+                readiness={mission.missionReadiness}
+                onConfigureClick={() => setActiveTab("strategies")}
+            />
+
             {/* TABS NAVIGATION */}
             <div className="mt-6 border-b border-slate-200">
                 <Tabs
@@ -1179,7 +1211,8 @@ export default function MissionDetailPage({ params }: { params: Promise<{ id: st
                     onTabChange={setActiveTab}
                     tabs={[
                         { id: "general", label: "Général", icon: <Activity className="w-4 h-4" /> },
-                        { id: "strategy", label: "Stratégie & Scripts", icon: <Target className="w-4 h-4" /> },
+                        { id: "strategies", label: "Stratégies par liste", icon: <Target className="w-4 h-4" /> },
+                        { id: "strategy", label: "Stratégie & Scripts (avancé)", icon: <FileText className="w-4 h-4" /> },
                         { id: "audience", label: "BDD", icon: <Users className="w-4 h-4" /> },
                         { id: "feedback", label: "Avis SDR", icon: <MessageSquare className="w-4 h-4" /> },
                     ]}
@@ -1416,6 +1449,15 @@ export default function MissionDetailPage({ params }: { params: Promise<{ id: st
                             </div>
                         </div>
                     </div>
+                )}
+
+                {activeTab === "strategies" && (
+                    <StrategyByListTab
+                        missionId={mission.id}
+                        lists={mission.lists}
+                        campaigns={mission.campaigns}
+                        onChange={fetchMission}
+                    />
                 )}
 
                 {activeTab === "strategy" && (
@@ -2044,6 +2086,42 @@ export default function MissionDetailPage({ params }: { params: Promise<{ id: st
                                                         Désactivée
                                                     </span>
                                                 )}
+                                                {(() => {
+                                                    const r = list.readiness;
+                                                    if (!r) return null;
+                                                    if (!r.hasStrategy) {
+                                                        return (
+                                                            <span
+                                                                className="text-xs font-medium text-amber-700 px-2 py-1 bg-amber-50 border border-amber-200 rounded"
+                                                                title="Cette liste n'a pas de stratégie/script liée"
+                                                            >
+                                                                Sans stratégie
+                                                            </span>
+                                                        );
+                                                    }
+                                                    if (r.isReady) {
+                                                        return (
+                                                            <span
+                                                                className="text-xs font-medium text-emerald-700 px-2 py-1 bg-emerald-50 border border-emerald-200 rounded"
+                                                                title={`Stratégie: ${list.campaign?.name ?? ""}`}
+                                                            >
+                                                                Stratégie prête
+                                                            </span>
+                                                        );
+                                                    }
+                                                    const missing: string[] = [];
+                                                    if (!r.hasIcp) missing.push("ICP");
+                                                    if (!r.hasPitch) missing.push("pitch");
+                                                    if (!r.hasScript) missing.push("script");
+                                                    return (
+                                                        <span
+                                                            className="text-xs font-medium text-sky-700 px-2 py-1 bg-sky-50 border border-sky-200 rounded"
+                                                            title={`Stratégie: ${list.campaign?.name ?? ""}`}
+                                                        >
+                                                            {`Manque ${missing.join(", ")}`}
+                                                        </span>
+                                                    );
+                                                })()}
                                                 <button
                                                     type="button"
                                                     disabled={togglingListId === list.id}

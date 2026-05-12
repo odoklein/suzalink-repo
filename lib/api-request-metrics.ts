@@ -1,47 +1,50 @@
-import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 const MAX_ENDPOINT_LENGTH = 500;
 const MAX_METHOD_LENGTH = 10;
-const METRICS_ENDPOINT = "/api/manager/api-keys/metrics";
+const MAX_PROVIDER_LENGTH = 80;
 
 function startOfUtcDay(date = new Date()): Date {
   return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
 }
 
-function normalizeEndpoint(pathname: string): string {
-  return pathname.substring(0, MAX_ENDPOINT_LENGTH);
+function normalizeEndpoint(endpoint: string): string {
+  try {
+    const url = new URL(endpoint);
+    return url.pathname.substring(0, MAX_ENDPOINT_LENGTH);
+  } catch {
+    return endpoint.substring(0, MAX_ENDPOINT_LENGTH);
+  }
 }
 
-export async function logApiRequestMetric(
-  request: NextRequest,
+export async function logExternalApiCallMetric(
+  provider: string,
+  endpoint: string,
+  method: string,
   statusCode: number,
 ): Promise<void> {
-  const pathname = request.nextUrl.pathname;
-
-  if (!pathname.startsWith("/api/") || pathname === METRICS_ENDPOINT) {
-    return;
-  }
-
   const date = startOfUtcDay();
-  const endpoint = normalizeEndpoint(pathname);
-  const method = request.method.substring(0, MAX_METHOD_LENGTH);
+  const normalizedProvider = provider.substring(0, MAX_PROVIDER_LENGTH);
+  const normalizedEndpoint = normalizeEndpoint(endpoint);
+  const normalizedMethod = method.substring(0, MAX_METHOD_LENGTH);
   const now = new Date();
 
   try {
     await prisma.apiRequestDailyMetric.upsert({
       where: {
-        date_endpoint_method_statusCode: {
+        date_provider_endpoint_method_statusCode: {
           date,
-          endpoint,
-          method,
+          provider: normalizedProvider,
+          endpoint: normalizedEndpoint,
+          method: normalizedMethod,
           statusCode,
         },
       },
       create: {
         date,
-        endpoint,
-        method,
+        provider: normalizedProvider,
+        endpoint: normalizedEndpoint,
+        method: normalizedMethod,
         statusCode,
         count: 1,
         lastSeenAt: now,
@@ -52,11 +55,11 @@ export async function logApiRequestMetric(
       },
     });
   } catch (error) {
-    console.error("Failed to log API request metric:", error);
+    console.error("Failed to log external API call metric:", error);
   }
 }
 
-export async function getTodayApiRequestSummary() {
+export async function getTodayExternalApiCallSummary() {
   const today = startOfUtcDay();
 
   const rows = await prisma.apiRequestDailyMetric.findMany({
@@ -69,14 +72,15 @@ export async function getTodayApiRequestSummary() {
     .filter((row) => row.statusCode >= 400)
     .reduce((sum, row) => sum + row.count, 0);
 
-  const endpointTotals = new Map<string, { endpoint: string; method: string; count: number }>();
+  const endpointTotals = new Map<string, { provider: string; endpoint: string; method: string; count: number }>();
   for (const row of rows) {
-    const key = `${row.method} ${row.endpoint}`;
+    const key = `${row.provider} ${row.method} ${row.endpoint}`;
     const existing = endpointTotals.get(key);
     if (existing) {
       existing.count += row.count;
     } else {
       endpointTotals.set(key, {
+        provider: row.provider,
         endpoint: row.endpoint,
         method: row.method,
         count: row.count,
@@ -95,6 +99,7 @@ export async function getTodayApiRequestSummary() {
       .filter((row) => row.statusCode >= 400)
       .slice(0, 5)
       .map((row) => ({
+        provider: row.provider,
         endpoint: row.endpoint,
         method: row.method,
         statusCode: row.statusCode,

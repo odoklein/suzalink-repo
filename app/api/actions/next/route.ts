@@ -123,7 +123,18 @@ export const GET = withErrorHandler(async (request: NextRequest) => {
             INNER JOIN "List" l ON co."listId" = l.id
             INNER JOIN "Mission" m ON l."missionId" = m.id
             INNER JOIN "Client" cl ON m."clientId" = cl.id
-            INNER JOIN "Campaign" camp ON camp."missionId" = m.id
+            -- Strategy resolution: prefer the campaign linked to the list, fall back to
+            -- the mission's first active campaign for lists still in transition.
+            INNER JOIN "Campaign" camp ON camp.id = COALESCE(
+                l."campaignId",
+                (
+                    SELECT c2."id"
+                    FROM "Campaign" c2
+                    WHERE c2."missionId" = m.id AND c2."isActive" = true
+                    ORDER BY c2."createdAt" ASC
+                    LIMIT 1
+                )
+            )
             ${sdrAssignmentJoin}
             WHERE m."isActive" = true
               AND (l."isActive" IS NULL OR l."isActive" = true)
@@ -165,7 +176,16 @@ export const GET = withErrorHandler(async (request: NextRequest) => {
             INNER JOIN "List" l ON co."listId" = l.id
             INNER JOIN "Mission" m ON l."missionId" = m.id
             INNER JOIN "Client" cl ON m."clientId" = cl.id
-            INNER JOIN "Campaign" camp ON camp."missionId" = m.id
+            INNER JOIN "Campaign" camp ON camp.id = COALESCE(
+                l."campaignId",
+                (
+                    SELECT c2."id"
+                    FROM "Campaign" c2
+                    WHERE c2."missionId" = m.id AND c2."isActive" = true
+                    ORDER BY c2."createdAt" ASC
+                    LIMIT 1
+                )
+            )
             ${sdrAssignmentJoin}
             WHERE m."isActive" = true
               AND (l."isActive" IS NULL OR l."isActive" = true)
@@ -363,8 +383,16 @@ export const GET = withErrorHandler(async (request: NextRequest) => {
 
     const campaignMeta = await prisma.campaign.findUnique({
         where: { id: next.campaign_id },
-        select: { script: true, rules: true },
+        select: { script: true, rules: true, name: true },
     });
+
+    // Source list for provenance — the company's list (one company belongs to one list)
+    const sourceList = await prisma.company.findUnique({
+        where: { id: next.company_id },
+        select: { list: { select: { id: true, name: true, campaignId: true } } },
+    });
+    const sourceListName = sourceList?.list?.name ?? null;
+    const sourceListId = sourceList?.list?.id ?? null;
 
     const onboarding = await prisma.clientOnboarding.findFirst({
         where: { clientId: next.client_id },
@@ -427,6 +455,9 @@ export const GET = withErrorHandler(async (request: NextRequest) => {
             phone: next.company_phone || null,
         },
         campaignId: next.campaign_id,
+        strategyName: campaignMeta?.name ?? null,
+        sourceListId,
+        sourceListName,
         channel: next.mission_channel,
         script: normalizedBaseScript,
         scriptAdditional: scriptCompanion?.shared?.content ?? "",

@@ -3,7 +3,6 @@ import { getServerSession } from 'next-auth';
 import { getToken } from 'next-auth/jwt';
 import { authOptions, sessionFromToken } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { logApiRequestMetric } from '@/lib/api-request-metrics';
 import { z } from 'zod';
 
 // ============================================
@@ -218,37 +217,25 @@ export function withErrorHandler<T = any>(
 ): any {
     return async (request: NextRequest, context?: RouteContext<T>) => {
         try {
-            let response: NextResponse;
             if (context) {
-                response = await (handler as RouteHandlerWithParams<T>)(request, context);
+                return await (handler as RouteHandlerWithParams<T>)(request, context);
             } else {
-                response = await (handler as RouteHandlerWithoutParams)(request);
+                return await (handler as RouteHandlerWithoutParams)(request);
             }
-            await logApiRequestMetric(request, response.status);
-            return response;
         } catch (error) {
             console.error('API Error:', error);
 
-            let response: NextResponse;
             if (error instanceof AuthError) {
-                response = errorResponse(error.message, error.status);
-                await logApiRequestMetric(request, response.status);
-                return response;
+                return errorResponse(error.message, error.status);
             }
             if (error instanceof ValidationError) {
-                response = errorResponse(error.message, error.status);
-                await logApiRequestMetric(request, response.status);
-                return response;
+                return errorResponse(error.message, error.status);
             }
             if (error instanceof NotFoundError) {
-                response = errorResponse(error.message, error.status);
-                await logApiRequestMetric(request, response.status);
-                return response;
+                return errorResponse(error.message, error.status);
             }
 
-            response = errorResponse('Erreur serveur interne', 500);
-            await logApiRequestMetric(request, response.status);
-            return response;
+            return errorResponse('Erreur serveur interne', 500);
         }
     };
 }

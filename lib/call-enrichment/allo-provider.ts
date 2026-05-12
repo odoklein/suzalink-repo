@@ -1,6 +1,7 @@
 import type { CallProvider, CallProviderInput, CallRecord } from './provider';
 import { ceDebug, isCallEnrichmentDebug } from './debug';
 import { parseAlloCallsListResponse } from './allo-response';
+import { logExternalApiCallMetric } from '@/lib/api-request-metrics';
 
 const BASE_URL = 'https://api.withallo.com';
 // Lowered from 60 → 15: the matching call is almost always in the first few pages.
@@ -246,6 +247,7 @@ export class AlloProvider implements CallProvider {
             headers: { Authorization: this.apiKey },
             signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
           });
+          await logExternalApiCallMetric('allo', url.pathname, 'GET', res.status);
 
           console.log(`[call-enrichment][allo] response status=${res.status} alloNumber=${alloNumber} page=${page}`);
 
@@ -284,6 +286,7 @@ export class AlloProvider implements CallProvider {
 
         return { calls: [], totalPages: 0, httpOk: false, httpStatus: 429 };
       } catch (e) {
+        await logExternalApiCallMetric('allo', '/v1/api/calls', 'GET', 0);
         const retriable = isRetriableFetchError(e);
         if (net < NETWORK_RETRIES && retriable) {
           const backoff = Math.min(NETWORK_RETRY_BASE_MS * 2 ** net, 20_000);

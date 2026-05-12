@@ -112,7 +112,18 @@ export const GET = withErrorHandler(async (request: NextRequest) => {
             INNER JOIN "List" l ON co."listId" = l.id
             INNER JOIN "Mission" m ON l."missionId" = m.id
             INNER JOIN "Client" cl ON m."clientId" = cl.id
-            INNER JOIN "Campaign" camp ON camp."missionId" = m.id
+            -- Strategy resolution: prefer the campaign linked to the list, fall back to
+            -- the mission's first active campaign for lists still in transition.
+            INNER JOIN "Campaign" camp ON camp.id = COALESCE(
+                l."campaignId",
+                (
+                    SELECT c2."id"
+                    FROM "Campaign" c2
+                    WHERE c2."missionId" = m.id AND c2."isActive" = true
+                    ORDER BY c2."createdAt" ASC
+                    LIMIT 1
+                )
+            )
             ${sdrAssignmentJoin}
             WHERE m."isActive" = true
               AND (l."isActive" IS NULL OR l."isActive" = true)
@@ -153,7 +164,16 @@ export const GET = withErrorHandler(async (request: NextRequest) => {
             INNER JOIN "List" l ON co."listId" = l.id
             INNER JOIN "Mission" m ON l."missionId" = m.id
             INNER JOIN "Client" cl ON m."clientId" = cl.id
-            INNER JOIN "Campaign" camp ON camp."missionId" = m.id
+            INNER JOIN "Campaign" camp ON camp.id = COALESCE(
+                l."campaignId",
+                (
+                    SELECT c2."id"
+                    FROM "Campaign" c2
+                    WHERE c2."missionId" = m.id AND c2."isActive" = true
+                    ORDER BY c2."createdAt" ASC
+                    LIMIT 1
+                )
+            )
             ${sdrAssignmentJoin}
             WHERE m."isActive" = true
               AND (l."isActive" IS NULL OR l."isActive" = true)

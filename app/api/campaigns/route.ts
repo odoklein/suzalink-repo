@@ -28,6 +28,7 @@ const createCampaignSchema = z.object({
             closing: z.string().optional(),
         }),
     ]).optional(),
+    assignToListIds: z.array(z.string().min(1)).optional(),
 });
 
 function normalizeScriptToSingleText(script: unknown): string | null {
@@ -128,24 +129,49 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
         return errorResponse('Mission non trouvée', 404);
     }
 
-    const campaign = await prisma.campaign.create({
-        data: {
-            name: data.name,
-            missionId: data.missionId,
-            icp: data.icp,
-            pitch: data.pitch,
-            script: data.script ? normalizeScriptToSingleText(data.script) : null,
-            isActive: true,
-        },
-        include: {
-            mission: {
-                select: {
-                    id: true,
-                    name: true,
-                    channel: true,
+    // Validate any requested list assignments belong to the same mission
+    const listsToAssign = data.assignToListIds && data.assignToListIds.length > 0
+        ? await prisma.list.findMany({
+            where: { id: { in: data.assignToListIds }, missionId: data.missionId },
+            select: { id: true },
+        })
+        : [];
+    if (data.assignToListIds && listsToAssign.length !== data.assignToListIds.length) {
+        return errorResponse(
+            'Une ou plusieurs listes n’appartiennent pas à cette mission',
+            400
+        );
+    }
+
+    const campaign = await prisma.$transaction(async (tx) => {
+        const created = await tx.campaign.create({
+            data: {
+                name: data.name,
+                missionId: data.missionId,
+                icp: data.icp,
+                pitch: data.pitch,
+                script: data.script ? normalizeScriptToSingleText(data.script) : null,
+                isActive: true,
+            },
+            include: {
+                mission: {
+                    select: {
+                        id: true,
+                        name: true,
+                        channel: true,
+                    },
                 },
             },
-        },
+        });
+
+        if (listsToAssign.length > 0) {
+            await tx.list.updateMany({
+                where: { id: { in: listsToAssign.map((l) => l.id) } },
+                data: { campaignId: created.id },
+            });
+        }
+
+        return created;
     });
 
     return successResponse(campaign, 201);

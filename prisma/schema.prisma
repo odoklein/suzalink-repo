@@ -759,16 +759,21 @@ model Campaign {
   isActive      Boolean   @default(true)
   actions       Action[]
   files         File[]
-  
+
+  // Lists that use this campaign as their strategy/script
+  assignedLists List[]    @relation("ListCampaignScript")
+
   // Email Hub relations
   emailThreads  EmailThread[]
   emailSequences EmailSequence[]
-  
+
   // Internal Communication Module
   commsChannel  CommsChannel?
-  
+
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+
+  @@index([missionId, isActive])
 }
 
 model List {
@@ -784,11 +789,18 @@ model List {
   isArchived    Boolean   @default(false)
   archivedAt    DateTime?
 
+  // Strategy/script linked to this list. When null, SDR queue falls back to the
+  // mission's first active campaign (transition period — see migration backfill).
+  campaignId    String?
+  campaign      Campaign? @relation("ListCampaignScript", fields: [campaignId], references: [id], onDelete: SetNull)
+
   // Optional commercial (client interlocuteur) owning this list
   commercialInterlocuteurId String?
   commercialInterlocuteur   ClientInterlocuteur? @relation(fields: [commercialInterlocuteurId], references: [id], onDelete: SetNull)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+
+  @@index([campaignId])
 }
 
 model Company {
@@ -3302,6 +3314,7 @@ model ApiKeyUsageLog {
 model ApiRequestDailyMetric {
   id            String    @id @default(cuid())
   date          DateTime  @db.Date
+  provider      String
   endpoint      String
   method        String
   statusCode    Int
@@ -3310,9 +3323,10 @@ model ApiRequestDailyMetric {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  @@unique([date, endpoint, method, statusCode])
+  @@unique([date, provider, endpoint, method, statusCode])
   @@index([date])
-  @@index([date, endpoint])
+  @@index([date, provider])
+  @@index([date, provider, endpoint])
   @@index([date, statusCode])
 }
 

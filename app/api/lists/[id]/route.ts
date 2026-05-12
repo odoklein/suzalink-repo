@@ -88,7 +88,7 @@ export const PATCH = withErrorHandler(async (
     const { id } = await params;
     const body = await request.json();
 
-    const { name, type, source, missionId, commercialInterlocuteurId, isActive, isArchived } = body;
+    const { name, type, source, missionId, commercialInterlocuteurId, campaignId, isActive, isArchived } = body;
 
     // Load current list with mission + client for validation
     const existing = await prisma.list.findUnique({
@@ -144,6 +144,31 @@ export const PATCH = withErrorHandler(async (
         }
     }
 
+    // Validate and build campaign connect/disconnect
+    let campaignConnect:
+        | { connect: { id: string } }
+        | { disconnect: true }
+        | undefined;
+
+    if (campaignId !== undefined) {
+        if (campaignId === null || campaignId === '') {
+            campaignConnect = { disconnect: true };
+        } else {
+            const targetMissionId = nextMissionId ?? existing.missionId;
+            const camp = await prisma.campaign.findFirst({
+                where: { id: campaignId, missionId: targetMissionId },
+                select: { id: true },
+            });
+            if (!camp) {
+                return errorResponse(
+                    'Cette stratégie n’appartient pas à la même mission que la liste',
+                    400
+                );
+            }
+            campaignConnect = { connect: { id: campaignId } };
+        }
+    }
+
     // isActive: use raw SQL so this works even if Prisma client was generated before the column existed
     if (typeof isActive === 'boolean') {
         await prisma.$executeRaw`UPDATE "List" SET "isActive" = ${isActive} WHERE id = ${id}`;
@@ -160,7 +185,35 @@ export const PATCH = withErrorHandler(async (
         (type && type !== existing.type) ||
         source !== undefined ||
         nextMissionId ||
-        commercialInterlocuteurConnect !== undefined;
+        commercialInterlocuteurConnect !== undefined ||
+        campaignConnect !== undefined;
+
+    const includeBlock = {
+        mission: {
+            select: {
+                id: true,
+                name: true,
+            },
+        },
+        commercialInterlocuteur: {
+            select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                title: true,
+            },
+        },
+        campaign: {
+            select: {
+                id: true,
+                name: true,
+                icp: true,
+                pitch: true,
+                script: true,
+                isActive: true,
+            },
+        },
+    } as const;
 
     let updatedList;
     if (hasOtherUpdates) {
@@ -174,43 +227,16 @@ export const PATCH = withErrorHandler(async (
                 ...(commercialInterlocuteurConnect && {
                     commercialInterlocuteur: commercialInterlocuteurConnect,
                 }),
+                ...(campaignConnect && {
+                    campaign: campaignConnect,
+                }),
             },
-            include: {
-                mission: {
-                    select: {
-                        id: true,
-                        name: true,
-                    },
-                },
-                commercialInterlocuteur: {
-                    select: {
-                        id: true,
-                        firstName: true,
-                        lastName: true,
-                        title: true,
-                    },
-                },
-            },
+            include: includeBlock,
         });
     } else {
         updatedList = await prisma.list.findUnique({
             where: { id },
-            include: {
-                mission: {
-                    select: {
-                        id: true,
-                        name: true,
-                    },
-                },
-                commercialInterlocuteur: {
-                    select: {
-                        id: true,
-                        firstName: true,
-                        lastName: true,
-                        title: true,
-                    },
-                },
-            },
+            include: includeBlock,
         });
     }
 
