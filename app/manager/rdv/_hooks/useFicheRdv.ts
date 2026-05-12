@@ -26,6 +26,7 @@ export interface UseFicheRdvReturn {
   ficheAutoSaveStatus: FicheAutoSaveStatus;
   initFiche: (m: Meeting) => void;
   generateWithAI: (meeting: Meeting, onUpdate: (m: Meeting) => void) => Promise<void>;
+  generateWithAIFromTranscription: (meeting: Meeting, transcription: string, onUpdate: (m: Meeting) => void) => Promise<void>;
   saveFiche: (meeting: Meeting, onUpdate: (m: Meeting) => void) => Promise<void>;
   triggerAutoSave: (meetingId: string, form: FicheForm) => void;
 }
@@ -126,6 +127,47 @@ export function useFicheRdv(
     [ficheForm, updateMeeting]
   );
 
+  const generateWithAIFromTranscription = useCallback(
+    async (meeting: Meeting, transcription: string, onUpdate: (m: Meeting) => void) => {
+      if (!transcription.trim()) {
+        setFicheError("Transcription vide.");
+        return;
+      }
+      setFicheLoading(true);
+      setFicheError(null);
+      try {
+        const res = await fetch("/api/ai/mistral/rdv-fiche", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ transcription }),
+        });
+        const json = await res.json().catch(() => null);
+        if (!res.ok || !json?.success) {
+          setFicheError(json?.error || "Impossible de générer la fiche.");
+          return;
+        }
+        const fiche = json.data?.fiche;
+        setFicheForm({
+          contexte: fiche?.contexte || "",
+          besoinsProblemes: fiche?.besoinsProblemes || "",
+          solutionsEnPlace: fiche?.solutionsEnPlace || "",
+          objectionsFreins: fiche?.objectionsFreins || "",
+          notesImportantes: fiche?.notesImportantes || "",
+        });
+        await updateMeeting(meeting.id, { rdvFiche: fiche });
+        onUpdate({ ...meeting, rdvFiche: fiche, rdvFicheUpdatedAt: new Date().toISOString() });
+        setFicheSaved(true);
+        setTimeout(() => setFicheSaved(false), 3000);
+      } catch (e) {
+        console.error(e);
+        setFicheError("Erreur réseau lors de la génération.");
+      } finally {
+        setFicheLoading(false);
+      }
+    },
+    [updateMeeting],
+  );
+
   const triggerAutoSave = useCallback(
     (meetingId: string, form: FicheForm) => {
       if (autoSaveTimeoutRef.current) clearTimeout(autoSaveTimeoutRef.current);
@@ -156,6 +198,7 @@ export function useFicheRdv(
     ficheAutoSaveStatus,
     initFiche,
     generateWithAI,
+    generateWithAIFromTranscription,
     saveFiche,
     triggerAutoSave,
   };

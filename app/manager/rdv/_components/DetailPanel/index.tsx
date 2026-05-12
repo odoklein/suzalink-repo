@@ -247,6 +247,7 @@ export function DetailPanel({
             meeting={selectedMeeting}
             updateMeeting={updateMeeting}
             setSelectedMeeting={setSelectedMeeting}
+            ficheState={ficheState}
           />
         )}
         {panelTab === "history" && (

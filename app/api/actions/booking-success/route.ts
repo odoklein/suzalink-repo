@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireRole, withErrorHandler, validateRequest } from '@/lib/api-utils';
 import { z } from 'zod';
+import { autoEnrichAction } from '@/lib/call-enrichment/auto-enrichment';
 
 // ============================================
 // SCHEMAS
@@ -236,6 +237,9 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
             },
         });
 
+        // Fire-and-forget: search for Allo audio + generate fiche in the background.
+        void autoEnrichAction(action.id);
+
         return NextResponse.json({
             success: true,
             data: {
@@ -309,6 +313,9 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
             interlocuteurId: resolvedInterlocuteurId ?? undefined,
         },
     });
+
+    // Fire-and-forget: search for Allo audio + generate fiche in the background.
+    void autoEnrichAction(action.id);
 
     return NextResponse.json({
         success: true,
