@@ -8,7 +8,6 @@ interface FicheTabProps {
   meeting: Meeting;
   setSelectedMeeting: React.Dispatch<React.SetStateAction<Meeting | null>>;
   ficheState: UseFicheRdvReturn;
-  updateMeeting: (id: string, data: Record<string, unknown>) => Promise<void>;
 }
 
 const FICHE_FIELDS = [
@@ -19,7 +18,7 @@ const FICHE_FIELDS = [
   ["notesImportantes", "Notes importantes"],
 ] as const;
 
-export function FicheTab({ meeting, setSelectedMeeting, ficheState, updateMeeting }: FicheTabProps) {
+export function FicheTab({ meeting, setSelectedMeeting, ficheState }: FicheTabProps) {
   const {
     ficheForm,
     setFicheForm,

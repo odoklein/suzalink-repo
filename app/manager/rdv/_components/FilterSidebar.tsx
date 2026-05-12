@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useState } from "react";
+import { memo, useState, type Dispatch, type SetStateAction } from "react";
 import type { MeetingFiltersState } from "../_hooks/useMeetingFilters";
 import type {
   MeetingTypeFilter,
@@ -26,7 +26,6 @@ import {
   categoryColor,
   meetingTypeLabel,
 } from "../_lib/formatters";
-import { cn } from "@/lib/utils";
 
 interface FilterSidebarProps {
   filters: MeetingFiltersState;
@@ -43,6 +42,15 @@ const SORT_OPTIONS: { value: SortField; label: string }[] = [
   { value: "companyName", label: "Entreprise (A→Z)" },
   { value: "sdrName", label: "SDR (A→Z)" },
 ];
+
+function toggleSetValue<T>(setter: Dispatch<SetStateAction<Set<T>>>, value: T) {
+  setter((prev) => {
+    const next = new Set(prev);
+    if (next.has(value)) next.delete(value);
+    else next.add(value);
+    return next;
+  });
+}
 
 function ToggleFilter({ label, value, onChange }: {
   label: string;
@@ -301,7 +309,7 @@ export const FilterSidebar = memo(function FilterSidebar({ filters, sidebarOpen,
                 color: selectedChannels.has(key) ? "var(--accent)" : "var(--ink3)",
                 border: `1px solid ${selectedChannels.has(key) ? "var(--accent)" : "transparent"}`,
               }}
-              onClick={() => setSelectedChannels((prev) => { const next = new Set(prev); next.has(key) ? next.delete(key) : next.add(key); return next; })}
+              onClick={() => toggleSetValue(setSelectedChannels, key)}
             >
               {label}
             </button>
@@ -327,7 +335,7 @@ export const FilterSidebar = memo(function FilterSidebar({ filters, sidebarOpen,
             {clientOptions.map((c) => (
               <label key={c.id} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: "var(--ink2)", cursor: "pointer", padding: "4px 0" }}>
                 <input type="checkbox" className="rdv-checkbox" checked={selectedClients.has(c.id)} onChange={() => {
-                  setSelectedClients((prev) => { const next = new Set(prev); next.has(c.id) ? next.delete(c.id) : next.add(c.id); return next; });
+                  toggleSetValue(setSelectedClients, c.id);
                 }} />
                 <span style={{ flex: 1 }}>{c.name}</span>
                 {c.count != null && <span style={{ fontSize: 10, color: "var(--ink3)", background: "var(--surface2)", borderRadius: 6, padding: "1px 6px", fontWeight: 600 }}>{c.count}</span>}
@@ -343,7 +351,7 @@ export const FilterSidebar = memo(function FilterSidebar({ filters, sidebarOpen,
           {missionOptions.map((m) => (
             <label key={m.id} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: "var(--ink2)", cursor: "pointer", padding: "4px 0" }}>
               <input type="checkbox" className="rdv-checkbox" checked={selectedMissions.has(m.id)} onChange={() => {
-                setSelectedMissions((prev) => { const next = new Set(prev); next.has(m.id) ? next.delete(m.id) : next.add(m.id); return next; });
+                toggleSetValue(setSelectedMissions, m.id);
               }} />
               <span style={{ flex: 1 }}>{m.name}</span>
               {m.count != null && <span style={{ fontSize: 10, color: "var(--ink3)", background: "var(--surface2)", borderRadius: 6, padding: "1px 6px", fontWeight: 600 }}>{m.count}</span>}
@@ -358,7 +366,7 @@ export const FilterSidebar = memo(function FilterSidebar({ filters, sidebarOpen,
           {sdrOptions.map((s) => (
             <label key={s.id} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: "var(--ink2)", cursor: "pointer", padding: "4px 0" }}>
               <input type="checkbox" className="rdv-checkbox" checked={selectedSdrs.has(s.id)} onChange={() => {
-                setSelectedSdrs((prev) => { const next = new Set(prev); next.has(s.id) ? next.delete(s.id) : next.add(s.id); return next; });
+                toggleSetValue(setSelectedSdrs, s.id);
               }} />
               <div style={{ width: 22, height: 22, borderRadius: "50%", background: hashColor(s.name), display: "grid", placeContent: "center", fontSize: 10, fontWeight: 700, color: "white", flexShrink: 0 }}>
                 {s.name.charAt(0)}
@@ -383,7 +391,7 @@ export const FilterSidebar = memo(function FilterSidebar({ filters, sidebarOpen,
                 color: selectedMeetingTypes.has(key) ? "var(--accent)" : "var(--ink3)",
                 border: `1px solid ${selectedMeetingTypes.has(key) ? "var(--accent)" : "transparent"}`,
               }}
-              onClick={() => setSelectedMeetingTypes((prev) => { const next = new Set(prev); next.has(key) ? next.delete(key) : next.add(key); return next; })}
+              onClick={() => toggleSetValue(setSelectedMeetingTypes, key)}
             >
               {label}
             </button>
@@ -400,7 +408,7 @@ export const FilterSidebar = memo(function FilterSidebar({ filters, sidebarOpen,
                 color: selectedMeetingCategories.has(key) ? categoryColor(key) : "var(--ink3)",
                 border: `1px solid ${selectedMeetingCategories.has(key) ? categoryColor(key) : "transparent"}`,
               }}
-              onClick={() => setSelectedMeetingCategories((prev) => { const next = new Set(prev); next.has(key) ? next.delete(key) : next.add(key); return next; })}
+              onClick={() => toggleSetValue(setSelectedMeetingCategories, key)}
             >
               {label}
             </button>
@@ -421,7 +429,7 @@ export const FilterSidebar = memo(function FilterSidebar({ filters, sidebarOpen,
                 color: selectedOutcomes.has(key) ? "var(--accent)" : "var(--ink3)",
                 border: `1px solid ${selectedOutcomes.has(key) ? "var(--accent)" : "transparent"}`,
               }}
-              onClick={() => setSelectedOutcomes((prev) => { const next = new Set(prev); next.has(key) ? next.delete(key) : next.add(key); return next; })}
+              onClick={() => toggleSetValue(setSelectedOutcomes, key)}
             >
               {label}
             </button>

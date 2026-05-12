@@ -232,7 +232,6 @@ export function DetailPanel({
             meeting={selectedMeeting}
             setSelectedMeeting={setSelectedMeeting}
             ficheState={ficheState}
-            updateMeeting={updateMeeting}
           />
         )}
         {panelTab === "feedback" && (

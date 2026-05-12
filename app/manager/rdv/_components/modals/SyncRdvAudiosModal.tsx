@@ -236,7 +236,7 @@ export function SyncRdvAudiosModal({
               {preview.length === 0 && (
                 <tr>
                   <td colSpan={4} style={{ padding: 16, fontSize: 12, color: "var(--ink3)" }}>
-                    Cliquez sur "Prévisualiser" pour analyser les RDV.
+                    Cliquez sur &quot;Previsualiser&quot; pour analyser les RDV.
                   </td>
                 </tr>
               )}

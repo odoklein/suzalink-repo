@@ -1,7 +1,7 @@
 "use client";
 
 import type { Meeting } from "../_types";
-import { contactName, meetingStatus, statusBg, statusColor, meetingTypeIcon } from "../_lib/formatters";
+import { contactName, meetingStatus, statusBg, statusColor } from "../_lib/formatters";
 
 interface WeekViewProps {
   calendarDate: Date;

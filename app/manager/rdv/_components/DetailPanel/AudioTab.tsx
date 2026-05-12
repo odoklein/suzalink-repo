@@ -578,7 +578,7 @@ export function AudioTab({ meeting, updateMeeting, setSelectedMeeting, ficheStat
     } finally {
       setLinking(false);
     }
-  }, [manualCalls, selectedCallId, meeting, updateMeeting, setSelectedMeeting, success, showError, ficheState]);
+  }, [rawCallsMap, selectedCallId, meeting, updateMeeting, setSelectedMeeting, success, showError, ficheState]);
 
   const copyToClipboard = useCallback(async (text: string) => {
     try {

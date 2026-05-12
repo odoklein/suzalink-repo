@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import type { Meeting } from "../_types";
 import { WeekView } from "./WeekView";
 import { buildCalendarMeetings, buildCalendarDays } from "../_lib/calendar-utils";
-import { contactName, meetingStatus, statusColor, statusBg, meetingTypeIcon } from "../_lib/formatters";
+import { contactName, meetingStatus, statusColor, meetingTypeIcon } from "../_lib/formatters";
 import { ChevronLeft, ChevronRight, Check, X, Mail, Phone, Linkedin } from "lucide-react";
 
 interface CalendarViewProps {

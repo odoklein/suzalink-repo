@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import type { Meeting } from "../../_types";
-import type { ConfirmationFilter } from "../../_types";
 import {
   dateProximityColor,
   meetingTypeIcon,
