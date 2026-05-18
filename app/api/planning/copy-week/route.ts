@@ -7,6 +7,7 @@ import {
     withErrorHandler,
     validateRequest,
 } from '@/lib/api-utils';
+import { buildAbsenceDayKeySet, toDateKey } from '@/lib/planning/absences';
 import { z } from 'zod';
 
 // ============================================

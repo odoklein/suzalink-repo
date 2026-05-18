@@ -9,6 +9,7 @@ import {
 } from '@/lib/api-utils';
 import { createScheduleAssignmentNotification } from '@/lib/notifications';
 import { recomputeConflicts } from '@/lib/planning/conflictEngine';
+import { isSdrAbsentOnDate } from '@/lib/planning/absences';
 import { z } from 'zod';
 
 // ============================================
@@ -137,6 +138,14 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
 
     const [year, month, day] = data.date.split('-').map(Number);
     const blockDate = new Date(year, month - 1, day, 0, 0, 0, 0);
+
+    // Reject if the SDR is marked absent on this day (impactsPlanning=true)
+    if (await isSdrAbsentOnDate(data.sdrId, blockDate)) {
+        return errorResponse(
+            "Ce SDR est absent ce jour-là. Retirez l'absence ou choisissez une autre date.",
+            409
+        );
+    }
 
     // ← fixed: missionId_sdrId instead of sdrId_missionId
     await prisma.sDRAssignment.upsert({

@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { successResponse, errorResponse, requirePlanningAccess, withErrorHandler, validateRequest } from '@/lib/api-utils';
 import { recomputeConflicts } from '@/lib/planning/conflictEngine';
+import { buildAbsenceDayKeySet, toDateKey } from '@/lib/planning/absences';
 import { z } from 'zod';
 
 const createSchema = z.object({
@@ -80,6 +81,8 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
 
     let blocksCreated = 0;
 
+    let blocksSkippedAbsent = 0;
+
     if (data.autoCreateBlocks && plan.workingDays && data.missionId) {
         const dayNums = plan.workingDays.split(',').map(Number).filter(Boolean);
         if (dayNums.length > 0) {
@@ -90,16 +93,26 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
+            const monthStart = new Date(yr, mo - 1, 1);
+            const monthEnd = new Date(yr, mo - 1, daysInMonth);
+
             const existingBlocks = await prisma.scheduleBlock.findMany({
                 where: {
                     sdrId: data.sdrId,
                     missionId: data.missionId,
-                    date: { gte: new Date(yr, mo - 1, 1), lte: new Date(yr, mo - 1, daysInMonth) },
+                    date: { gte: monthStart, lte: monthEnd },
                     status: { not: 'CANCELLED' },
                 },
                 select: { date: true },
             });
             const existingDates = new Set(existingBlocks.map(b => b.date.toISOString().slice(0, 10)));
+
+            // Days where this SDR is absent — skip them when placing blocks.
+            const absentKeys = await buildAbsenceDayKeySet({
+                sdrIds: [data.sdrId],
+                from: monthStart,
+                to: monthEnd,
+            });
 
             const blockData: Array<{
                 sdrId: string;
@@ -121,6 +134,10 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
                 if (!dayNums.includes(dow)) continue;
                 const dateStr = date.toISOString().slice(0, 10);
                 if (existingDates.has(dateStr)) continue;
+                if (absentKeys.has(`${data.sdrId}:${toDateKey(date)}`)) {
+                    blocksSkippedAbsent++;
+                    continue;
+                }
 
                 blockData.push({
                     sdrId: data.sdrId,
@@ -149,5 +166,5 @@ export const POST = withErrorHandler(async (request: NextRequest) => {
 
     await recomputeConflicts({ sdrId: data.sdrId, missionId: plan.missionId, month: plan.month });
 
-    return successResponse({ ...allocation, blocksCreated }, 201);
+    return successResponse({ ...allocation, blocksCreated, blocksSkippedAbsent }, 201);
 });

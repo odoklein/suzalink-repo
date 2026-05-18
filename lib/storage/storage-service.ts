@@ -55,6 +55,7 @@ export class LocalStorageProvider implements StorageProvider {
     }
 
     async upload(file: Buffer, key: string, mimeType: string): Promise<string> {
+        void mimeType;
         const filePath = path.join(this.basePath, key);
         const dir = path.dirname(filePath);
 
@@ -79,6 +80,7 @@ export class LocalStorageProvider implements StorageProvider {
     }
 
     async getSignedUrl(key: string, expiresIn: number = 3600): Promise<string> {
+        void expiresIn;
         // For local storage, just return the URL
         return `/uploads/${key}`;
     }
@@ -88,8 +90,20 @@ export class LocalStorageProvider implements StorageProvider {
 // S3 STORAGE PROVIDER (Production)
 // ============================================
 
-import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import {
+    S3Client,
+    PutObjectCommand,
+    GetObjectCommand,
+    DeleteObjectCommand,
+    type GetObjectCommandOutput,
+} from '@aws-sdk/client-s3';
 import { getSignedUrl as getS3SignedUrl } from '@aws-sdk/s3-request-presigner';
+import {
+    deleteFile as deleteMinioFile,
+    downloadFile as downloadMinioFile,
+    generateSignedUrl as generateMinioSignedUrl,
+    uploadFile as uploadMinioFile,
+} from './minio';
 
 export class S3StorageProvider implements StorageProvider {
     private client: S3Client;
@@ -126,14 +140,7 @@ export class S3StorageProvider implements StorageProvider {
         });
 
         const response = await this.client.send(command);
-        const stream = response.Body as any;
-
-        const chunks: Buffer[] = [];
-        for await (const chunk of stream) {
-            chunks.push(chunk);
-        }
-
-        return Buffer.concat(chunks);
+        return streamToBuffer(response.Body);
     }
 
     async delete(key: string): Promise<void> {
@@ -155,6 +162,58 @@ export class S3StorageProvider implements StorageProvider {
     }
 }
 
+async function streamToBuffer(stream: GetObjectCommandOutput['Body']): Promise<Buffer> {
+    if (!stream) {
+        return Buffer.alloc(0);
+    }
+
+    const chunks: Buffer[] = [];
+    for await (const chunk of stream as AsyncIterable<Buffer | Uint8Array | string>) {
+        chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+    }
+
+    return Buffer.concat(chunks);
+}
+
+// ============================================
+// MINIO STORAGE PROVIDER (Self-hosted S3)
+// ============================================
+
+export class MinioStorageProvider implements StorageProvider {
+    private bucket: string;
+
+    constructor() {
+        this.bucket = process.env.MINIO_BUCKET || '';
+    }
+
+    async upload(file: Buffer, key: string, mimeType: string): Promise<string> {
+        const result = await uploadMinioFile({
+            bucket: this.bucket,
+            key,
+            body: file,
+            contentType: mimeType,
+        });
+
+        return result.url;
+    }
+
+    async download(key: string): Promise<Buffer> {
+        return downloadMinioFile(key, this.bucket);
+    }
+
+    async delete(key: string): Promise<void> {
+        await deleteMinioFile(key, this.bucket);
+    }
+
+    async getSignedUrl(key: string, expiresIn: number = 3600): Promise<string> {
+        return generateMinioSignedUrl({
+            bucket: this.bucket,
+            key,
+            expiresIn,
+        });
+    }
+}
+
 // ============================================
 // STORAGE SERVICE (Main Interface)
 // ============================================
@@ -163,8 +222,11 @@ export class StorageService {
     private provider: StorageProvider;
 
     constructor() {
-        // Use S3 in production, local in development
-        if (process.env.NODE_ENV === 'production' && process.env.ASW_S3_BUCKET) {
+        const provider = process.env.STORAGE_PROVIDER?.toLowerCase();
+
+        if (provider === 'minio' || process.env.MINIO_ENDPOINT) {
+            this.provider = new MinioStorageProvider();
+        } else if (provider === 's3' || (process.env.NODE_ENV === 'production' && process.env.ASW_S3_BUCKET)) {
             this.provider = new S3StorageProvider();
         } else {
             this.provider = new LocalStorageProvider();
