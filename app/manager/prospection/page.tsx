@@ -200,6 +200,152 @@ function ResultBadge({ result }: { result: string }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// LAST ACTION STORY — narrative, channel-aware, past-tense badge
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface ActionStory {
+    label: string;
+    icon: React.ElementType;
+    text: string;
+    bg: string;
+    border: string;
+}
+
+function getLastActionStory(row: ActionRecord): ActionStory {
+    const ch = row.channel;
+    const r = row.result;
+
+    if (ch === "CALL") {
+        switch (r) {
+            case "NO_RESPONSE":
+                return { label: "Appelé, ne répond pas", icon: PhoneMissed, text: "text-slate-600", bg: "bg-slate-100", border: "border-slate-200" };
+            case "BAD_CONTACT":
+                return { label: "Numéro erroné", icon: PhoneOff, text: "text-red-700", bg: "bg-red-50", border: "border-red-200" };
+            case "CALLBACK_REQUESTED":
+                return { label: "Rappel à programmer", icon: RotateCw, text: "text-amber-700", bg: "bg-amber-50", border: "border-amber-200" };
+            case "INTERESTED":
+                return { label: "Conversation positive", icon: ThumbsUp, text: "text-emerald-700", bg: "bg-emerald-50", border: "border-emerald-200" };
+            case "MEETING_BOOKED":
+                return { label: "RDV décroché au tél.", icon: CalendarPlus, text: "text-indigo-700", bg: "bg-indigo-50", border: "border-indigo-200" };
+            case "MEETING_CANCELLED":
+                return { label: "RDV annulé", icon: CalendarX, text: "text-red-600", bg: "bg-red-50", border: "border-red-200" };
+            case "NOT_INTERESTED":
+                return { label: "Pas intéressé (tél.)", icon: XCircle, text: "text-red-600", bg: "bg-red-50", border: "border-red-200" };
+            case "DISQUALIFIED":
+                return { label: "Disqualifié", icon: Ban, text: "text-slate-500", bg: "bg-slate-100", border: "border-slate-200" };
+        }
+    }
+
+    if (ch === "EMAIL") {
+        switch (r) {
+            case "ENVOIE_MAIL":
+                return { label: "Mail à envoyer", icon: Send, text: "text-blue-700", bg: "bg-blue-50", border: "border-blue-200" };
+            case "MAIL_ENVOYE":
+                return { label: "Mail envoyé", icon: Mail, text: "text-sky-700", bg: "bg-sky-50", border: "border-sky-200" };
+            case "REPLIED":
+                return { label: "A répondu au mail", icon: CheckCircle2, text: "text-emerald-700", bg: "bg-emerald-50", border: "border-emerald-200" };
+            case "NO_RESPONSE":
+                return { label: "Mail sans réponse", icon: PhoneMissed, text: "text-slate-600", bg: "bg-slate-100", border: "border-slate-200" };
+            case "NOT_INTERESTED":
+                return { label: "A décliné par mail", icon: XCircle, text: "text-red-600", bg: "bg-red-50", border: "border-red-200" };
+            case "INTERESTED":
+                return { label: "Intérêt manifesté (mail)", icon: ThumbsUp, text: "text-emerald-700", bg: "bg-emerald-50", border: "border-emerald-200" };
+            case "MEETING_BOOKED":
+                return { label: "RDV pris par mail", icon: CalendarPlus, text: "text-indigo-700", bg: "bg-indigo-50", border: "border-indigo-200" };
+            case "BAD_CONTACT":
+                return { label: "Mail invalide", icon: PhoneOff, text: "text-red-700", bg: "bg-red-50", border: "border-red-200" };
+        }
+    }
+
+    if (ch === "LINKEDIN") {
+        switch (r) {
+            case "CONNECTION_SENT":
+                return { label: "Invitation envoyée", icon: Linkedin, text: "text-sky-700", bg: "bg-sky-50", border: "border-sky-200" };
+            case "MESSAGE_SENT":
+                return { label: "Message LinkedIn envoyé", icon: Send, text: "text-sky-700", bg: "bg-sky-50", border: "border-sky-200" };
+            case "REPLIED":
+                return { label: "A répondu sur LinkedIn", icon: CheckCircle2, text: "text-emerald-700", bg: "bg-emerald-50", border: "border-emerald-200" };
+            case "NO_RESPONSE":
+                return { label: "Aucune réaction LinkedIn", icon: PhoneMissed, text: "text-slate-600", bg: "bg-slate-100", border: "border-slate-200" };
+            case "NOT_INTERESTED":
+                return { label: "Refus sur LinkedIn", icon: XCircle, text: "text-red-600", bg: "bg-red-50", border: "border-red-200" };
+            case "INTERESTED":
+                return { label: "Intérêt LinkedIn", icon: ThumbsUp, text: "text-emerald-700", bg: "bg-emerald-50", border: "border-emerald-200" };
+            case "MEETING_BOOKED":
+                return { label: "RDV pris via LinkedIn", icon: CalendarPlus, text: "text-indigo-700", bg: "bg-indigo-50", border: "border-indigo-200" };
+        }
+    }
+
+    const c = getCfg(r);
+    return { label: c.label, icon: c.icon, text: c.text, bg: c.bg, border: c.border };
+}
+
+function getCallbackContext(callbackDate: string | null | undefined): { text: string; tone: "ok" | "soon" | "overdue" } | null {
+    if (!callbackDate) return null;
+    const cb = new Date(callbackDate);
+    if (Number.isNaN(cb.getTime())) return null;
+    const dayMs = 86_400_000;
+    const ms = cb.getTime() - Date.now();
+    const days = Math.round(ms / dayMs);
+    if (ms < -dayMs) return { text: `En retard de ${Math.abs(days)}j`, tone: "overdue" };
+    if (ms < 0) return { text: "Rappel à faire (auj.)", tone: "overdue" };
+    if (days === 0) return { text: "Rappel aujourd'hui", tone: "soon" };
+    if (days === 1) return { text: "Rappel demain", tone: "soon" };
+    if (days < 7) return { text: `Rappel dans ${days}j`, tone: "ok" };
+    return { text: `Rappel ${cb.toLocaleDateString("fr-FR", { day: "2-digit", month: "short" })}`, tone: "ok" };
+}
+
+function timeAgoShort(iso: string): string {
+    const ms = Date.now() - new Date(iso).getTime();
+    if (ms < 0 || Number.isNaN(ms)) return "";
+    const m = Math.floor(ms / 60_000);
+    if (m < 1) return "à l'instant";
+    if (m < 60) return `il y a ${m} min`;
+    const h = Math.floor(m / 60);
+    if (h < 24) return `il y a ${h}h`;
+    const d = Math.floor(h / 24);
+    if (d < 7) return `il y a ${d}j`;
+    const w = Math.floor(d / 7);
+    if (w < 5) return `il y a ${w}sem`;
+    const mo = Math.floor(d / 30);
+    return `il y a ${mo}mois`;
+}
+
+function LastActionBadge({ row }: { row: ActionRecord }) {
+    const story = getLastActionStory(row);
+    const Icon = story.icon;
+    const cbCtx = row.result === "CALLBACK_REQUESTED" ? getCallbackContext(row.callbackDate) : null;
+    const ago = timeAgoShort(row.createdAt);
+
+    return (
+        <div className="flex flex-col gap-1 items-start">
+            <span className={cn(
+                "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[11px] font-bold whitespace-nowrap",
+                story.bg, story.text, story.border
+            )}>
+                <Icon className="w-3 h-3 shrink-0" aria-hidden />
+                {story.label}
+            </span>
+            {cbCtx ? (
+                <span className={cn(
+                    "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold tabular-nums whitespace-nowrap",
+                    cbCtx.tone === "overdue" ? "bg-red-100 text-red-700 animate-pulse" :
+                    cbCtx.tone === "soon" ? "bg-amber-100 text-amber-700" :
+                    "bg-slate-100 text-slate-500"
+                )}>
+                    <Clock className="w-2.5 h-2.5" aria-hidden />
+                    {cbCtx.text}
+                </span>
+            ) : ago && (
+                <span className="text-[10px] text-slate-400 font-medium tabular-nums whitespace-nowrap pl-0.5">
+                    {ago}
+                </span>
+            )}
+        </div>
+    );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // SORT HEADER
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -1626,10 +1772,10 @@ export default function ManagerProspectionPage() {
                                                 </td>
                                             )}
 
-                                            {/* Result */}
+                                            {/* Result — narrative "last action" badge (channel-aware) */}
                                             {visibleCols.has("result") && (
                                                 <td className={cn("px-4", rowPy)}>
-                                                    <ResultBadge result={row.result} />
+                                                    <LastActionBadge row={row} />
                                                 </td>
                                             )}
 
