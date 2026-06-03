@@ -1,0 +1,2089 @@
+{
+  "files_rows": {
+    "q1": 100,
+    "q2": 25,
+    "q3": 15,
+    "q4": 128,
+    "q5": 141,
+    "q6": 650,
+    "q7": 108,
+    "q9": 54,
+    "q10": 500
+  },
+  "present_tables": [
+    "Action",
+    "Campaign",
+    "Company",
+    "Contact",
+    "CrmActivityDay",
+    "Email"
+  ],
+  "q2_totals": {
+    "missions": 25,
+    "total_actions": 25578,
+    "call_actions": 25466,
+    "email_actions": 112,
+    "linkedin_actions": 0,
+    "meetings": 213,
+    "callbacks": 28,
+    "interested": 3,
+    "bad_contact": 1066,
+    "blocked_or_no_answer": 18850,
+    "scheduled_blocks": 700,
+    "scheduled_days": 419,
+    "companies": 39117,
+    "contacts": 41189,
+    "callable_contacts": 27774
+  },
+  "top_missions": [
+    {
+      "mission_name": "ERA GROUP",
+      "mission_status": "ACTIVE",
+      "total_actions": "4524",
+      "call_actions": "4523",
+      "meetings_booked": "21",
+      "callbacks": "6",
+      "interested": "0",
+      "bad_contact_results": "116",
+      "blocked_or_no_answer": "3547",
+      "meeting_rate_pct": "0.46",
+      "active_sdrs": "9",
+      "assigned_sdrs": "6",
+      "scheduled_blocks": "113",
+      "last_action_at": "2026-05-26 13:05:39.411"
+    },
+    {
+      "mission_name": "Elacin",
+      "mission_status": "ACTIVE",
+      "total_actions": "3512",
+      "call_actions": "3505",
+      "meetings_booked": "18",
+      "callbacks": "0",
+      "interested": "0",
+      "bad_contact_results": "117",
+      "blocked_or_no_answer": "2839",
+      "meeting_rate_pct": "0.51",
+      "active_sdrs": "11",
+      "assigned_sdrs": "7",
+      "scheduled_blocks": "95",
+      "last_action_at": "2026-05-15 12:37:53.88"
+    },
+    {
+      "mission_name": "UPIKA",
+      "mission_status": "ACTIVE",
+      "total_actions": "3418",
+      "call_actions": "3416",
+      "meetings_booked": "8",
+      "callbacks": "0",
+      "interested": "0",
+      "bad_contact_results": "172",
+      "blocked_or_no_answer": "2708",
+      "meeting_rate_pct": "0.23",
+      "active_sdrs": "12",
+      "assigned_sdrs": "9",
+      "scheduled_blocks": "77",
+      "last_action_at": "2026-05-22 14:05:54.315"
+    },
+    {
+      "mission_name": "MBWay",
+      "mission_status": "ACTIVE",
+      "total_actions": "2575",
+      "call_actions": "2544",
+      "meetings_booked": "10",
+      "callbacks": "7",
+      "interested": "0",
+      "bad_contact_results": "267",
+      "blocked_or_no_answer": "1545",
+      "meeting_rate_pct": "0.39",
+      "active_sdrs": "10",
+      "assigned_sdrs": "10",
+      "scheduled_blocks": "67",
+      "last_action_at": "2026-05-20 15:37:27.643"
+    },
+    {
+      "mission_name": "Mission Deltaplus Systems",
+      "mission_status": "ACTIVE",
+      "total_actions": "1726",
+      "call_actions": "1710",
+      "meetings_booked": "6",
+      "callbacks": "1",
+      "interested": "1",
+      "bad_contact_results": "13",
+      "blocked_or_no_answer": "1396",
+      "meeting_rate_pct": "0.35",
+      "active_sdrs": "9",
+      "assigned_sdrs": "6",
+      "scheduled_blocks": "56",
+      "last_action_at": "2026-05-07 08:16:48.631"
+    },
+    {
+      "mission_name": "Mission Team Link",
+      "mission_status": "ARCHIVED",
+      "total_actions": "1459",
+      "call_actions": "1458",
+      "meetings_booked": "1",
+      "callbacks": "1",
+      "interested": "0",
+      "bad_contact_results": "96",
+      "blocked_or_no_answer": "1140",
+      "meeting_rate_pct": "0.07",
+      "active_sdrs": "4",
+      "assigned_sdrs": "4",
+      "scheduled_blocks": "18",
+      "last_action_at": "2026-04-09 11:43:42.544"
+    },
+    {
+      "mission_name": "Tonic Radio",
+      "mission_status": "ACTIVE",
+      "total_actions": "1388",
+      "call_actions": "1379",
+      "meetings_booked": "16",
+      "callbacks": "7",
+      "interested": "0",
+      "bad_contact_results": "16",
+      "blocked_or_no_answer": "889",
+      "meeting_rate_pct": "1.15",
+      "active_sdrs": "8",
+      "assigned_sdrs": "4",
+      "scheduled_blocks": "31",
+      "last_action_at": "2026-05-05 15:59:27.347"
+    },
+    {
+      "mission_name": "Arthurimmo.com",
+      "mission_status": "ACTIVE",
+      "total_actions": "1269",
+      "call_actions": "1269",
+      "meetings_booked": "21",
+      "callbacks": "0",
+      "interested": "0",
+      "bad_contact_results": "33",
+      "blocked_or_no_answer": "815",
+      "meeting_rate_pct": "1.65",
+      "active_sdrs": "7",
+      "assigned_sdrs": "5",
+      "scheduled_blocks": "48",
+      "last_action_at": "2026-05-22 13:26:16.866"
+    },
+    {
+      "mission_name": "Wanted Design",
+      "mission_status": "ACTIVE",
+      "total_actions": "1250",
+      "call_actions": "1250",
+      "meetings_booked": "14",
+      "callbacks": "0",
+      "interested": "0",
+      "bad_contact_results": "16",
+      "blocked_or_no_answer": "1030",
+      "meeting_rate_pct": "1.12",
+      "active_sdrs": "8",
+      "assigned_sdrs": "7",
+      "scheduled_blocks": "39",
+      "last_action_at": "2026-05-15 12:28:58.432"
+    },
+    {
+      "mission_name": "MS FORMATION",
+      "mission_status": "ACTIVE",
+      "total_actions": "966",
+      "call_actions": "966",
+      "meetings_booked": "0",
+      "callbacks": "0",
+      "interested": "0",
+      "bad_contact_results": "82",
+      "blocked_or_no_answer": "780",
+      "meeting_rate_pct": "0.00",
+      "active_sdrs": "5",
+      "assigned_sdrs": "5",
+      "scheduled_blocks": "14",
+      "last_action_at": "2026-05-19 15:18:15.45"
+    },
+    {
+      "mission_name": "Cuisaline ",
+      "mission_status": "ACTIVE",
+      "total_actions": "909",
+      "call_actions": "874",
+      "meetings_booked": "77",
+      "callbacks": "4",
+      "interested": "0",
+      "bad_contact_results": "3",
+      "blocked_or_no_answer": "537",
+      "meeting_rate_pct": "8.47",
+      "active_sdrs": "5",
+      "assigned_sdrs": "2",
+      "scheduled_blocks": "31",
+      "last_action_at": "2026-05-25 15:46:41.913"
+    },
+    {
+      "mission_name": "Welcome Drinks",
+      "mission_status": "ACTIVE",
+      "total_actions": "624",
+      "call_actions": "624",
+      "meetings_booked": "7",
+      "callbacks": "0",
+      "interested": "0",
+      "bad_contact_results": "31",
+      "blocked_or_no_answer": "361",
+      "meeting_rate_pct": "1.12",
+      "active_sdrs": "4",
+      "assigned_sdrs": "3",
+      "scheduled_blocks": "19",
+      "last_action_at": "2026-05-20 14:51:37.219"
+    }
+  ],
+  "top_meeting_rate_missions_min100": [
+    {
+      "mission_name": "Cuisaline ",
+      "total_actions": 909,
+      "meetings": 77,
+      "meeting_rate_pct": 8.47
+    },
+    {
+      "mission_name": "Arthurimmo.com",
+      "total_actions": 1269,
+      "meetings": 21,
+      "meeting_rate_pct": 1.65
+    },
+    {
+      "mission_name": "Tonic Radio",
+      "total_actions": 1388,
+      "meetings": 16,
+      "meeting_rate_pct": 1.15
+    },
+    {
+      "mission_name": "Wanted Design",
+      "total_actions": 1250,
+      "meetings": 14,
+      "meeting_rate_pct": 1.12
+    },
+    {
+      "mission_name": "Welcome Drinks",
+      "total_actions": 624,
+      "meetings": 7,
+      "meeting_rate_pct": 1.12
+    },
+    {
+      "mission_name": "Smart Agents_Avril",
+      "total_actions": 295,
+      "meetings": 3,
+      "meeting_rate_pct": 1.02
+    },
+    {
+      "mission_name": "Ficka",
+      "total_actions": 375,
+      "meetings": 3,
+      "meeting_rate_pct": 0.8
+    },
+    {
+      "mission_name": "Elacin",
+      "total_actions": 3512,
+      "meetings": 18,
+      "meeting_rate_pct": 0.51
+    },
+    {
+      "mission_name": "ERA GROUP",
+      "total_actions": 4524,
+      "meetings": 21,
+      "meeting_rate_pct": 0.46
+    },
+    {
+      "mission_name": "MBWay",
+      "total_actions": 2575,
+      "meetings": 10,
+      "meeting_rate_pct": 0.39
+    }
+  ],
+  "zero_or_low_meeting_missions_min500": [
+    {
+      "mission_name": "MS FORMATION",
+      "total_actions": 966,
+      "meetings": 0,
+      "meeting_rate_pct": 0,
+      "bad_contact": 82,
+      "blocked": 780
+    },
+    {
+      "mission_name": "Mission Team Link",
+      "total_actions": 1459,
+      "meetings": 1,
+      "meeting_rate_pct": 0.07,
+      "bad_contact": 96,
+      "blocked": 1140
+    },
+    {
+      "mission_name": "Marron & Associés",
+      "total_actions": 576,
+      "meetings": 1,
+      "meeting_rate_pct": 0.17,
+      "bad_contact": 28,
+      "blocked": 379
+    },
+    {
+      "mission_name": "UPIKA",
+      "total_actions": 3418,
+      "meetings": 8,
+      "meeting_rate_pct": 0.23,
+      "bad_contact": 172,
+      "blocked": 2708
+    },
+    {
+      "mission_name": "Mission Deltaplus Systems",
+      "total_actions": 1726,
+      "meetings": 6,
+      "meeting_rate_pct": 0.35,
+      "bad_contact": 13,
+      "blocked": 1396
+    },
+    {
+      "mission_name": "MBWay",
+      "total_actions": 2575,
+      "meetings": 10,
+      "meeting_rate_pct": 0.39,
+      "bad_contact": 267,
+      "blocked": 1545
+    },
+    {
+      "mission_name": "ERA GROUP",
+      "total_actions": 4524,
+      "meetings": 21,
+      "meeting_rate_pct": 0.46,
+      "bad_contact": 116,
+      "blocked": 3547
+    },
+    {
+      "mission_name": "Elacin",
+      "total_actions": 3512,
+      "meetings": 18,
+      "meeting_rate_pct": 0.51,
+      "bad_contact": 117,
+      "blocked": 2839
+    },
+    {
+      "mission_name": "Wanted Design",
+      "total_actions": 1250,
+      "meetings": 14,
+      "meeting_rate_pct": 1.12,
+      "bad_contact": 16,
+      "blocked": 1030
+    },
+    {
+      "mission_name": "Welcome Drinks",
+      "total_actions": 624,
+      "meetings": 7,
+      "meeting_rate_pct": 1.12,
+      "bad_contact": 31,
+      "blocked": 361
+    },
+    {
+      "mission_name": "Tonic Radio",
+      "total_actions": 1388,
+      "meetings": 16,
+      "meeting_rate_pct": 1.15,
+      "bad_contact": 16,
+      "blocked": 889
+    },
+    {
+      "mission_name": "Arthurimmo.com",
+      "total_actions": 1269,
+      "meetings": 21,
+      "meeting_rate_pct": 1.65,
+      "bad_contact": 33,
+      "blocked": 815
+    }
+  ],
+  "sdrs": [
+    {
+      "sdr_name": "David",
+      "role": "SDR",
+      "crm_active_days": "0",
+      "crm_active_hours": "0",
+      "action_days": "51",
+      "missions_worked": "7",
+      "total_actions": "3634",
+      "calls": "3631",
+      "meetings": "6",
+      "callbacks": "1",
+      "bad_contact": "92",
+      "no_response": "3090",
+      "actions_per_active_hour": "null",
+      "meetings_per_call_pct": "0.17",
+      "avg_duration_seconds": "null",
+      "last_action_at": "2026-05-26 13:01:57.849"
+    },
+    {
+      "sdr_name": "Lea",
+      "role": "SDR",
+      "crm_active_days": "0",
+      "crm_active_hours": "0",
+      "action_days": "51",
+      "missions_worked": "8",
+      "total_actions": "3442",
+      "calls": "3442",
+      "meetings": "8",
+      "callbacks": "5",
+      "bad_contact": "100",
+      "no_response": "2883",
+      "actions_per_active_hour": "null",
+      "meetings_per_call_pct": "0.23",
+      "avg_duration_seconds": "null",
+      "last_action_at": "2026-05-26 13:05:39.411"
+    },
+    {
+      "sdr_name": "Julien",
+      "role": "SDR",
+      "crm_active_days": "0",
+      "crm_active_hours": "0",
+      "action_days": "47",
+      "missions_worked": "9",
+      "total_actions": "2824",
+      "calls": "2810",
+      "meetings": "13",
+      "callbacks": "7",
+      "bad_contact": "130",
+      "no_response": "1968",
+      "actions_per_active_hour": "null",
+      "meetings_per_call_pct": "0.46",
+      "avg_duration_seconds": "null",
+      "last_action_at": "2026-05-26 09:50:46.088"
+    },
+    {
+      "sdr_name": "Sonia",
+      "role": "SDR",
+      "crm_active_days": "0",
+      "crm_active_hours": "0.00",
+      "action_days": "29",
+      "missions_worked": "6",
+      "total_actions": "2202",
+      "calls": "2202",
+      "meetings": "4",
+      "callbacks": "5",
+      "bad_contact": "114",
+      "no_response": "1618",
+      "actions_per_active_hour": "null",
+      "meetings_per_call_pct": "0.18",
+      "avg_duration_seconds": "338.2",
+      "last_action_at": "2026-04-17 15:59:06.177"
+    },
+    {
+      "sdr_name": "Kevin",
+      "role": "SDR",
+      "crm_active_days": "0",
+      "crm_active_hours": "0.00",
+      "action_days": "50",
+      "missions_worked": "9",
+      "total_actions": "1914",
+      "calls": "1908",
+      "meetings": "11",
+      "callbacks": "0",
+      "bad_contact": "81",
+      "no_response": "1485",
+      "actions_per_active_hour": "null",
+      "meetings_per_call_pct": "0.58",
+      "avg_duration_seconds": "111.7",
+      "last_action_at": "2026-05-22 13:08:45.328"
+    },
+    {
+      "sdr_name": "Amélie",
+      "role": "SDR",
+      "crm_active_days": "0",
+      "crm_active_hours": "0",
+      "action_days": "33",
+      "missions_worked": "7",
+      "total_actions": "1759",
+      "calls": "1749",
+      "meetings": "6",
+      "callbacks": "0",
+      "bad_contact": "214",
+      "no_response": "976",
+      "actions_per_active_hour": "null",
+      "meetings_per_call_pct": "0.34",
+      "avg_duration_seconds": "null",
+      "last_action_at": "2026-05-07 12:03:21.155"
+    },
+    {
+      "sdr_name": "Anais",
+      "role": "SDR",
+      "crm_active_days": "0",
+      "crm_active_hours": "0.00",
+      "action_days": "28",
+      "missions_worked": "7",
+      "total_actions": "1568",
+      "calls": "1560",
+      "meetings": "10",
+      "callbacks": "0",
+      "bad_contact": "91",
+      "no_response": "1229",
+      "actions_per_active_hour": "null",
+      "meetings_per_call_pct": "0.64",
+      "avg_duration_seconds": "null",
+      "last_action_at": "2026-05-06 11:01:39.759"
+    },
+    {
+      "sdr_name": "Maxime",
+      "role": "SDR",
+      "crm_active_days": "0",
+      "crm_active_hours": "0.00",
+      "action_days": "24",
+      "missions_worked": "3",
+      "total_actions": "1548",
+      "calls": "1548",
+      "meetings": "7",
+      "callbacks": "7",
+      "bad_contact": "22",
+      "no_response": "1087",
+      "actions_per_active_hour": "null",
+      "meetings_per_call_pct": "0.45",
+      "avg_duration_seconds": "78.0",
+      "last_action_at": "2026-05-06 11:00:25.13"
+    },
+    {
+      "sdr_name": "Rayan",
+      "role": "SDR",
+      "crm_active_days": "0",
+      "crm_active_hours": "0.00",
+      "action_days": "31",
+      "missions_worked": "7",
+      "total_actions": "1284",
+      "calls": "1268",
+      "meetings": "5",
+      "callbacks": "0",
+      "bad_contact": "40",
+      "no_response": "821",
+      "actions_per_active_hour": "null",
+      "meetings_per_call_pct": "0.39",
+      "avg_duration_seconds": "null",
+      "last_action_at": "2026-05-07 13:47:03.441"
+    },
+    {
+      "sdr_name": "Morgane",
+      "role": "SDR",
+      "crm_active_days": "0",
+      "crm_active_hours": "0.00",
+      "action_days": "46",
+      "missions_worked": "6",
+      "total_actions": "1247",
+      "calls": "1244",
+      "meetings": "10",
+      "callbacks": "0",
+      "bad_contact": "53",
+      "no_response": "828",
+      "actions_per_active_hour": "null",
+      "meetings_per_call_pct": "0.80",
+      "avg_duration_seconds": "null",
+      "last_action_at": "2026-05-25 15:46:41.913"
+    },
+    {
+      "sdr_name": "Alain",
+      "role": "SDR",
+      "crm_active_days": "0",
+      "crm_active_hours": "0",
+      "action_days": "30",
+      "missions_worked": "2",
+      "total_actions": "1048",
+      "calls": "1048",
+      "meetings": "6",
+      "callbacks": "1",
+      "bad_contact": "76",
+      "no_response": "450",
+      "actions_per_active_hour": "null",
+      "meetings_per_call_pct": "0.57",
+      "avg_duration_seconds": "null",
+      "last_action_at": "2026-05-26 11:54:08.124"
+    },
+    {
+      "sdr_name": "Mathieu",
+      "role": "SDR",
+      "crm_active_days": "0",
+      "crm_active_hours": "0",
+      "action_days": "11",
+      "missions_worked": "4",
+      "total_actions": "282",
+      "calls": "282",
+      "meetings": "0",
+      "callbacks": "2",
+      "bad_contact": "10",
+      "no_response": "192",
+      "actions_per_active_hour": "null",
+      "meetings_per_call_pct": "0.00",
+      "avg_duration_seconds": "91.7",
+      "last_action_at": "2026-04-30 14:47:03.335"
+    },
+    {
+      "sdr_name": "ZTest SDR",
+      "role": "SDR",
+      "crm_active_days": "0",
+      "crm_active_hours": "0.00",
+      "action_days": "5",
+      "missions_worked": "3",
+      "total_actions": "15",
+      "calls": "7",
+      "meetings": "1",
+      "callbacks": "0",
+      "bad_contact": "2",
+      "no_response": "1",
+      "actions_per_active_hour": "null",
+      "meetings_per_call_pct": "14.29",
+      "avg_duration_seconds": "null",
+      "last_action_at": "2026-04-05 23:55:01.376"
+    },
+    {
+      "sdr_name": "odo test",
+      "role": "SDR",
+      "crm_active_days": "0",
+      "crm_active_hours": "0",
+      "action_days": "0",
+      "missions_worked": "0",
+      "total_actions": "0",
+      "calls": "0",
+      "meetings": "0",
+      "callbacks": "0",
+      "bad_contact": "0",
+      "no_response": "0",
+      "actions_per_active_hour": "null",
+      "meetings_per_call_pct": "null",
+      "avg_duration_seconds": "null",
+      "last_action_at": "null"
+    },
+    {
+      "sdr_name": "ZtestBookeur",
+      "role": "BUSINESS_DEVELOPER",
+      "crm_active_days": "0",
+      "crm_active_hours": "0",
+      "action_days": "0",
+      "missions_worked": "0",
+      "total_actions": "0",
+      "calls": "0",
+      "meetings": "0",
+      "callbacks": "0",
+      "bad_contact": "0",
+      "no_response": "0",
+      "actions_per_active_hour": "null",
+      "meetings_per_call_pct": "null",
+      "avg_duration_seconds": "null",
+      "last_action_at": "null"
+    }
+  ],
+  "best_sdr_meeting_rate_min500calls": [
+    {
+      "sdr_name": "Morgane",
+      "calls": 1244,
+      "meetings": 10,
+      "meetings_per_call_pct": 0.8,
+      "total_actions": 1247
+    },
+    {
+      "sdr_name": "Anais",
+      "calls": 1560,
+      "meetings": 10,
+      "meetings_per_call_pct": 0.64,
+      "total_actions": 1568
+    },
+    {
+      "sdr_name": "Kevin",
+      "calls": 1908,
+      "meetings": 11,
+      "meetings_per_call_pct": 0.58,
+      "total_actions": 1914
+    },
+    {
+      "sdr_name": "Alain",
+      "calls": 1048,
+      "meetings": 6,
+      "meetings_per_call_pct": 0.57,
+      "total_actions": 1048
+    },
+    {
+      "sdr_name": "Julien",
+      "calls": 2810,
+      "meetings": 13,
+      "meetings_per_call_pct": 0.46,
+      "total_actions": 2824
+    },
+    {
+      "sdr_name": "Maxime",
+      "calls": 1548,
+      "meetings": 7,
+      "meetings_per_call_pct": 0.45,
+      "total_actions": 1548
+    },
+    {
+      "sdr_name": "Rayan",
+      "calls": 1268,
+      "meetings": 5,
+      "meetings_per_call_pct": 0.39,
+      "total_actions": 1284
+    },
+    {
+      "sdr_name": "Amélie",
+      "calls": 1749,
+      "meetings": 6,
+      "meetings_per_call_pct": 0.34,
+      "total_actions": 1759
+    },
+    {
+      "sdr_name": "Lea",
+      "calls": 3442,
+      "meetings": 8,
+      "meetings_per_call_pct": 0.23,
+      "total_actions": 3442
+    },
+    {
+      "sdr_name": "Sonia",
+      "calls": 2202,
+      "meetings": 4,
+      "meetings_per_call_pct": 0.18,
+      "total_actions": 2202
+    },
+    {
+      "sdr_name": "David",
+      "calls": 3631,
+      "meetings": 6,
+      "meetings_per_call_pct": 0.17,
+      "total_actions": 3634
+    }
+  ],
+  "q4_flags": [
+    {
+      "flag": "OK_OR_NEEDS_CONTEXT",
+      "count": 42,
+      "actions": 17110,
+      "calls": 17066,
+      "meetings": 88,
+      "scheduled_hours": 3904.05
+    },
+    {
+      "flag": "WORKED_WITHOUT_PLANNING",
+      "count": 40,
+      "actions": 2812,
+      "calls": 2768,
+      "meetings": 125,
+      "scheduled_hours": 0
+    },
+    {
+      "flag": "HIGH_CALLS_NO_MEETINGS",
+      "count": 32,
+      "actions": 5656,
+      "calls": 5632,
+      "meetings": 0,
+      "scheduled_hours": 1337
+    },
+    {
+      "flag": "PLANNED_BUT_NO_ACTIONS",
+      "count": 14,
+      "actions": 0,
+      "calls": 0,
+      "meetings": 0,
+      "scheduled_hours": 305.98
+    }
+  ],
+  "planned_no_actions": [
+    {
+      "sdr_name": "Lea",
+      "mission_name": "Wanted Design",
+      "scheduled_blocks": "10",
+      "scheduled_days": "10",
+      "scheduled_hours": "80.00",
+      "actions": "0",
+      "calls": "0",
+      "meetings": "0",
+      "last_action_at": "null"
+    },
+    {
+      "sdr_name": "Mathieu",
+      "mission_name": "Arthurimmo.com",
+      "scheduled_blocks": "10",
+      "scheduled_days": "9",
+      "scheduled_hours": "80.00",
+      "actions": "0",
+      "calls": "0",
+      "meetings": "0",
+      "last_action_at": "null"
+    },
+    {
+      "sdr_name": "ZtestBookeur",
+      "mission_name": "UPIKA",
+      "scheduled_blocks": "4",
+      "scheduled_days": "4",
+      "scheduled_hours": "32.00",
+      "actions": "0",
+      "calls": "0",
+      "meetings": "0",
+      "last_action_at": "null"
+    },
+    {
+      "sdr_name": "Amélie",
+      "mission_name": "ZENIOO",
+      "scheduled_blocks": "3",
+      "scheduled_days": "3",
+      "scheduled_hours": "24.00",
+      "actions": "0",
+      "calls": "0",
+      "meetings": "0",
+      "last_action_at": "null"
+    },
+    {
+      "sdr_name": "Maxime",
+      "mission_name": "Marron & Associés",
+      "scheduled_blocks": "2",
+      "scheduled_days": "2",
+      "scheduled_hours": "16.00",
+      "actions": "0",
+      "calls": "0",
+      "meetings": "0",
+      "last_action_at": "null"
+    },
+    {
+      "sdr_name": "Kevin",
+      "mission_name": "Essaie",
+      "scheduled_blocks": "1",
+      "scheduled_days": "1",
+      "scheduled_hours": "14.98",
+      "actions": "0",
+      "calls": "0",
+      "meetings": "0",
+      "last_action_at": "null"
+    },
+    {
+      "sdr_name": "Anais",
+      "mission_name": "ERA GROUP",
+      "scheduled_blocks": "1",
+      "scheduled_days": "1",
+      "scheduled_hours": "8.00",
+      "actions": "0",
+      "calls": "0",
+      "meetings": "0",
+      "last_action_at": "null"
+    },
+    {
+      "sdr_name": "Mathieu",
+      "mission_name": "Solutions-IP",
+      "scheduled_blocks": "1",
+      "scheduled_days": "1",
+      "scheduled_hours": "8.00",
+      "actions": "0",
+      "calls": "0",
+      "meetings": "0",
+      "last_action_at": "null"
+    },
+    {
+      "sdr_name": "Maxime",
+      "mission_name": "MBWay",
+      "scheduled_blocks": "1",
+      "scheduled_days": "1",
+      "scheduled_hours": "8.00",
+      "actions": "0",
+      "calls": "0",
+      "meetings": "0",
+      "last_action_at": "null"
+    },
+    {
+      "sdr_name": "ZTest SDR",
+      "mission_name": "Wanted Design",
+      "scheduled_blocks": "1",
+      "scheduled_days": "1",
+      "scheduled_hours": "8.00",
+      "actions": "0",
+      "calls": "0",
+      "meetings": "0",
+      "last_action_at": "null"
+    },
+    {
+      "sdr_name": "Amélie",
+      "mission_name": "Pragma ",
+      "scheduled_blocks": "1",
+      "scheduled_days": "1",
+      "scheduled_hours": "8.00",
+      "actions": "0",
+      "calls": "0",
+      "meetings": "0",
+      "last_action_at": "null"
+    },
+    {
+      "sdr_name": "Mathieu",
+      "mission_name": "MS FORMATION",
+      "scheduled_blocks": "1",
+      "scheduled_days": "1",
+      "scheduled_hours": "8.00",
+      "actions": "0",
+      "calls": "0",
+      "meetings": "0",
+      "last_action_at": "null"
+    },
+    {
+      "sdr_name": "Amélie",
+      "mission_name": "Hotel Megastore",
+      "scheduled_blocks": "1",
+      "scheduled_days": "1",
+      "scheduled_hours": "8.00",
+      "actions": "0",
+      "calls": "0",
+      "meetings": "0",
+      "last_action_at": "null"
+    },
+    {
+      "sdr_name": "Amélie",
+      "mission_name": "Mission Team Link",
+      "scheduled_blocks": "1",
+      "scheduled_days": "1",
+      "scheduled_hours": "3.00",
+      "actions": "0",
+      "calls": "0",
+      "meetings": "0",
+      "last_action_at": "null"
+    }
+  ],
+  "high_calls_no_meetings": [
+    {
+      "sdr_name": "Anais",
+      "mission_name": "MS FORMATION",
+      "scheduled_hours": "48.00",
+      "action_days": "6",
+      "actions": "724",
+      "calls": "724",
+      "meetings": "0",
+      "actions_per_scheduled_hour": "15.08",
+      "last_action_at": "2026-05-05 10:49:19.512"
+    },
+    {
+      "sdr_name": "Julien",
+      "mission_name": "Mission Deltaplus Systems",
+      "scheduled_hours": "97.00",
+      "action_days": "8",
+      "actions": "589",
+      "calls": "575",
+      "meetings": "0",
+      "actions_per_scheduled_hour": "6.07",
+      "last_action_at": "2026-03-24 09:18:32.477"
+    },
+    {
+      "sdr_name": "David",
+      "mission_name": "Mission Deltaplus Systems",
+      "scheduled_hours": "48.00",
+      "action_days": "9",
+      "actions": "526",
+      "calls": "526",
+      "meetings": "0",
+      "actions_per_scheduled_hour": "10.96",
+      "last_action_at": "2026-04-07 14:31:47.767"
+    },
+    {
+      "sdr_name": "Sonia",
+      "mission_name": "UPIKA",
+      "scheduled_hours": "56.00",
+      "action_days": "7",
+      "actions": "474",
+      "calls": "474",
+      "meetings": "0",
+      "actions_per_scheduled_hour": "8.46",
+      "last_action_at": "2026-04-17 15:59:06.177"
+    },
+    {
+      "sdr_name": "Rayan",
+      "mission_name": "UPIKA",
+      "scheduled_hours": "40.00",
+      "action_days": "10",
+      "actions": "425",
+      "calls": "425",
+      "meetings": "0",
+      "actions_per_scheduled_hour": "10.63",
+      "last_action_at": "2026-04-10 14:50:18.026"
+    },
+    {
+      "sdr_name": "Kevin",
+      "mission_name": "UPIKA",
+      "scheduled_hours": "78.00",
+      "action_days": "8",
+      "actions": "299",
+      "calls": "299",
+      "meetings": "0",
+      "actions_per_scheduled_hour": "3.83",
+      "last_action_at": "2026-05-07 09:35:00.996"
+    },
+    {
+      "sdr_name": "Amélie",
+      "mission_name": "Marron & Associés",
+      "scheduled_hours": "24.00",
+      "action_days": "5",
+      "actions": "267",
+      "calls": "267",
+      "meetings": "0",
+      "actions_per_scheduled_hour": "11.13",
+      "last_action_at": "2026-05-07 12:03:21.155"
+    },
+    {
+      "sdr_name": "Sonia",
+      "mission_name": "Wanted Design",
+      "scheduled_hours": "50.00",
+      "action_days": "4",
+      "actions": "264",
+      "calls": "264",
+      "meetings": "0",
+      "actions_per_scheduled_hour": "5.28",
+      "last_action_at": "2026-03-12 16:30:54.125"
+    },
+    {
+      "sdr_name": "David",
+      "mission_name": "Solutions-IP",
+      "scheduled_hours": "48.00",
+      "action_days": "4",
+      "actions": "251",
+      "calls": "248",
+      "meetings": "0",
+      "actions_per_scheduled_hour": "5.23",
+      "last_action_at": "2026-03-17 16:29:21.486"
+    },
+    {
+      "sdr_name": "Anais",
+      "mission_name": "UPIKA",
+      "scheduled_hours": "51.00",
+      "action_days": "4",
+      "actions": "224",
+      "calls": "223",
+      "meetings": "0",
+      "actions_per_scheduled_hour": "4.39",
+      "last_action_at": "2026-04-03 14:47:38.919"
+    },
+    {
+      "sdr_name": "Lea",
+      "mission_name": "MBWay",
+      "scheduled_hours": "24.00",
+      "action_days": "2",
+      "actions": "160",
+      "calls": "160",
+      "meetings": "0",
+      "actions_per_scheduled_hour": "6.67",
+      "last_action_at": "2026-05-15 13:05:50.074"
+    },
+    {
+      "sdr_name": "Rayan",
+      "mission_name": "Tonic Radio",
+      "scheduled_hours": "48.00",
+      "action_days": "4",
+      "actions": "141",
+      "calls": "139",
+      "meetings": "0",
+      "actions_per_scheduled_hour": "2.94",
+      "last_action_at": "2026-04-30 14:23:35.936"
+    },
+    {
+      "sdr_name": "Lea",
+      "mission_name": "Mission Deltaplus Systems",
+      "scheduled_hours": "88.00",
+      "action_days": "2",
+      "actions": "108",
+      "calls": "108",
+      "meetings": "0",
+      "actions_per_scheduled_hour": "1.23",
+      "last_action_at": "2026-03-12 16:16:41.479"
+    },
+    {
+      "sdr_name": "Mathieu",
+      "mission_name": "Marron & Associés",
+      "scheduled_hours": "64.00",
+      "action_days": "6",
+      "actions": "105",
+      "calls": "105",
+      "meetings": "0",
+      "actions_per_scheduled_hour": "1.64",
+      "last_action_at": "2026-04-14 17:31:22.979"
+    },
+    {
+      "sdr_name": "Mathieu",
+      "mission_name": "Welcome Drinks",
+      "scheduled_hours": "16.00",
+      "action_days": "2",
+      "actions": "102",
+      "calls": "102",
+      "meetings": "0",
+      "actions_per_scheduled_hour": "6.38",
+      "last_action_at": "2026-04-27 14:48:14.297"
+    },
+    {
+      "sdr_name": "Morgane",
+      "mission_name": "Elacin",
+      "scheduled_hours": "176.00",
+      "action_days": "5",
+      "actions": "104",
+      "calls": "101",
+      "meetings": "0",
+      "actions_per_scheduled_hour": "0.59",
+      "last_action_at": "2026-03-23 16:21:35.731"
+    },
+    {
+      "sdr_name": "Julien",
+      "mission_name": "MS FORMATION",
+      "scheduled_hours": "40.00",
+      "action_days": "2",
+      "actions": "100",
+      "calls": "100",
+      "meetings": "0",
+      "actions_per_scheduled_hour": "2.50",
+      "last_action_at": "2026-05-19 15:18:15.45"
+    },
+    {
+      "sdr_name": "Kevin",
+      "mission_name": "Mission Team Link",
+      "scheduled_hours": "32.00",
+      "action_days": "3",
+      "actions": "94",
+      "calls": "93",
+      "meetings": "0",
+      "actions_per_scheduled_hour": "2.94",
+      "last_action_at": "2026-03-18 08:38:43.371"
+    },
+    {
+      "sdr_name": "Lea",
+      "mission_name": "Elacin",
+      "scheduled_hours": "17.00",
+      "action_days": "3",
+      "actions": "91",
+      "calls": "91",
+      "meetings": "0",
+      "actions_per_scheduled_hour": "5.35",
+      "last_action_at": "2026-03-19 16:19:56.728"
+    },
+    {
+      "sdr_name": "Lea",
+      "mission_name": "MS FORMATION",
+      "scheduled_hours": "8.00",
+      "action_days": "1",
+      "actions": "90",
+      "calls": "90",
+      "meetings": "0",
+      "actions_per_scheduled_hour": "11.25",
+      "last_action_at": "2026-05-12 16:00:52.139"
+    }
+  ],
+  "worked_without_planning": [
+    {
+      "sdr_name": "Jean-Francois",
+      "mission_name": "Elacin",
+      "scheduled_hours": "0",
+      "action_days": "8",
+      "actions": "580",
+      "calls": "580",
+      "meetings": "4",
+      "last_action_at": "2026-04-07 08:30:33.098"
+    },
+    {
+      "sdr_name": "Jean-Francois",
+      "mission_name": "Arthurimmo.com",
+      "scheduled_hours": "0",
+      "action_days": "2",
+      "actions": "427",
+      "calls": "427",
+      "meetings": "5",
+      "last_action_at": "2026-04-16 09:22:57.421"
+    },
+    {
+      "sdr_name": "Jean-Francois",
+      "mission_name": "UPIKA",
+      "scheduled_hours": "0",
+      "action_days": "6",
+      "actions": "291",
+      "calls": "291",
+      "meetings": "2",
+      "last_action_at": "2026-03-26 09:50:40.041"
+    },
+    {
+      "sdr_name": "Sophie",
+      "mission_name": "Mission Team Link",
+      "scheduled_hours": "0",
+      "action_days": "6",
+      "actions": "267",
+      "calls": "267",
+      "meetings": "0",
+      "last_action_at": "2026-03-10 00:00:00"
+    },
+    {
+      "sdr_name": "Jean-Francois",
+      "mission_name": "Wanted Design",
+      "scheduled_hours": "0",
+      "action_days": "6",
+      "actions": "251",
+      "calls": "251",
+      "meetings": "1",
+      "last_action_at": "2026-03-17 16:32:44.786"
+    },
+    {
+      "sdr_name": "Jean-Francois",
+      "mission_name": "ERA GROUP",
+      "scheduled_hours": "0",
+      "action_days": "5",
+      "actions": "177",
+      "calls": "177",
+      "meetings": "7",
+      "last_action_at": "2026-04-21 08:31:04.429"
+    },
+    {
+      "sdr_name": "Jean-Francois",
+      "mission_name": "Mission Deltaplus Systems",
+      "scheduled_hours": "0",
+      "action_days": "7",
+      "actions": "163",
+      "calls": "163",
+      "meetings": "3",
+      "last_action_at": "2026-05-07 08:16:48.631"
+    },
+    {
+      "sdr_name": "Sophie",
+      "mission_name": "Wanted Design",
+      "scheduled_hours": "0",
+      "action_days": "2",
+      "actions": "159",
+      "calls": "159",
+      "meetings": "0",
+      "last_action_at": "2026-03-06 00:00:00"
+    },
+    {
+      "sdr_name": "Jean-Francois",
+      "mission_name": "Essaie",
+      "scheduled_hours": "0",
+      "action_days": "2",
+      "actions": "91",
+      "calls": "91",
+      "meetings": "0",
+      "last_action_at": "2026-03-06 00:00:00"
+    },
+    {
+      "sdr_name": "Anais",
+      "mission_name": "Mission Deltaplus Systems",
+      "scheduled_hours": "0",
+      "action_days": "3",
+      "actions": "63",
+      "calls": "63",
+      "meetings": "0",
+      "last_action_at": "2026-04-01 12:49:25.907"
+    },
+    {
+      "sdr_name": "Sophie",
+      "mission_name": "Cuisaline ",
+      "scheduled_hours": "0",
+      "action_days": "18",
+      "actions": "50",
+      "calls": "16",
+      "meetings": "50",
+      "last_action_at": "2026-05-22 17:01:54.625"
+    },
+    {
+      "sdr_name": "Roeum",
+      "mission_name": "ERA GROUP",
+      "scheduled_hours": "0",
+      "action_days": "1",
+      "actions": "37",
+      "calls": "37",
+      "meetings": "0",
+      "last_action_at": "2026-04-15 14:25:42.39"
+    },
+    {
+      "sdr_name": "Jean-Francois",
+      "mission_name": "Welcome Drinks",
+      "scheduled_hours": "0",
+      "action_days": "1",
+      "actions": "36",
+      "calls": "36",
+      "meetings": "0",
+      "last_action_at": "2026-04-17 10:05:26.1"
+    },
+    {
+      "sdr_name": "Jean-Francois",
+      "mission_name": "Smart Agents_Avril",
+      "scheduled_hours": "0",
+      "action_days": "3",
+      "actions": "29",
+      "calls": "29",
+      "meetings": "1",
+      "last_action_at": "2026-04-15 09:29:03.45"
+    },
+    {
+      "sdr_name": "Hichem",
+      "mission_name": "Tonic Radio",
+      "scheduled_hours": "0",
+      "action_days": "3",
+      "actions": "24",
+      "calls": "24",
+      "meetings": "4",
+      "last_action_at": "2026-04-27 14:39:32.15"
+    }
+  ],
+  "weekly": [
+    {
+      "week_start": "2026-02-23",
+      "actions": 328,
+      "calls": 328,
+      "meetings": 2,
+      "callbacks": 0,
+      "bad_contact": 3,
+      "active_sdrs_mission_sum": 5
+    },
+    {
+      "week_start": "2026-03-02",
+      "actions": 2158,
+      "calls": 2142,
+      "meetings": 4,
+      "callbacks": 0,
+      "bad_contact": 26,
+      "active_sdrs_mission_sum": 12
+    },
+    {
+      "week_start": "2026-03-09",
+      "actions": 1743,
+      "calls": 1708,
+      "meetings": 4,
+      "callbacks": 0,
+      "bad_contact": 7,
+      "active_sdrs_mission_sum": 22
+    },
+    {
+      "week_start": "2026-03-16",
+      "actions": 2033,
+      "calls": 2016,
+      "meetings": 9,
+      "callbacks": 0,
+      "bad_contact": 18,
+      "active_sdrs_mission_sum": 33
+    },
+    {
+      "week_start": "2026-03-23",
+      "actions": 2866,
+      "calls": 2866,
+      "meetings": 54,
+      "callbacks": 0,
+      "bad_contact": 207,
+      "active_sdrs_mission_sum": 28
+    },
+    {
+      "week_start": "2026-03-30",
+      "actions": 2174,
+      "calls": 2174,
+      "meetings": 14,
+      "callbacks": 28,
+      "bad_contact": 95,
+      "active_sdrs_mission_sum": 30
+    },
+    {
+      "week_start": "2026-04-06",
+      "actions": 2005,
+      "calls": 2005,
+      "meetings": 18,
+      "callbacks": 0,
+      "bad_contact": 77,
+      "active_sdrs_mission_sum": 29
+    },
+    {
+      "week_start": "2026-04-13",
+      "actions": 2185,
+      "calls": 2174,
+      "meetings": 23,
+      "callbacks": 0,
+      "bad_contact": 108,
+      "active_sdrs_mission_sum": 35
+    },
+    {
+      "week_start": "2026-04-20",
+      "actions": 2734,
+      "calls": 2729,
+      "meetings": 20,
+      "callbacks": 0,
+      "bad_contact": 194,
+      "active_sdrs_mission_sum": 26
+    },
+    {
+      "week_start": "2026-04-27",
+      "actions": 2581,
+      "calls": 2572,
+      "meetings": 25,
+      "callbacks": 0,
+      "bad_contact": 128,
+      "active_sdrs_mission_sum": 24
+    },
+    {
+      "week_start": "2026-05-04",
+      "actions": 1985,
+      "calls": 1981,
+      "meetings": 11,
+      "callbacks": 0,
+      "bad_contact": 94,
+      "active_sdrs_mission_sum": 22
+    },
+    {
+      "week_start": "2026-05-11",
+      "actions": 1415,
+      "calls": 1409,
+      "meetings": 12,
+      "callbacks": 0,
+      "bad_contact": 43,
+      "active_sdrs_mission_sum": 19
+    },
+    {
+      "week_start": "2026-05-18",
+      "actions": 1040,
+      "calls": 1031,
+      "meetings": 17,
+      "callbacks": 0,
+      "bad_contact": 59,
+      "active_sdrs_mission_sum": 17
+    },
+    {
+      "week_start": "2026-05-25",
+      "actions": 331,
+      "calls": 331,
+      "meetings": 0,
+      "callbacks": 0,
+      "bad_contact": 7,
+      "active_sdrs_mission_sum": 5
+    }
+  ],
+  "result_totals": [
+    {
+      "result": "NO_RESPONSE",
+      "count": 92,
+      "count_result": 18545
+    },
+    {
+      "result": "REFUS",
+      "count": 90,
+      "count_result": 2409
+    },
+    {
+      "result": "RAPPEL",
+      "count": 84,
+      "count_result": 1529
+    },
+    {
+      "result": "FAUX_NUMERO",
+      "count": 55,
+      "count_result": 964
+    },
+    {
+      "result": "HORS_CIBLE",
+      "count": 54,
+      "count_result": 726
+    },
+    {
+      "result": "MAIL_UNIQUEMENT",
+      "count": 59,
+      "count_result": 532
+    },
+    {
+      "result": "MEETING_BOOKED",
+      "count": 54,
+      "count_result": 213
+    },
+    {
+      "result": "BARRAGE_SECRETAIRE",
+      "count": 36,
+      "count_result": 155
+    },
+    {
+      "result": "GERE_PAR_SIEGE",
+      "count": 35,
+      "count_result": 150
+    },
+    {
+      "result": "MAUVAIS_INTERLOCUTEUR",
+      "count": 21,
+      "count_result": 96
+    },
+    {
+      "result": "DISQUALIFIED",
+      "count": 13,
+      "count_result": 64
+    },
+    {
+      "result": "REPLIED",
+      "count": 7,
+      "count_result": 62
+    },
+    {
+      "result": "RELANCE",
+      "count": 20,
+      "count_result": 45
+    },
+    {
+      "result": "CALLBACK_REQUESTED",
+      "count": 8,
+      "count_result": 28
+    },
+    {
+      "result": "PROJET_A_SUIVRE",
+      "count": 13,
+      "count_result": 25
+    },
+    {
+      "result": "NOT_INTERESTED",
+      "count": 2,
+      "count_result": 13
+    },
+    {
+      "result": "ENVOIE_MAIL",
+      "count": 2,
+      "count_result": 12
+    },
+    {
+      "result": "BAD_CONTACT",
+      "count": 1,
+      "count_result": 4
+    },
+    {
+      "result": "INTERESTED",
+      "count": 2,
+      "count_result": 3
+    },
+    {
+      "result": "NUMERO_KO",
+      "count": 1,
+      "count_result": 2
+    },
+    {
+      "result": "MEETING_CANCELLED",
+      "count": 1,
+      "count_result": 1
+    }
+  ],
+  "q7_totals": {
+    "calls": 25466,
+    "calls_without_duration": 25385,
+    "calls_under_20s": 4,
+    "calls_20_59s": 36,
+    "calls_60s_plus": 41,
+    "weak_or_missing_notes": 4564,
+    "enriched_calls": 3449,
+    "enrichment_errors": 10780,
+    "calls_with_recording": 3097,
+    "calls_with_summary": 2531,
+    "calls_with_transcript": 2528
+  },
+  "worst_call_quality": [
+    {
+      "mission_name": "Elacin",
+      "sdr_name": "Jean-Francois",
+      "calls": "580",
+      "calls_without_duration": "579",
+      "calls_under_20s": "0",
+      "calls_20_59s": "1",
+      "calls_60s_plus": "0",
+      "avg_duration_seconds": "30.0",
+      "weak_or_missing_notes": "487",
+      "enriched_calls": "0",
+      "enrichment_errors": "2",
+      "calls_with_recording": "0",
+      "calls_with_summary": "0",
+      "calls_with_transcript": "0"
+    },
+    {
+      "mission_name": "Mission Deltaplus Systems",
+      "sdr_name": "Julien",
+      "calls": "575",
+      "calls_without_duration": "575",
+      "calls_under_20s": "0",
+      "calls_20_59s": "0",
+      "calls_60s_plus": "0",
+      "avg_duration_seconds": "null",
+      "weak_or_missing_notes": "364",
+      "enriched_calls": "0",
+      "enrichment_errors": "0",
+      "calls_with_recording": "0",
+      "calls_with_summary": "0",
+      "calls_with_transcript": "0"
+    },
+    {
+      "mission_name": "UPIKA",
+      "sdr_name": "Jean-Francois",
+      "calls": "291",
+      "calls_without_duration": "291",
+      "calls_under_20s": "0",
+      "calls_20_59s": "0",
+      "calls_60s_plus": "0",
+      "avg_duration_seconds": "null",
+      "weak_or_missing_notes": "268",
+      "enriched_calls": "0",
+      "enrichment_errors": "0",
+      "calls_with_recording": "0",
+      "calls_with_summary": "0",
+      "calls_with_transcript": "0"
+    },
+    {
+      "mission_name": "ERA GROUP",
+      "sdr_name": "Lea",
+      "calls": "1661",
+      "calls_without_duration": "1661",
+      "calls_under_20s": "0",
+      "calls_20_59s": "0",
+      "calls_60s_plus": "0",
+      "avg_duration_seconds": "null",
+      "weak_or_missing_notes": "264",
+      "enriched_calls": "232",
+      "enrichment_errors": "504",
+      "calls_with_recording": "207",
+      "calls_with_summary": "113",
+      "calls_with_transcript": "118"
+    },
+    {
+      "mission_name": "Mission Team Link",
+      "sdr_name": "Sophie",
+      "calls": "267",
+      "calls_without_duration": "267",
+      "calls_under_20s": "0",
+      "calls_20_59s": "0",
+      "calls_60s_plus": "0",
+      "avg_duration_seconds": "null",
+      "weak_or_missing_notes": "224",
+      "enriched_calls": "0",
+      "enrichment_errors": "0",
+      "calls_with_recording": "0",
+      "calls_with_summary": "0",
+      "calls_with_transcript": "0"
+    },
+    {
+      "mission_name": "Mission Team Link",
+      "sdr_name": "Sonia",
+      "calls": "1059",
+      "calls_without_duration": "1057",
+      "calls_under_20s": "0",
+      "calls_20_59s": "0",
+      "calls_60s_plus": "2",
+      "avg_duration_seconds": "2117.5",
+      "weak_or_missing_notes": "220",
+      "enriched_calls": "8",
+      "enrichment_errors": "266",
+      "calls_with_recording": "7",
+      "calls_with_summary": "6",
+      "calls_with_transcript": "6"
+    },
+    {
+      "mission_name": "Wanted Design",
+      "sdr_name": "Sonia",
+      "calls": "264",
+      "calls_without_duration": "264",
+      "calls_under_20s": "0",
+      "calls_20_59s": "0",
+      "calls_60s_plus": "0",
+      "avg_duration_seconds": "null",
+      "weak_or_missing_notes": "215",
+      "enriched_calls": "0",
+      "enrichment_errors": "0",
+      "calls_with_recording": "0",
+      "calls_with_summary": "0",
+      "calls_with_transcript": "0"
+    },
+    {
+      "mission_name": "Solutions-IP",
+      "sdr_name": "David",
+      "calls": "248",
+      "calls_without_duration": "248",
+      "calls_under_20s": "0",
+      "calls_20_59s": "0",
+      "calls_60s_plus": "0",
+      "avg_duration_seconds": "null",
+      "weak_or_missing_notes": "215",
+      "enriched_calls": "0",
+      "enrichment_errors": "0",
+      "calls_with_recording": "0",
+      "calls_with_summary": "0",
+      "calls_with_transcript": "0"
+    },
+    {
+      "mission_name": "ERA GROUP",
+      "sdr_name": "David",
+      "calls": "753",
+      "calls_without_duration": "753",
+      "calls_under_20s": "0",
+      "calls_20_59s": "0",
+      "calls_60s_plus": "0",
+      "avg_duration_seconds": "null",
+      "weak_or_missing_notes": "197",
+      "enriched_calls": "179",
+      "enrichment_errors": "363",
+      "calls_with_recording": "164",
+      "calls_with_summary": "133",
+      "calls_with_transcript": "111"
+    },
+    {
+      "mission_name": "ERA GROUP",
+      "sdr_name": "Jean-Francois",
+      "calls": "177",
+      "calls_without_duration": "170",
+      "calls_under_20s": "0",
+      "calls_20_59s": "7",
+      "calls_60s_plus": "0",
+      "avg_duration_seconds": "30.0",
+      "weak_or_missing_notes": "149",
+      "enriched_calls": "0",
+      "enrichment_errors": "7",
+      "calls_with_recording": "0",
+      "calls_with_summary": "0",
+      "calls_with_transcript": "0"
+    },
+    {
+      "mission_name": "MBWay",
+      "sdr_name": "Rayan",
+      "calls": "238",
+      "calls_without_duration": "238",
+      "calls_under_20s": "0",
+      "calls_20_59s": "0",
+      "calls_60s_plus": "0",
+      "avg_duration_seconds": "null",
+      "weak_or_missing_notes": "138",
+      "enriched_calls": "0",
+      "enrichment_errors": "0",
+      "calls_with_recording": "0",
+      "calls_with_summary": "0",
+      "calls_with_transcript": "0"
+    },
+    {
+      "mission_name": "Elacin",
+      "sdr_name": "Kevin",
+      "calls": "368",
+      "calls_without_duration": "368",
+      "calls_under_20s": "0",
+      "calls_20_59s": "0",
+      "calls_60s_plus": "0",
+      "avg_duration_seconds": "null",
+      "weak_or_missing_notes": "134",
+      "enriched_calls": "15",
+      "enrichment_errors": "106",
+      "calls_with_recording": "14",
+      "calls_with_summary": "12",
+      "calls_with_transcript": "13"
+    },
+    {
+      "mission_name": "Wanted Design",
+      "sdr_name": "Sophie",
+      "calls": "159",
+      "calls_without_duration": "159",
+      "calls_under_20s": "0",
+      "calls_20_59s": "0",
+      "calls_60s_plus": "0",
+      "avg_duration_seconds": "null",
+      "weak_or_missing_notes": "128",
+      "enriched_calls": "0",
+      "enrichment_errors": "0",
+      "calls_with_recording": "0",
+      "calls_with_summary": "0",
+      "calls_with_transcript": "0"
+    },
+    {
+      "mission_name": "UPIKA",
+      "sdr_name": "Anais",
+      "calls": "223",
+      "calls_without_duration": "223",
+      "calls_under_20s": "0",
+      "calls_20_59s": "0",
+      "calls_60s_plus": "0",
+      "avg_duration_seconds": "null",
+      "weak_or_missing_notes": "122",
+      "enriched_calls": "0",
+      "enrichment_errors": "16",
+      "calls_with_recording": "0",
+      "calls_with_summary": "0",
+      "calls_with_transcript": "0"
+    },
+    {
+      "mission_name": "Arthurimmo.com",
+      "sdr_name": "Jean-Francois",
+      "calls": "427",
+      "calls_without_duration": "427",
+      "calls_under_20s": "0",
+      "calls_20_59s": "0",
+      "calls_60s_plus": "0",
+      "avg_duration_seconds": "null",
+      "weak_or_missing_notes": "116",
+      "enriched_calls": "0",
+      "enrichment_errors": "3",
+      "calls_with_recording": "0",
+      "calls_with_summary": "0",
+      "calls_with_transcript": "0"
+    }
+  ],
+  "q9_totals": {
+    "booked": 213,
+    "cancelled": 1,
+    "confirmed": 208,
+    "pending": 0,
+    "cancelled_after_booking": 5,
+    "booked_without_meeting_date": 14,
+    "meetings_with_rdv_fiche": 143,
+    "client_feedback_count": 55,
+    "positive_feedback": 13,
+    "negative_feedback": 13
+  },
+  "top_meeting_rows": [
+    {
+      "mission_name": "Cuisaline ",
+      "sdr_name": "Sophie",
+      "meetings_booked": "50",
+      "meetings_cancelled": "0",
+      "confirmed_meetings": "50",
+      "pending_meetings": "0",
+      "cancelled_after_booking": "0",
+      "booked_without_meeting_date": "0",
+      "meetings_with_rdv_fiche": "34",
+      "client_feedback_count": "7",
+      "positive_feedback": "0",
+      "negative_feedback": "5"
+    },
+    {
+      "mission_name": "Cuisaline ",
+      "sdr_name": "Hichem",
+      "meetings_booked": "15",
+      "meetings_cancelled": "0",
+      "confirmed_meetings": "15",
+      "pending_meetings": "0",
+      "cancelled_after_booking": "0",
+      "booked_without_meeting_date": "0",
+      "meetings_with_rdv_fiche": "4",
+      "client_feedback_count": "7",
+      "positive_feedback": "4",
+      "negative_feedback": "1"
+    },
+    {
+      "mission_name": "Wanted Design",
+      "sdr_name": "Hichem",
+      "meetings_booked": "10",
+      "meetings_cancelled": "0",
+      "confirmed_meetings": "9",
+      "pending_meetings": "0",
+      "cancelled_after_booking": "1",
+      "booked_without_meeting_date": "0",
+      "meetings_with_rdv_fiche": "1",
+      "client_feedback_count": "0",
+      "positive_feedback": "0",
+      "negative_feedback": "0"
+    },
+    {
+      "mission_name": "Arthurimmo.com",
+      "sdr_name": "Anais",
+      "meetings_booked": "9",
+      "meetings_cancelled": "0",
+      "confirmed_meetings": "9",
+      "pending_meetings": "0",
+      "cancelled_after_booking": "0",
+      "booked_without_meeting_date": "0",
+      "meetings_with_rdv_fiche": "9",
+      "client_feedback_count": "0",
+      "positive_feedback": "0",
+      "negative_feedback": "0"
+    },
+    {
+      "mission_name": "Cuisaline ",
+      "sdr_name": "Morgane",
+      "meetings_booked": "8",
+      "meetings_cancelled": "0",
+      "confirmed_meetings": "8",
+      "pending_meetings": "0",
+      "cancelled_after_booking": "0",
+      "booked_without_meeting_date": "0",
+      "meetings_with_rdv_fiche": "8",
+      "client_feedback_count": "2",
+      "positive_feedback": "1",
+      "negative_feedback": "1"
+    },
+    {
+      "mission_name": "ERA GROUP",
+      "sdr_name": "Jean-Francois",
+      "meetings_booked": "7",
+      "meetings_cancelled": "0",
+      "confirmed_meetings": "7",
+      "pending_meetings": "0",
+      "cancelled_after_booking": "0",
+      "booked_without_meeting_date": "0",
+      "meetings_with_rdv_fiche": "0",
+      "client_feedback_count": "6",
+      "positive_feedback": "0",
+      "negative_feedback": "1"
+    },
+    {
+      "mission_name": "MBWay",
+      "sdr_name": "Amélie",
+      "meetings_booked": "6",
+      "meetings_cancelled": "0",
+      "confirmed_meetings": "6",
+      "pending_meetings": "0",
+      "cancelled_after_booking": "0",
+      "booked_without_meeting_date": "4",
+      "meetings_with_rdv_fiche": "2",
+      "client_feedback_count": "0",
+      "positive_feedback": "0",
+      "negative_feedback": "0"
+    },
+    {
+      "mission_name": "JEAMS",
+      "sdr_name": "Sophie",
+      "meetings_booked": "6",
+      "meetings_cancelled": "0",
+      "confirmed_meetings": "6",
+      "pending_meetings": "0",
+      "cancelled_after_booking": "0",
+      "booked_without_meeting_date": "0",
+      "meetings_with_rdv_fiche": "6",
+      "client_feedback_count": "0",
+      "positive_feedback": "0",
+      "negative_feedback": "0"
+    },
+    {
+      "mission_name": "Tonic Radio",
+      "sdr_name": "Maxime",
+      "meetings_booked": "6",
+      "meetings_cancelled": "0",
+      "confirmed_meetings": "6",
+      "pending_meetings": "0",
+      "cancelled_after_booking": "0",
+      "booked_without_meeting_date": "0",
+      "meetings_with_rdv_fiche": "5",
+      "client_feedback_count": "1",
+      "positive_feedback": "0",
+      "negative_feedback": "1"
+    },
+    {
+      "mission_name": "Arthurimmo.com",
+      "sdr_name": "Jean-Francois",
+      "meetings_booked": "5",
+      "meetings_cancelled": "0",
+      "confirmed_meetings": "5",
+      "pending_meetings": "0",
+      "cancelled_after_booking": "0",
+      "booked_without_meeting_date": "2",
+      "meetings_with_rdv_fiche": "0",
+      "client_feedback_count": "0",
+      "positive_feedback": "0",
+      "negative_feedback": "0"
+    },
+    {
+      "mission_name": "Elacin",
+      "sdr_name": "Kevin",
+      "meetings_booked": "5",
+      "meetings_cancelled": "0",
+      "confirmed_meetings": "5",
+      "pending_meetings": "0",
+      "cancelled_after_booking": "0",
+      "booked_without_meeting_date": "0",
+      "meetings_with_rdv_fiche": "5",
+      "client_feedback_count": "4",
+      "positive_feedback": "1",
+      "negative_feedback": "0"
+    },
+    {
+      "mission_name": "Arthurimmo.com",
+      "sdr_name": "Lea",
+      "meetings_booked": "4",
+      "meetings_cancelled": "0",
+      "confirmed_meetings": "4",
+      "pending_meetings": "0",
+      "cancelled_after_booking": "0",
+      "booked_without_meeting_date": "3",
+      "meetings_with_rdv_fiche": "1",
+      "client_feedback_count": "0",
+      "positive_feedback": "0",
+      "negative_feedback": "0"
+    },
+    {
+      "mission_name": "Elacin",
+      "sdr_name": "Jean-Francois",
+      "meetings_booked": "4",
+      "meetings_cancelled": "0",
+      "confirmed_meetings": "4",
+      "pending_meetings": "0",
+      "cancelled_after_booking": "0",
+      "booked_without_meeting_date": "0",
+      "meetings_with_rdv_fiche": "1",
+      "client_feedback_count": "3",
+      "positive_feedback": "0",
+      "negative_feedback": "0"
+    },
+    {
+      "mission_name": "Elacin",
+      "sdr_name": "Julien",
+      "meetings_booked": "4",
+      "meetings_cancelled": "0",
+      "confirmed_meetings": "4",
+      "pending_meetings": "0",
+      "cancelled_after_booking": "0",
+      "booked_without_meeting_date": "0",
+      "meetings_with_rdv_fiche": "4",
+      "client_feedback_count": "2",
+      "positive_feedback": "1",
+      "negative_feedback": "0"
+    },
+    {
+      "mission_name": "Tonic Radio",
+      "sdr_name": "Hichem",
+      "meetings_booked": "4",
+      "meetings_cancelled": "0",
+      "confirmed_meetings": "4",
+      "pending_meetings": "0",
+      "cancelled_after_booking": "0",
+      "booked_without_meeting_date": "0",
+      "meetings_with_rdv_fiche": "4",
+      "client_feedback_count": "0",
+      "positive_feedback": "0",
+      "negative_feedback": "0"
+    }
+  ],
+  "q10_sample_results": [
+    {
+      "result": "NO_RESPONSE",
+      "count": 407
+    },
+    {
+      "result": "REFUS",
+      "count": 29
+    },
+    {
+      "result": "RAPPEL",
+      "count": 24
+    },
+    {
+      "result": "MAIL_UNIQUEMENT",
+      "count": 15
+    },
+    {
+      "result": "FAUX_NUMERO",
+      "count": 10
+    },
+    {
+      "result": "HORS_CIBLE",
+      "count": 6
+    },
+    {
+      "result": "RELANCE",
+      "count": 5
+    },
+    {
+      "result": "BARRAGE_SECRETAIRE",
+      "count": 3
+    },
+    {
+      "result": "GERE_PAR_SIEGE",
+      "count": 1
+    }
+  ],
+  "q10_sample_sdrs": [
+    {
+      "sdr": "Lea",
+      "count": 136
+    },
+    {
+      "sdr": "David",
+      "count": 136
+    },
+    {
+      "sdr": "Julien",
+      "count": 127
+    },
+    {
+      "sdr": "Morgane",
+      "count": 51
+    },
+    {
+      "sdr": "Kevin",
+      "count": 37
+    },
+    {
+      "sdr": "Alain",
+      "count": 12
+    },
+    {
+      "sdr": "Hichem",
+      "count": 1
+    }
+  ]
+}

@@ -137,6 +137,12 @@ async function findBestMatchForAction(input: {
 }): Promise<{ match: MatchResult | null; attempts: SearchAttempt[] }> {
   const windows: Array<{ label: string; start: Date; end: Date }> = [];
   const attempts: SearchAttempt[] = [];
+  const createdNarrow = relativeWindow(input.createdAt, 2, 0.5);
+  windows.push({ label: "Creation +/-2h", start: createdNarrow.start, end: createdNarrow.end });
+  const createdDayPrimary = calendarDayWindow(input.createdAt);
+  windows.push({ label: "Jour creation action", start: createdDayPrimary.start, end: createdDayPrimary.end });
+  const createdRelPrimary = relativeWindow(input.createdAt, 24, 24);
+  windows.push({ label: "Creation +/-24h", start: createdRelPrimary.start, end: createdRelPrimary.end });
   if (input.callbackDate) {
     const day = calendarDayWindow(input.callbackDate);
     windows.push({ label: "Jour RDV", start: day.start, end: day.end });
@@ -155,6 +161,7 @@ async function findBestMatchForAction(input: {
       sdrId: input.sdrId,
       windowStart: w.start,
       windowEnd: w.end,
+      targetAt: input.createdAt,
     });
     if (record && (record.recordingUrl?.trim() || record.transcription?.trim() || record.summary?.trim())) {
       attempts.push({ label: w.label, found: true });

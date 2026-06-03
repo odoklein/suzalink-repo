@@ -198,7 +198,14 @@ export async function enrichActionFromCallProvider(
 
   let record;
   try {
-    record = await callProvider.fetchMatchingCallRecord({ phones, alloNumbers, sdrId: action.sdrId, windowStart, windowEnd });
+    record = await callProvider.fetchMatchingCallRecord({
+      phones,
+      alloNumbers,
+      sdrId: action.sdrId,
+      windowStart,
+      windowEnd,
+      targetAt: action.createdAt,
+    });
   } catch (err) {
     const msg = err instanceof Error ? err.message.slice(0, 200) : 'PROVIDER_ERROR';
     console.error(`[call-enrichment] outcome=PROVIDER_ERROR actionId=${actionId} message=${msg}`, err);

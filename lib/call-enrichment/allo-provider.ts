@@ -149,6 +149,40 @@ function contentScore(call: AlloCall): number {
   return s;
 }
 
+function hasCallPayload(call: AlloCall): boolean {
+  return !!(
+    call.summary?.trim() ||
+    call.transcript?.length ||
+    call.transcriptPlain?.trim() ||
+    call.recording_url?.trim()
+  );
+}
+
+function callDistanceMs(call: AlloCall, targetAt?: Date): number {
+  if (!targetAt) return 0;
+  const ts = callTimestamp(call);
+  if (!ts || Number.isNaN(ts.getTime())) return Number.MAX_SAFE_INTEGER;
+  return Math.abs(ts.getTime() - targetAt.getTime());
+}
+
+function compareCallsForAction(targetAt?: Date) {
+  return (a: AlloCall, b: AlloCall): number => {
+    if (targetAt) {
+      const da = callDistanceMs(a, targetAt);
+      const db = callDistanceMs(b, targetAt);
+      if (da !== db) return da - db;
+    }
+
+    const sa = contentScore(a);
+    const sb = contentScore(b);
+    if (sb !== sa) return sb - sa;
+
+    const ta = callTimestamp(a)?.getTime() ?? 0;
+    const tb = callTimestamp(b)?.getTime() ?? 0;
+    return tb - ta;
+  };
+}
+
 function alloCallToRecord(call: AlloCall): CallRecord {
   const transcription = call.transcript?.length
     ? formatTranscript(call.transcript)
@@ -309,6 +343,7 @@ export class AlloProvider implements CallProvider {
     contactPhoneVariants: string[],
     windowStart: Date,
     windowEnd: Date,
+    targetAt?: Date,
   ): Promise<{ call: AlloCall | null; report: AlloLineSearchReport }> {
     const report: AlloLineSearchReport = {
       alloNumber,
@@ -321,6 +356,7 @@ export class AlloProvider implements CallProvider {
       stopReason: "init",
       apiNonOk: 0,
     };
+    const candidates: AlloCall[] = [];
 
     for (let page = 0; page < MAX_PAGES; page++) {
       const { calls, totalPages, httpOk, httpStatus } = await this.fetchPageForLine(alloNumber, page);
@@ -364,12 +400,13 @@ export class AlloProvider implements CallProvider {
         if (inWindow && matchesPhone) {
           report.bothMatch += 1;
           report.stopReason = "matched";
+          candidates.push(call);
           console.log(
             `[call-enrichment][allo] ✓ match callId=${call.id} from=${call.from} to=${call.to} ` +
               `start=${call.start_time ?? call.created_at} duration=${call.duration}s line=${alloNumber} ` +
               `hasSummary=${!!call.summary?.trim()} hasRecording=${!!call.recording_url?.trim()}`,
           );
-          return { call, report };
+          continue;
         }
 
         if (matchesPhone && !inWindow) {
@@ -406,11 +443,24 @@ export class AlloProvider implements CallProvider {
       report.stopReason = "max_pages_or_break";
     }
 
+    if (candidates.length > 0) {
+      const usefulCandidates = candidates.filter(hasCallPayload);
+      const choicePool = usefulCandidates.length > 0 ? usefulCandidates : candidates;
+      choicePool.sort(compareCallsForAction(targetAt));
+      const best = choicePool[0]!;
+      const distance = targetAt ? callDistanceMs(best, targetAt) : null;
+      console.log(
+        `[call-enrichment][allo] line-best line=${alloNumber} callId=${best.id} ` +
+          `distanceMs=${distance ?? "n/a"} candidates=${candidates.length} useful=${usefulCandidates.length}`,
+      );
+      return { call: best, report };
+    }
+
     return { call: null, report };
   }
 
   async fetchMatchingCallRecord(input: CallProviderInput): Promise<CallRecord | null> {
-    const { phones, alloNumbers, windowStart, windowEnd } = input;
+    const { phones, alloNumbers, windowStart, windowEnd, targetAt } = input;
 
     // Build all phone variants once
     const contactVariants = phones.flatMap(phoneVariants);
@@ -420,7 +470,7 @@ export class AlloProvider implements CallProvider {
     // Serial line search: parallel requests caused mass HTTP 429 from WithAllo (one burst per line).
     const lineResults: Array<{ call: AlloCall | null; report: AlloLineSearchReport }> = [];
     for (let i = 0; i < alloNumbers.length; i++) {
-      lineResults.push(await this.searchForLine(alloNumbers[i]!, contactVariants, windowStart, windowEnd));
+      lineResults.push(await this.searchForLine(alloNumbers[i]!, contactVariants, windowStart, windowEnd, targetAt));
       if (i < alloNumbers.length - 1 && LINE_GAP_MS > 0) {
         await sleep(LINE_GAP_MS);
       }
@@ -453,20 +503,16 @@ export class AlloProvider implements CallProvider {
       return null;
     }
 
-    candidates.sort((a, b) => {
-      const sa = contentScore(a);
-      const sb = contentScore(b);
-      if (sb !== sa) return sb - sa;
-      const ta = callTimestamp(a)?.getTime() ?? 0;
-      const tb = callTimestamp(b)?.getTime() ?? 0;
-      return tb - ta;
-    });
+    const usefulCandidates = candidates.filter(hasCallPayload);
+    const choicePool = usefulCandidates.length > 0 ? usefulCandidates : candidates;
+    choicePool.sort(compareCallsForAction(targetAt));
 
-    const best = candidates[0]!;
+    const best = choicePool[0]!;
     if (candidates.length > 1) {
       console.log(
         `[call-enrichment][allo] chose best of ${candidates.length} line matches: callId=${best.id} ` +
-          `contentScore=${contentScore(best)} (prefer summary/transcript/recording, then duration, then newest)`,
+          `targetAt=${targetAt?.toISOString() ?? "n/a"} distanceMs=${targetAt ? callDistanceMs(best, targetAt) : "n/a"} ` +
+          `contentScore=${contentScore(best)} (prefer closest action time, then content, then newest)`,
       );
     }
 

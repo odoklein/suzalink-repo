@@ -12,6 +12,7 @@ export interface CallProviderInput {
   sdrId: string;
   windowStart: Date;
   windowEnd: Date;
+  targetAt?: Date;
 }
 
 export interface CallProvider {

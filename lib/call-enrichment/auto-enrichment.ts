@@ -169,11 +169,11 @@ export async function autoEnrichAction(actionId: string): Promise<AutoEnrichResu
     if (!dedupedPhones.length) return { found: false, ficheGenerated: false, error: "No valid phones" };
 
     const windows = [
+      relativeWindow(action.createdAt, 2, 0.5),
+      calendarDayWindow(action.createdAt),
       ...(action.callbackDate
         ? [calendarDayWindow(action.callbackDate), relativeWindow(action.callbackDate, 24, 24)]
         : []),
-      calendarDayWindow(action.createdAt),
-      relativeWindow(action.createdAt, 24, 24),
     ];
 
     let matchedRecord: { summary?: string; transcription?: string; recordingUrl?: string } | null = null;
@@ -184,6 +184,7 @@ export async function autoEnrichAction(actionId: string): Promise<AutoEnrichResu
         sdrId: action.sdrId,
         windowStart: w.start,
         windowEnd: w.end,
+        targetAt: action.createdAt,
       });
       if (rec && (rec.recordingUrl?.trim() || rec.transcription?.trim() || rec.summary?.trim())) {
         matchedRecord = rec;
