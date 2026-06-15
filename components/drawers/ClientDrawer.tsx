@@ -55,7 +55,9 @@ import {
     Inbox,
     User as UserIcon,
     CheckCircle2,
-    AlertCircle,
+    MessageSquare,
+    PhoneCall,
+    CalendarDays,
 } from "lucide-react";
 
 // ============================================================================
@@ -113,6 +115,62 @@ interface InterlocuteurLite {
     portalUser?: { id: string; email: string; name: string | null; isActive: boolean } | null;
 }
 
+interface ClientProductionInsights {
+    month: string;
+    plannedMonthDays: number | null;
+    plannedWeekDays: number | null;
+    executedDays: number;
+    totalActions: number;
+    totalCalls: number;
+    totalMeetings: number;
+}
+
+interface ClientEngagementInsights {
+    id: string;
+    dureeMois: number;
+    debut: string;
+    fin: string;
+    statut: string;
+    renouvellement?: string | null;
+    offreTarif: { nom: string };
+}
+
+interface ClientActionInsight {
+    id: string;
+    createdAt: string;
+    callbackDate?: string | null;
+    result: string;
+    channel: string;
+    note?: string | null;
+    duration?: number | null;
+    sdr: { id: string; name: string | null };
+    company?: { id: string; name: string } | null;
+    contact?: {
+        id: string;
+        firstName?: string | null;
+        lastName?: string | null;
+        title?: string | null;
+        company?: { id: string; name: string } | null;
+    } | null;
+    campaign: {
+        id: string;
+        name: string;
+        mission: { id: string; name: string };
+    };
+}
+
+interface ClientSdrFeedbackInsight {
+    id: string;
+    score: number;
+    review: string;
+    objections?: string | null;
+    missionComment?: string | null;
+    submittedAt: string;
+    sdr: { id: string; name: string | null; email: string };
+    mission?: { id: string; name: string } | null;
+    missions: Array<{ mission: { id: string; name: string } }>;
+}
+
 interface ClientDrawerProps {
     isOpen: boolean;
     onClose: () => void;
@@ -121,7 +179,7 @@ interface ClientDrawerProps {
     onDelete?: () => void;
 }
 
-type TabId = "apercu" | "missions" | "acces" | "interlocuteurs" | "activite";
+type TabId = "apercu" | "missions" | "acces" | "interlocuteurs" | "activite" | "avis-sdr";
 
 // ============================================================================
 // HELPERS
@@ -176,6 +234,27 @@ const ROLE_TONE: Record<string, { label: string; variant: "primary" | "success" 
     DEVELOPER: { label: "Dev", variant: "default" },
     BUSINESS_DEVELOPER: { label: "BizDev", variant: "default" },
 };
+
+const ACTION_LABELS: Record<string, string> = {
+    MEETING_BOOKED: "RDV pris",
+    CALLBACK_REQUESTED: "Rappel demandé",
+    RAPPEL: "Rappel",
+    RELANCE: "Relance",
+    INTERESTED: "Intéressé",
+    NO_RESPONSE: "Pas de réponse",
+    NOT_INTERESTED: "Pas intéressé",
+    DISQUALIFIED: "Disqualifié",
+    ENVOIE_MAIL: "Email envoyé",
+};
+
+function formatMonth(month?: string) {
+    if (!month) return "Mois en cours";
+    const [year, monthNumber] = month.split("-").map(Number);
+    return new Date(year, monthNumber - 1, 1).toLocaleDateString("fr-FR", {
+        month: "long",
+        year: "numeric",
+    });
+}
 
 // ============================================================================
 // SECTION CARD — reference image style (title + Edit Info + 2-col grid)
@@ -338,6 +417,10 @@ export function ClientDrawer({ isOpen, onClose, client, onUpdate, onDelete }: Cl
     const missions: MissionLite[] = (clientDetail?.missions ?? []) as MissionLite[];
     const usersList: ClientUserLite[] = (clientDetail?.users ?? []) as ClientUserLite[];
     const interlocuteurs: InterlocuteurLite[] = (clientDetail?.interlocuteurs ?? []) as InterlocuteurLite[];
+    const production = clientDetail?.insights?.production as ClientProductionInsights | undefined;
+    const engagement = clientDetail?.insights?.engagement as ClientEngagementInsights | null | undefined;
+    const recentActions = (clientDetail?.insights?.recentActions ?? []) as ClientActionInsight[];
+    const sdrFeedback = (clientDetail?.insights?.sdrFeedback ?? []) as ClientSdrFeedbackInsight[];
     const onboardingData = (clientDetail?.onboarding?.onboardingData ?? {}) as {
         defaultMailboxId?: string;
         icp?: string;
@@ -538,6 +621,56 @@ export function ClientDrawer({ isOpen, onClose, client, onUpdate, onDelete }: Cl
                                 ) : null
                             }
                         />
+                    </div>
+                </div>
+            </SectionCard>
+
+            <SectionCard
+                title={`Production & engagement · ${formatMonth(production?.month)}`}
+                icon={<CalendarDays className="w-3.5 h-3.5" />}
+            >
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                    <div className="rounded-xl border border-indigo-100 bg-indigo-50/60 p-4">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-500">
+                            Jours prévus / mois
+                        </p>
+                        <p className="mt-2 text-2xl font-bold text-slate-900">
+                            {production?.plannedMonthDays ?? "Non défini"}
+                        </p>
+                        <p className="mt-1 text-xs text-slate-500">Plan mensuel cumulé</p>
+                    </div>
+                    <div className="rounded-xl border border-violet-100 bg-violet-50/60 p-4">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-violet-500">
+                            Jours prévus / semaine
+                        </p>
+                        <p className="mt-2 text-2xl font-bold text-slate-900">
+                            {production?.plannedWeekDays ?? "Non défini"}
+                        </p>
+                        <p className="mt-1 text-xs text-slate-500">Fréquence des missions actives</p>
+                    </div>
+                    <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-4">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">
+                            Jours effectués
+                        </p>
+                        <p className="mt-2 text-2xl font-bold text-slate-900">
+                            {production?.executedDays ?? 0}
+                        </p>
+                        <p className="mt-1 text-xs text-slate-500">
+                            {production?.totalCalls ?? 0} appels · {production?.totalMeetings ?? 0} RDV
+                        </p>
+                    </div>
+                    <div className="rounded-xl border border-amber-100 bg-amber-50/60 p-4">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-amber-600">
+                            Engagement
+                        </p>
+                        <p className="mt-2 text-lg font-bold text-slate-900">
+                            {engagement ? `${engagement.dureeMois} mois` : "Sans engagement"}
+                        </p>
+                        <p className="mt-1 text-xs text-slate-500">
+                            {engagement
+                                ? `${engagement.offreTarif.nom} · fin ${formatDate(engagement.fin)}`
+                                : "Aucun engagement actif"}
+                        </p>
                     </div>
                 </div>
             </SectionCard>
@@ -911,7 +1044,7 @@ export function ClientDrawer({ isOpen, onClose, client, onUpdate, onDelete }: Cl
         slate: "bg-slate-400",
     };
 
-    const ActivityTab = (
+    const AdministrativeActivityTimeline = (
         <div className="space-y-4">
             <div>
                 <h3 className="text-base font-bold text-slate-900">Activité récente</h3>
@@ -957,12 +1090,205 @@ export function ClientDrawer({ isOpen, onClose, client, onUpdate, onDelete }: Cl
     // RENDER
     // ───────────────────────────────────────────────────────────────────────
 
+    const actionsByDay = recentActions.reduce<Record<string, ClientActionInsight[]>>((groups, action) => {
+        const day = new Date(action.createdAt).toLocaleDateString("fr-CA");
+        (groups[day] ||= []).push(action);
+        return groups;
+    }, {});
+
+    const ActivityTab = (
+        <div className="space-y-4">
+            <div>
+                <h3 className="text-base font-bold text-slate-900">Activité opérationnelle</h3>
+                <p className="text-sm text-slate-500 mt-0.5">
+                    Même lecture que le portail client, enrichie avec le SDR concerné.
+                </p>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3">
+                <StatPill icon={<PhoneCall className="w-4 h-4" />} value={production?.totalCalls ?? 0} label="Appels ce mois" tone="indigo" />
+                <StatPill icon={<CheckCircle2 className="w-4 h-4" />} value={production?.totalMeetings ?? 0} label="RDV ce mois" tone="emerald" />
+                <StatPill icon={<CalendarDays className="w-4 h-4" />} value={production?.executedDays ?? 0} label="Jours effectués" tone="amber" />
+            </div>
+
+            {recentActions.length === 0 ? (
+                <div className="space-y-4">
+                    <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 p-10 text-center">
+                        <Activity className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                        <p className="text-sm font-medium text-slate-700">Aucune activité opérationnelle</p>
+                    </div>
+                    {AdministrativeActivityTimeline}
+                </div>
+            ) : (
+                <div className="space-y-3">
+                    {Object.entries(actionsByDay).map(([day, actions]) => {
+                        const meetings = actions.filter((action) => action.result === "MEETING_BOOKED").length;
+                        return (
+                            <div key={day} className="rounded-2xl border border-slate-200 bg-white overflow-hidden">
+                                <div className="flex items-center justify-between gap-4 px-4 py-3 bg-slate-50/70 border-b border-slate-100">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex flex-col items-center justify-center">
+                                            <span className="text-[9px] uppercase font-bold">
+                                                {new Date(`${day}T12:00:00`).toLocaleDateString("fr-FR", { month: "short" })}
+                                            </span>
+                                            <span className="text-base font-bold leading-none">
+                                                {new Date(`${day}T12:00:00`).getDate()}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-bold text-slate-900">
+                                                {actions.length} action{actions.length > 1 ? "s" : ""}
+                                            </p>
+                                            <p className="text-xs text-slate-500">
+                                                {meetings} RDV · {new Set(actions.map((action) => action.sdr.id)).size} SDR
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <span className="text-xs font-semibold text-slate-500">
+                                        {new Date(`${day}T12:00:00`).toLocaleDateString("fr-FR", {
+                                            weekday: "long",
+                                            day: "numeric",
+                                            month: "long",
+                                        })}
+                                    </span>
+                                </div>
+                                <div className="divide-y divide-slate-100">
+                                    {actions.map((action) => {
+                                        const contactName = [
+                                            action.contact?.firstName,
+                                            action.contact?.lastName,
+                                        ].filter(Boolean).join(" ");
+                                        const companyName =
+                                            action.contact?.company?.name || action.company?.name || "Société non renseignée";
+                                        return (
+                                            <div key={action.id} className="px-4 py-3 hover:bg-slate-50/60 transition-colors">
+                                                <div className="flex items-start justify-between gap-4">
+                                                    <div className="min-w-0">
+                                                        <div className="flex items-center gap-2 flex-wrap">
+                                                            <span className="text-sm font-semibold text-slate-900">
+                                                                {contactName || companyName}
+                                                            </span>
+                                                            <Badge
+                                                                variant={action.result === "MEETING_BOOKED" ? "success" : "default"}
+                                                                className="text-[9px] uppercase tracking-wider"
+                                                            >
+                                                                {ACTION_LABELS[action.result] || action.result}
+                                                            </Badge>
+                                                        </div>
+                                                        <p className="text-xs text-slate-500 mt-1">
+                                                            {companyName} · {action.campaign.mission.name} · {action.sdr.name || "SDR"}
+                                                        </p>
+                                                        {action.note && (
+                                                            <p className="text-xs text-slate-600 mt-2 line-clamp-2">{action.note}</p>
+                                                        )}
+                                                    </div>
+                                                    <span className="text-xs text-slate-400 flex-shrink-0">
+                                                        {new Date(action.createdAt).toLocaleTimeString("fr-FR", {
+                                                            hour: "2-digit",
+                                                            minute: "2-digit",
+                                                        })}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+        </div>
+    );
+
+    const SdrFeedbackTab = (
+        <div className="space-y-4">
+            <div className="flex items-start justify-between gap-4">
+                <div>
+                    <h3 className="text-base font-bold text-slate-900">Avis SDR</h3>
+                    <p className="text-sm text-slate-500 mt-0.5">
+                        Ressentis quotidiens liés aux missions de ce client.
+                    </p>
+                </div>
+                <Link
+                    href="/manager/sdr-feedback"
+                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-600 hover:border-indigo-200 hover:text-indigo-600"
+                >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    Tous les avis
+                </Link>
+            </div>
+
+            {sdrFeedback.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 p-10 text-center">
+                    <MessageSquare className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                    <p className="text-sm font-medium text-slate-700">Aucun avis SDR pour ce client</p>
+                </div>
+            ) : (
+                <div className="space-y-3">
+                    {sdrFeedback.map((feedback) => {
+                        const missionNames = Array.from(new Set([
+                            ...(feedback.mission ? [feedback.mission.name] : []),
+                            ...feedback.missions.map((item) => item.mission.name),
+                        ]));
+                        return (
+                            <div key={feedback.id} className="rounded-2xl border border-slate-200 bg-white p-4">
+                                <div className="flex items-start justify-between gap-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 text-white flex items-center justify-center text-sm font-bold">
+                                            {(feedback.sdr.name || feedback.sdr.email)[0]?.toUpperCase()}
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-semibold text-slate-900">
+                                                {feedback.sdr.name || feedback.sdr.email}
+                                            </p>
+                                            <p className="text-xs text-slate-500">
+                                                {missionNames.join(" · ") || "Mission non renseignée"}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <Badge
+                                            variant={feedback.score >= 4 ? "success" : feedback.score <= 2 ? "danger" : "warning"}
+                                            className="font-bold"
+                                        >
+                                            {feedback.score}/5
+                                        </Badge>
+                                        <p className="text-[10px] text-slate-400 mt-1">{formatRelative(feedback.submittedAt)}</p>
+                                    </div>
+                                </div>
+                                <p className="mt-3 text-sm leading-relaxed text-slate-700">{feedback.review}</p>
+                                {(feedback.objections || feedback.missionComment) && (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+                                        {feedback.objections && (
+                                            <div className="rounded-xl bg-amber-50 border border-amber-100 p-3">
+                                                <p className="text-[10px] font-bold uppercase tracking-wider text-amber-700">Objections</p>
+                                                <p className="text-xs text-amber-950 mt-1">{feedback.objections}</p>
+                                            </div>
+                                        )}
+                                        {feedback.missionComment && (
+                                            <div className="rounded-xl bg-indigo-50 border border-indigo-100 p-3">
+                                                <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-700">Commentaire mission</p>
+                                                <p className="text-xs text-indigo-950 mt-1">{feedback.missionComment}</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+        </div>
+    );
+
     const tabDef = [
         { id: "apercu", label: "Aperçu", icon: <Building2 className="w-3.5 h-3.5" /> },
         { id: "missions", label: "Missions", icon: <Target className="w-3.5 h-3.5" />, badge: missions.length || undefined },
         { id: "acces", label: "Accès", icon: <ShieldCheck className="w-3.5 h-3.5" />, badge: usersList.length || undefined },
         { id: "interlocuteurs", label: "Interlocuteurs", icon: <Users className="w-3.5 h-3.5" />, badge: interlocuteurs.length || undefined },
         { id: "activite", label: "Activité", icon: <Activity className="w-3.5 h-3.5" /> },
+        { id: "avis-sdr", label: "Avis SDR", icon: <MessageSquare className="w-3.5 h-3.5" />, badge: sdrFeedback.length || undefined },
     ];
 
     return (
@@ -991,6 +1317,7 @@ export function ClientDrawer({ isOpen, onClose, client, onUpdate, onDelete }: Cl
                         {activeTab === "acces" && AccessTab}
                         {activeTab === "interlocuteurs" && InterlocuteursTab}
                         {activeTab === "activite" && ActivityTab}
+                        {activeTab === "avis-sdr" && SdrFeedbackTab}
                     </div>
                 </div>
             </Drawer>

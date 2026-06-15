@@ -12,7 +12,7 @@ import { NavSection, getNavByRole, ROLE_CONFIG } from "@/lib/navigation/config";
 import { NotificationBell } from "@/components/ui/NotificationBell";
 import { Modal } from "@/components/ui";
 import { cn } from "@/lib/utils";
-import { RefreshCw, AlertTriangle } from "lucide-react";
+import { RefreshCw, AlertTriangle, BellRing, PhoneCall } from "lucide-react";
 
 interface AppLayoutShellProps {
     children: React.ReactNode;
@@ -24,6 +24,22 @@ type SdrMissionOption = {
     id: string;
     name: string;
     client?: { name: string };
+};
+
+type SdrCallbackAlert = {
+    id: string;
+    callbackDate: string;
+    note?: string | null;
+    contact?: {
+        firstName?: string | null;
+        lastName?: string | null;
+        company?: { name?: string | null } | null;
+    } | null;
+    company?: { name?: string | null } | null;
+    mission?: {
+        name?: string | null;
+        client?: { name?: string | null } | null;
+    } | null;
 };
 
 const SDR_DAILY_REVIEW_TIME = "15:45";
@@ -80,6 +96,7 @@ function InnerLayout({
     const [dailyReviewMissionsLoading, setDailyReviewMissionsLoading] = useState(false);
     const [dailyReviewPromptTime, setDailyReviewPromptTime] = useState(SDR_DAILY_REVIEW_TIME);
     const [dailyReviewRequiredDaily, setDailyReviewRequiredDaily] = useState(true);
+    const [callbackAlert, setCallbackAlert] = useState<SdrCallbackAlert | null>(null);
     /** Minute tick so the “deadline passed” badge updates without navigation */
     const [sdrReviewClock, setSdrReviewClock] = useState(0);
     const [dailyFeedbackSubmittedToday, setDailyFeedbackSubmittedToday] = useState(() => {
@@ -225,6 +242,66 @@ function InnerLayout({
 
         void loadMissions();
     }, [isSdrArea, dailyReviewRequiredDaily, isDailyReviewModalOpen]);
+
+    useEffect(() => {
+        if (!isSdrArea) {
+            setCallbackAlert(null);
+            return;
+        }
+
+        let cancelled = false;
+
+        const checkDueCallbacks = async () => {
+            try {
+                const res = await fetch("/api/sdr/callbacks?limit=500", { cache: "no-store" });
+                const json = await res.json();
+                if (!res.ok || !json.success || !Array.isArray(json.data) || cancelled) return;
+
+                const now = Date.now();
+                const recentWindowMs = 10 * 60 * 1000;
+                const dueCallbacks = (json.data as SdrCallbackAlert[])
+                    .filter((callback) => {
+                        if (!callback.callbackDate) return false;
+                        const callbackTime = new Date(callback.callbackDate).getTime();
+                        if (Number.isNaN(callbackTime)) return false;
+                        const elapsed = now - callbackTime;
+                        if (elapsed < 0 || elapsed > recentWindowMs) return false;
+                        const storageKey = `sdr_callback_alert:${callback.id}:${callback.callbackDate}`;
+                        return sessionStorage.getItem(storageKey) !== "shown";
+                    })
+                    .sort(
+                        (a, b) =>
+                            new Date(a.callbackDate).getTime() -
+                            new Date(b.callbackDate).getTime(),
+                    );
+
+                const nextAlert = dueCallbacks[0];
+                if (!nextAlert) return;
+
+                sessionStorage.setItem(
+                    `sdr_callback_alert:${nextAlert.id}:${nextAlert.callbackDate}`,
+                    "shown",
+                );
+                setCallbackAlert(nextAlert);
+            } catch {
+                // The callbacks page remains available if background polling fails.
+            }
+        };
+
+        const handleVisibility = () => {
+            if (document.visibilityState === "visible") void checkDueCallbacks();
+        };
+
+        void checkDueCallbacks();
+        const interval = window.setInterval(checkDueCallbacks, 30_000);
+        document.addEventListener("visibilitychange", handleVisibility);
+
+        return () => {
+            cancelled = true;
+            window.clearInterval(interval);
+            document.removeEventListener("visibilitychange", handleVisibility);
+        };
+    }, [isSdrArea]);
 
     if (status === "loading" || !session) {
         return (
@@ -446,7 +523,7 @@ function InnerLayout({
                 )}
 
                 <Modal
-                    isOpen={isDailyReviewModalOpen}
+                    isOpen={isDailyReviewModalOpen && !callbackAlert}
                     onClose={handleCloseDailyReviewModal}
                     title="Point SDR de fin de journée"
                     description={`Partagez rapidement votre feedback sur la journée (déclenchement: ${dailyReviewPromptTime}).`}
@@ -584,6 +661,78 @@ function InnerLayout({
                             <p className="text-[12px] text-red-600">{dailyReviewError}</p>
                         )}
                     </div>
+                </Modal>
+
+                <Modal
+                    isOpen={!!callbackAlert}
+                    onClose={() => setCallbackAlert(null)}
+                    title="Rappel à effectuer maintenant"
+                    description="L'heure prévue pour ce rappel vient d'arriver."
+                    size="sm"
+                >
+                    {callbackAlert && (
+                        <div className="space-y-4">
+                            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+                                <div className="flex items-start gap-3">
+                                    <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0">
+                                        <BellRing className="w-5 h-5" />
+                                    </div>
+                                    <div className="min-w-0">
+                                        <p className="text-sm font-bold text-slate-900">
+                                            {[
+                                                callbackAlert.contact?.firstName,
+                                                callbackAlert.contact?.lastName,
+                                            ].filter(Boolean).join(" ") ||
+                                                callbackAlert.contact?.company?.name ||
+                                                callbackAlert.company?.name ||
+                                                "Contact à rappeler"}
+                                        </p>
+                                        <p className="text-xs text-slate-600 mt-1">
+                                            {callbackAlert.contact?.company?.name ||
+                                                callbackAlert.company?.name ||
+                                                callbackAlert.mission?.client?.name ||
+                                                "Société non renseignée"}
+                                            {callbackAlert.mission?.name
+                                                ? ` · ${callbackAlert.mission.name}`
+                                                : ""}
+                                        </p>
+                                        <p className="text-xs font-semibold text-amber-800 mt-2">
+                                            Prévu à{" "}
+                                            {new Date(callbackAlert.callbackDate).toLocaleTimeString("fr-FR", {
+                                                hour: "2-digit",
+                                                minute: "2-digit",
+                                            })}
+                                        </p>
+                                    </div>
+                                </div>
+                                {callbackAlert.note && (
+                                    <p className="mt-3 pt-3 border-t border-amber-200 text-xs text-amber-950">
+                                        {callbackAlert.note}
+                                    </p>
+                                )}
+                            </div>
+                            <div className="flex items-center justify-end gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setCallbackAlert(null)}
+                                    className="h-9 px-4 rounded-lg border border-slate-200 bg-white text-[13px] font-semibold text-slate-600 hover:bg-slate-50"
+                                >
+                                    Fermer
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setCallbackAlert(null);
+                                        router.push("/sdr/callbacks");
+                                    }}
+                                    className="h-9 px-4 rounded-lg bg-amber-500 text-white text-[13px] font-semibold hover:bg-amber-600 inline-flex items-center gap-2"
+                                >
+                                    <PhoneCall className="w-4 h-4" />
+                                    Ouvrir le rappel
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </Modal>
             </main>
         </div>

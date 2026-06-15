@@ -2,13 +2,14 @@ import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import {
     successResponse,
-    errorResponse,
     requireRole,
     withErrorHandler,
     validateRequest,
     NotFoundError,
+    AuthError,
 } from '@/lib/api-utils';
 import { z } from 'zod';
+import { DateTime } from 'luxon';
 
 // ============================================
 // SCHEMAS
@@ -37,8 +38,20 @@ export const GET = withErrorHandler(async (
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) => {
-    await requireRole(['MANAGER', 'CLIENT'], request);
+    const session = await requireRole(['MANAGER', 'CLIENT'], request);
     const { id } = await params;
+
+    if (
+        session.user.role === 'CLIENT' &&
+        (session.user as { clientId?: string | null }).clientId !== id
+    ) {
+        throw new AuthError('Accès non autorisé', 403);
+    }
+
+    const nowParis = DateTime.now().setZone('Europe/Paris');
+    const currentMonth = nowParis.toFormat('yyyy-MM');
+    const monthStart = nowParis.startOf('month').toUTC().toJSDate();
+    const monthEnd = nowParis.endOf('month').toUTC().toJSDate();
 
     const client = await prisma.client.findUnique({
         where: { id },
@@ -59,6 +72,30 @@ export const GET = withErrorHandler(async (
                     campaigns: {
                         select: { id: true, name: true, icp: true },
                         take: 5,
+                    },
+                    missionPlans: {
+                        where: {
+                            status: 'ACTIVE',
+                            startDate: { lte: monthEnd },
+                            OR: [
+                                { endDate: null },
+                                { endDate: { gte: monthStart } },
+                            ],
+                        },
+                        orderBy: { updatedAt: 'desc' },
+                        take: 1,
+                        select: {
+                            frequency: true,
+                            preferredDays: true,
+                        },
+                    },
+                    missionMonthPlans: {
+                        where: { month: currentMonth },
+                        take: 1,
+                        select: {
+                            targetDays: true,
+                            status: true,
+                        },
                     },
                 },
                 orderBy: { createdAt: 'desc' },
@@ -102,7 +139,162 @@ export const GET = withErrorHandler(async (
         throw new NotFoundError('Client introuvable');
     }
 
-    return successResponse(client);
+    const [engagement, monthActions, recentActions, sdrFeedback] = await Promise.all([
+        prisma.engagement.findFirst({
+            where: {
+                clientId: id,
+                statut: { in: ['ACTIF', 'RENOUVELE'] },
+            },
+            orderBy: { debut: 'desc' },
+            select: {
+                id: true,
+                dureeMois: true,
+                debut: true,
+                fin: true,
+                statut: true,
+                renouvellement: true,
+                offreTarif: {
+                    select: { nom: true },
+                },
+            },
+        }),
+        prisma.action.findMany({
+            where: {
+                createdAt: { gte: monthStart, lte: monthEnd },
+                campaign: { mission: { clientId: id } },
+            },
+            select: {
+                createdAt: true,
+                sdrId: true,
+                result: true,
+                channel: true,
+                campaign: {
+                    select: {
+                        missionId: true,
+                    },
+                },
+            },
+        }),
+        prisma.action.findMany({
+            where: {
+                campaign: { mission: { clientId: id } },
+            },
+            orderBy: { createdAt: 'desc' },
+            take: 80,
+            select: {
+                id: true,
+                createdAt: true,
+                callbackDate: true,
+                result: true,
+                channel: true,
+                note: true,
+                duration: true,
+                sdr: {
+                    select: { id: true, name: true },
+                },
+                company: {
+                    select: { id: true, name: true },
+                },
+                contact: {
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        title: true,
+                        company: {
+                            select: { id: true, name: true },
+                        },
+                    },
+                },
+                campaign: {
+                    select: {
+                        id: true,
+                        name: true,
+                        mission: {
+                            select: { id: true, name: true },
+                        },
+                    },
+                },
+            },
+        }),
+        prisma.sdrDailyFeedback.findMany({
+            where: {
+                OR: [
+                    { mission: { clientId: id } },
+                    {
+                        missions: {
+                            some: {
+                                mission: { clientId: id },
+                            },
+                        },
+                    },
+                ],
+            },
+            orderBy: { submittedAt: 'desc' },
+            take: 30,
+            select: {
+                id: true,
+                score: true,
+                review: true,
+                objections: true,
+                missionComment: true,
+                submittedAt: true,
+                sdr: {
+                    select: { id: true, name: true, email: true },
+                },
+                mission: {
+                    select: { id: true, name: true },
+                },
+                missions: {
+                    where: {
+                        mission: { clientId: id },
+                    },
+                    select: {
+                        mission: {
+                            select: { id: true, name: true },
+                        },
+                    },
+                },
+            },
+        }),
+    ]);
+
+    const plannedMonthDays = client.missions.reduce(
+        (sum, mission) => sum + (mission.missionMonthPlans[0]?.targetDays ?? 0),
+        0,
+    );
+    const plannedWeekDays = client.missions.reduce(
+        (sum, mission) => sum + (mission.missionPlans[0]?.frequency ?? 0),
+        0,
+    );
+    const executedDayKeys = new Set(
+        monthActions.map((action) => {
+            const day = DateTime.fromJSDate(action.createdAt)
+                .setZone('Europe/Paris')
+                .toFormat('yyyy-MM-dd');
+            return `${action.campaign.missionId}:${action.sdrId}:${day}`;
+        }),
+    );
+
+    const production = {
+        month: currentMonth,
+        plannedMonthDays: plannedMonthDays || null,
+        plannedWeekDays: plannedWeekDays || null,
+        executedDays: executedDayKeys.size,
+        totalActions: monthActions.length,
+        totalCalls: monthActions.filter((action) => action.channel === 'CALL').length,
+        totalMeetings: monthActions.filter((action) => action.result === 'MEETING_BOOKED').length,
+    };
+
+    return successResponse({
+        ...client,
+        insights: {
+            production,
+            engagement,
+            recentActions,
+            sdrFeedback,
+        },
+    });
 });
 
 // ============================================

@@ -145,6 +145,25 @@ interface Client {
     users?: PortalUser[];
     interlocuteurs?: ClientInterlocuteur[];
     onboarding?: { onboardingData?: { icp?: string } | null } | null;
+    insights?: {
+        production: {
+            month: string;
+            plannedMonthDays: number | null;
+            plannedWeekDays: number | null;
+            executedDays: number;
+            totalActions: number;
+            totalCalls: number;
+            totalMeetings: number;
+        };
+        engagement?: {
+            id: string;
+            dureeMois: number;
+            debut: string;
+            fin: string;
+            statut: string;
+            offreTarif: { nom: string };
+        } | null;
+    };
 }
 
 interface Meeting {
@@ -1619,6 +1638,63 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
                                 <span className="text-red-500 font-medium text-xs">Relance recommandée</span>
                             ) : undefined}
                         />
+                    </div>
+
+                    <div className="rounded-2xl border border-slate-200/70 bg-white p-5 shadow-sm">
+                        <div className="flex items-center justify-between gap-4 mb-4">
+                            <div>
+                                <h2 className="text-sm font-bold text-slate-900">Production & engagement</h2>
+                                <p className="text-xs text-slate-500 mt-0.5">
+                                    Objectifs de planning et activité réellement enregistrée ce mois.
+                                </p>
+                            </div>
+                            {client.insights?.production.month && (
+                                <Badge variant="outline" className="bg-slate-50 text-slate-600">
+                                    {new Date(`${client.insights.production.month}-01T12:00:00`).toLocaleDateString("fr-FR", {
+                                        month: "long",
+                                        year: "numeric",
+                                    })}
+                                </Badge>
+                            )}
+                        </div>
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                            <div className="rounded-xl border border-indigo-100 bg-indigo-50/60 p-4">
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-600">Jours prévus / mois</p>
+                                <p className="mt-2 text-2xl font-bold text-slate-900">
+                                    {client.insights?.production.plannedMonthDays ?? "Non défini"}
+                                </p>
+                                <p className="mt-1 text-xs text-slate-500">Plans mensuels actifs</p>
+                            </div>
+                            <div className="rounded-xl border border-violet-100 bg-violet-50/60 p-4">
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-violet-600">Jours prévus / semaine</p>
+                                <p className="mt-2 text-2xl font-bold text-slate-900">
+                                    {client.insights?.production.plannedWeekDays ?? "Non défini"}
+                                </p>
+                                <p className="mt-1 text-xs text-slate-500">Fréquence des missions</p>
+                            </div>
+                            <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-4">
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">Jours effectués</p>
+                                <p className="mt-2 text-2xl font-bold text-slate-900">
+                                    {client.insights?.production.executedDays ?? 0}
+                                </p>
+                                <p className="mt-1 text-xs text-slate-500">
+                                    {client.insights?.production.totalCalls ?? 0} appels · {client.insights?.production.totalMeetings ?? 0} RDV
+                                </p>
+                            </div>
+                            <div className="rounded-xl border border-amber-100 bg-amber-50/60 p-4">
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-amber-700">Engagement</p>
+                                <p className="mt-2 text-xl font-bold text-slate-900">
+                                    {client.insights?.engagement
+                                        ? `${client.insights.engagement.dureeMois} mois`
+                                        : "Sans engagement"}
+                                </p>
+                                <p className="mt-1 text-xs text-slate-500">
+                                    {client.insights?.engagement
+                                        ? `${client.insights.engagement.offreTarif.nom} · fin ${new Date(client.insights.engagement.fin).toLocaleDateString("fr-FR")}`
+                                        : "Aucun engagement actif"}
+                                </p>
+                            </div>
+                        </div>
                     </div>
 
                     {/* ── PROCHAIN RDV — timeline highlight ── */}
