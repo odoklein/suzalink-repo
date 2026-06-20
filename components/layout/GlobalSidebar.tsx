@@ -40,9 +40,9 @@ function SidebarNavItem({
     depth?: number;
 }) {
     const pathname = usePathname();
-    const { hasPermission } = usePermissions();
+    const { hasPermission, isLoading } = usePermissions();
 
-    if (item.permission && !hasPermission(item.permission)) {
+    if (!isLoading && item.permission && !hasPermission(item.permission)) {
         return null;
     }
 
@@ -136,10 +136,10 @@ function SidebarSection({
     onMobileClose?: () => void;
     isFirst?: boolean;
 }) {
-    const { hasPermission } = usePermissions();
+    const { hasPermission, isLoading } = usePermissions();
 
     const visibleItems = section.items.filter(
-        (item) => !item.permission || hasPermission(item.permission)
+        (item) => !item.permission || isLoading || hasPermission(item.permission)
     );
 
     if (visibleItems.length === 0) return null;
