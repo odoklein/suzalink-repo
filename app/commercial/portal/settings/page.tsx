@@ -142,7 +142,7 @@ export default function CommercialSettingsPage() {
 
     if (isLoading) {
         return (
-            <div className="min-h-full bg-gradient-to-br from-[#F8F9FC] via-[#F4F6F9] to-[#ECEEF4] p-4 md:p-6">
+            <div className="min-h-full bg-[#ECE5D8] p-4 md:p-6">
                 <div className="animate-pulse space-y-6">
                     <div className="h-8 w-48 bg-gray-200 rounded-lg" />
                     <div className="h-40 bg-white rounded-2xl border border-[#E8EBF0]" />
@@ -155,7 +155,7 @@ export default function CommercialSettingsPage() {
     if (!profile) return null;
 
     return (
-        <div className="min-h-full bg-gradient-to-br from-[#F8F9FC] via-[#F4F6F9] to-[#ECEEF4] p-4 md:p-6 space-y-6">
+        <div className="min-h-full bg-[#ECE5D8] p-4 md:p-6 space-y-6">
             {/* Header */}
             <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
@@ -166,7 +166,7 @@ export default function CommercialSettingsPage() {
                     <button
                         onClick={handleSave}
                         disabled={isSaving}
-                        className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors shadow-sm"
+                        className="inline-flex items-center gap-2 bg-[#FF9E1B] hover:bg-[#F09212] disabled:opacity-50 text-[#15201E] border border-[#E07C00] text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors shadow-sm"
                     >
                         {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                         Enregistrer les modifications
@@ -177,11 +177,11 @@ export default function CommercialSettingsPage() {
             {/* Identity Card (read-only) */}
             <div className="premium-card p-6">
                 <h2 className="text-sm font-semibold text-[#12122A] uppercase tracking-wider mb-4 flex items-center gap-2">
-                    <User className="w-4 h-4 text-emerald-600" /> Informations de profil
+                    <User className="w-4 h-4 text-[#0C3B38]" /> Informations de profil
                 </h2>
 
                 <div className="flex items-center gap-4 mb-5">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white font-bold text-lg shrink-0">
+                    <div className="w-12 h-12 rounded-xl bg-[#FF9E1B] flex items-center justify-center text-[#15201E] font-bold text-lg shrink-0">
                         {profile.firstName.charAt(0)}{profile.lastName.charAt(0)}
                     </div>
                     <div>
@@ -193,7 +193,7 @@ export default function CommercialSettingsPage() {
                 </div>
 
                 <div className="flex items-center gap-2 mb-5 text-sm text-[#6B7194]">
-                    <Building2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <Building2 className="w-4 h-4 text-[#0C3B38] shrink-0" />
                     <span className="font-medium text-[#3D3F6B]">{profile.client.name}</span>
                 </div>
 
@@ -207,7 +207,7 @@ export default function CommercialSettingsPage() {
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
                             placeholder="ex: Directeur commercial"
-                            className="w-full text-sm text-[#12122A] bg-[#F8F9FC] border border-[#E8EBF0] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-400 transition-all"
+                            className="w-full text-sm text-[#12122A] bg-[#F4F0E8] border border-[#E8EBF0] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#FF9E1B]/30 focus:border-[#E07C00] transition-all"
                         />
                     </div>
                     <div>
@@ -219,7 +219,7 @@ export default function CommercialSettingsPage() {
                             value={department}
                             onChange={(e) => setDepartment(e.target.value)}
                             placeholder="ex: Sales, Marketing..."
-                            className="w-full text-sm text-[#12122A] bg-[#F8F9FC] border border-[#E8EBF0] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-400 transition-all"
+                            className="w-full text-sm text-[#12122A] bg-[#F4F0E8] border border-[#E8EBF0] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#FF9E1B]/30 focus:border-[#E07C00] transition-all"
                         />
                     </div>
                     <div>
@@ -231,7 +231,7 @@ export default function CommercialSettingsPage() {
                             value={territory}
                             onChange={(e) => setTerritory(e.target.value)}
                             placeholder="ex: Île-de-France, France..."
-                            className="w-full text-sm text-[#12122A] bg-[#F8F9FC] border border-[#E8EBF0] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-400 transition-all"
+                            className="w-full text-sm text-[#12122A] bg-[#F4F0E8] border border-[#E8EBF0] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#FF9E1B]/30 focus:border-[#E07C00] transition-all"
                         />
                     </div>
                 </div>
@@ -241,11 +241,11 @@ export default function CommercialSettingsPage() {
             <div className="premium-card p-6">
                 <div className="flex items-center justify-between mb-4">
                     <h2 className="text-sm font-semibold text-[#12122A] uppercase tracking-wider flex items-center gap-2">
-                        <Link2 className="w-4 h-4 text-emerald-600" /> Liens de réservation
+                        <Link2 className="w-4 h-4 text-[#0C3B38]" /> Liens de réservation
                     </h2>
                     <button
                         onClick={addBookingLink}
-                        className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-3 py-1.5 rounded-lg transition-colors"
+                        className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-[#0C3B38] bg-[#DBE4DF] hover:bg-[#CDD9D4] border border-[rgba(12,59,56,.18)] px-3 py-1.5 rounded-lg transition-colors"
                     >
                         <Plus className="w-3.5 h-3.5" /> Ajouter un lien
                     </button>
@@ -278,7 +278,7 @@ export default function CommercialSettingsPage() {
                                             value={link.label}
                                             onChange={(e) => updateBookingLink(idx, "label", e.target.value)}
                                             placeholder="ex: RDV 30 min"
-                                            className="w-full text-sm text-[#12122A] bg-white border border-[#E8EBF0] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-400 transition-all"
+                                            className="w-full text-sm text-[#12122A] bg-white border border-[#E8EBF0] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#FF9E1B]/30 focus:border-[#E07C00] transition-all"
                                         />
                                     </div>
                                     <div className="sm:col-span-1">
@@ -290,7 +290,7 @@ export default function CommercialSettingsPage() {
                                             value={link.url}
                                             onChange={(e) => updateBookingLink(idx, "url", e.target.value)}
                                             placeholder="https://calendly.com/..."
-                                            className="w-full text-sm text-[#12122A] bg-white border border-[#E8EBF0] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-400 transition-all"
+                                            className="w-full text-sm text-[#12122A] bg-white border border-[#E8EBF0] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#FF9E1B]/30 focus:border-[#E07C00] transition-all"
                                         />
                                     </div>
                                     <div>
@@ -304,7 +304,7 @@ export default function CommercialSettingsPage() {
                                             placeholder="30"
                                             min={5}
                                             max={480}
-                                            className="w-full text-sm text-[#12122A] bg-white border border-[#E8EBF0] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-400 transition-all"
+                                            className="w-full text-sm text-[#12122A] bg-white border border-[#E8EBF0] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#FF9E1B]/30 focus:border-[#E07C00] transition-all"
                                         />
                                     </div>
                                 </div>
@@ -327,7 +327,7 @@ export default function CommercialSettingsPage() {
                     <button
                         onClick={handleSave}
                         disabled={isSaving}
-                        className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors shadow-sm"
+                        className="inline-flex items-center gap-2 bg-[#FF9E1B] hover:bg-[#F09212] disabled:opacity-50 text-[#15201E] border border-[#E07C00] text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors shadow-sm"
                     >
                         {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                         Enregistrer les modifications

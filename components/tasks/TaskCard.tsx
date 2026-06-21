@@ -35,12 +35,12 @@ const PRIORITY_LABELS: Record<string, string> = {
 };
 
 const LABEL_COLORS = [
-    "bg-violet-100 text-violet-700",
+    "bg-[#dbe4df] text-[#0c3b38]",
     "bg-sky-100 text-sky-700",
     "bg-emerald-100 text-emerald-700",
     "bg-amber-100 text-amber-700",
-    "bg-rose-100 text-rose-700",
-    "bg-indigo-100 text-indigo-700",
+    "bg-[#fff1d6] text-[#e07c00]",
+    "bg-[#ece5d8] text-[#394b46]",
 ];
 
 export function TaskCard({ task, onClick, isDragging }: TaskCardProps) {

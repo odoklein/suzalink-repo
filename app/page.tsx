@@ -155,7 +155,7 @@ function RoleCard({
         blue: "group-hover:border-blue-500/50 group-hover:shadow-[0_0_40px_-10px_rgba(59,130,246,0.3)]",
         emerald: "group-hover:border-emerald-500/50 group-hover:shadow-[0_0_40px_-10px_rgba(16,185,129,0.3)]",
         cyan: "group-hover:border-cyan-500/50 group-hover:shadow-[0_0_40px_-10px_rgba(6,182,212,0.3)]",
-        pink: "group-hover:border-pink-500/50 group-hover:shadow-[0_0_40px_-10px_rgba(236,72,153,0.3)]",
+        pink: "group-hover:border-[rgba(224,124,0,0.4)] group-hover:shadow-[0_0_40px_-10px_rgba(224,124,0,0.2)]",
     } as const;
 
     return (

@@ -82,16 +82,16 @@ function formatSmartDate(dateStr: string): string {
 
 function getAvatarColor(name: string): string {
     const colors = [
-        "from-violet-400 to-violet-600",
-        "from-blue-400 to-blue-600",
-        "from-emerald-400 to-emerald-600",
-        "from-amber-400 to-amber-600",
-        "from-rose-400 to-rose-600",
-        "from-teal-400 to-teal-600",
-        "from-indigo-400 to-indigo-600",
-        "from-pink-400 to-pink-600",
-        "from-cyan-400 to-cyan-600",
-        "from-orange-400 to-orange-600",
+        "from-[#0c3b38] to-[#114b46]",
+        "from-[#114b46] to-[#25745f]",
+        "from-[#25745f] to-[#0c3b38]",
+        "from-[#e07c00] to-[#ff9e1b]",
+        "from-[#082c2a] to-[#0c3b38]",
+        "from-[#0c3b38] to-[#082c2a]",
+        "from-[#114b46] to-[#082c2a]",
+        "from-[#ff9e1b] to-[#e07c00]",
+        "from-[#082c2a] to-[#114b46]",
+        "from-[#394b46] to-[#0c3b38]",
     ];
     let hash = 0;
     for (let i = 0; i < name.length; i++) {

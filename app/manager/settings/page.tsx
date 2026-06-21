@@ -80,7 +80,7 @@ function VarChip({
           width: 5,
           height: 5,
           borderRadius: "50%",
-          background: copied ? "#6366f1" : "#94a3b8",
+          background: copied ? "#0c3b38" : "#94a3b8",
           flexShrink: 0,
           transition: "background 0.2s",
         }}
@@ -886,9 +886,9 @@ export default function ManagerSettingsPage() {
             className="relative flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold text-white shadow-md transition-all duration-200 disabled:opacity-60 overflow-hidden"
             style={{
               background: saving
-                ? "#818cf8"
-                : "linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)",
-              boxShadow: saving ? "none" : "0 4px 14px rgba(99,102,241,0.4)",
+                ? "#25745f"
+                : "linear-gradient(135deg, #0c3b38 0%, #114b46 100%)",
+              boxShadow: saving ? "none" : "0 4px 14px rgba(12,59,56,0.35)",
             }}
           >
             {saving ? (

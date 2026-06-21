@@ -332,9 +332,9 @@ export default function SDRDashboardPage() {
 
     if (isLoading && !stats) {
         return (
-            <div className="flex items-center justify-center py-32 bg-[#F4F6F9] min-h-screen">
+            <div className="flex items-center justify-center py-32 bg-[#ECE5D8] min-h-screen">
                 <div className="flex flex-col items-center gap-4">
-                    <Loader2 className="w-8 h-8 text-[#7C5CFC] animate-spin" />
+                    <Loader2 className="w-8 h-8 text-[#E07C00] animate-spin" />
                     <p className="text-[13px] text-[#8B8BA7] font-medium">Chargement du dashboard...</p>
                 </div>
             </div>
@@ -345,7 +345,7 @@ export default function SDRDashboardPage() {
     const sparkData = buildSparklineData(stats?.actionsToday ?? 0);
 
     return (
-        <div className="min-h-full bg-[#F4F6F9] p-4 md:p-6" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
+        <div className="min-h-full bg-[#ECE5D8] p-4 md:p-6">
             {/* Page Header */}
             <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
                 <div>
@@ -359,16 +359,16 @@ export default function SDRDashboardPage() {
             {/* ZONE 1 — KPIs */}
             <div className="flex flex-col lg:flex-row gap-4 mb-5">
                 {/* Hero KPI - Actions Today */}
-                <div className="flex-[2] bg-gradient-to-br from-[#1A1040] to-[#12122A] rounded-2xl p-6 relative overflow-hidden">
+                <div className="flex-[2] bg-[#0C3B38] rounded-2xl p-6 relative overflow-hidden">
                     {/* Gradients */}
-                    <div className="absolute top-0 right-0 w-48 h-48 bg-[#7C5CFC]/10 rounded-full blur-3xl pointer-events-none" />
-                    <div className="absolute bottom-0 left-0 w-32 h-32 bg-[#A78BFA]/5 rounded-full blur-2xl pointer-events-none" />
+                    <div className="absolute top-0 right-0 w-48 h-48 bg-[#FF9E1B]/10 rounded-full blur-3xl pointer-events-none" />
+                    <div className="absolute bottom-0 left-0 w-32 h-32 bg-[#F4F0E8]/5 rounded-full blur-2xl pointer-events-none" />
 
                     <div className="relative z-10">
                         <div className="flex items-center justify-between mb-1">
                             <div className="flex items-center gap-2">
-                                <div className="w-8 h-8 rounded-lg bg-[#7C5CFC]/20 flex items-center justify-center">
-                                    <Phone className="w-4 h-4 text-[#A78BFA]" />
+                                <div className="w-8 h-8 rounded-lg bg-[#FF9E1B]/20 flex items-center justify-center">
+                                    <Phone className="w-4 h-4 text-[#FF9E1B]" />
                                 </div>
                                 <span className="text-[#8B8BA7] text-[13px] font-medium">Appels aujourd'hui</span>
                             </div>
@@ -390,11 +390,11 @@ export default function SDRDashboardPage() {
                         <div className="mt-5 mb-2">
                             <div className="flex items-center justify-between mb-1.5">
                                 <span className="text-[11px] text-[#6A6A8A]">Progression vers l'objectif</span>
-                                <span className="text-[11px] font-semibold text-[#A78BFA]">{Math.round(dailyProgressPct)}%</span>
+                                <span className="text-[11px] font-semibold text-[#FF9E1B]">{Math.round(dailyProgressPct)}%</span>
                             </div>
                             <div className="h-2 bg-[#1E1E3A] rounded-full overflow-hidden">
                                 <div
-                                    className="h-full bg-gradient-to-r from-[#7C5CFC] to-[#A78BFA] rounded-full transition-all duration-1000 ease-out"
+                                    className="h-full bg-gradient-to-r from-[#FF9E1B] to-[#E07C00] rounded-full transition-all duration-1000 ease-out"
                                     style={{ width: `${dailyProgressPct}%` }}
                                 />
                             </div>
@@ -405,11 +405,11 @@ export default function SDRDashboardPage() {
                                 <AreaChart data={sparkData}>
                                     <defs>
                                         <linearGradient id="db-spark-grad-2" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="0%" stopColor="#7C5CFC" stopOpacity={0.3} />
-                                            <stop offset="100%" stopColor="#7C5CFC" stopOpacity={0} />
+                                            <stop offset="0%" stopColor="#FF9E1B" stopOpacity={0.3} />
+                                            <stop offset="100%" stopColor="#FF9E1B" stopOpacity={0} />
                                         </linearGradient>
                                     </defs>
-                                    <Area type="monotone" dataKey="val" stroke="#7C5CFC" strokeWidth={2} fill="url(#db-spark-grad-2)" />
+                                    <Area type="monotone" dataKey="val" stroke="#FF9E1B" strokeWidth={2} fill="url(#db-spark-grad-2)" />
                                 </AreaChart>
                             </ResponsiveContainer>
                         </div>
@@ -433,8 +433,8 @@ export default function SDRDashboardPage() {
                             <div className="text-[11px] text-[#8B8BA7] font-medium mb-0.5">Contacts Chauds</div>
                             <div className="text-[28px] font-bold text-[#12122A] leading-none">{stats?.opportunitiesGenerated ?? 0}</div>
                         </div>
-                        <div className="w-10 h-10 rounded-xl bg-[#EEF2FF] flex items-center justify-center">
-                            <Briefcase className="w-5 h-5 text-[#7C5CFC]" />
+                        <div className="w-10 h-10 rounded-xl bg-[#DBE4DF] flex items-center justify-center">
+                            <Briefcase className="w-5 h-5 text-[#0C3B38]" />
                         </div>
                     </div>
 
@@ -457,7 +457,7 @@ export default function SDRDashboardPage() {
                     {/* Active Mission */}
                     {activeMission ? (
                         <div className="bg-white rounded-xl border border-[#E8EBF0] overflow-hidden flex flex-col shadow-sm">
-                            <div className="bg-gradient-to-r from-[#7C5CFC] to-[#6C4CE0] p-5 text-white flex justify-between items-center relative overflow-hidden">
+                            <div className="bg-[#0C3B38] p-5 text-[#F4F0E8] flex justify-between items-center relative overflow-hidden">
                                 <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-2xl pointer-events-none" />
                                 <div className="absolute top-1/2 left-1/4 w-20 h-20 bg-black/5 rounded-full blur-xl pointer-events-none" />
 
@@ -484,11 +484,11 @@ export default function SDRDashboardPage() {
                                 <div className="space-y-2">
                                     <div className="flex items-center justify-between">
                                         <span className="text-[12px] font-medium text-[#5A5A7A]">Progression de la mission</span>
-                                        <span className="text-[12px] font-bold text-[#7C5CFC]">{activeMission.progress || 0}%</span>
+                                        <span className="text-[12px] font-bold text-[#E07C00]">{activeMission.progress || 0}%</span>
                                     </div>
                                     <div className="h-2.5 bg-[#F4F6F9] rounded-full overflow-hidden shadow-inner">
                                         <div
-                                            className="h-full bg-gradient-to-r from-[#7C5CFC] to-[#A78BFA] rounded-full transition-all duration-700 ease-out"
+                                            className="h-full bg-gradient-to-r from-[#FF9E1B] to-[#E07C00] rounded-full transition-all duration-700 ease-out"
                                             style={{ width: `${activeMission.progress || 0}%` }}
                                         />
                                     </div>
@@ -519,7 +519,7 @@ export default function SDRDashboardPage() {
 
                                 {/* Call to Action Button */}
                                 <Link href="/sdr/action" className="block mt-2">
-                                    <button className="w-full h-12 bg-gradient-to-r from-[#7C5CFC] to-[#6C4CE0] text-white rounded-xl flex items-center justify-center gap-2 text-[14px] font-semibold hover:opacity-90 transition-opacity shadow-[0_4px_16px_rgba(124,92,252,0.3)]">
+                                    <button className="w-full h-12 bg-[#FF9E1B] text-[#15201E] border border-[#E07C00] rounded-xl flex items-center justify-center gap-2 text-[14px] font-semibold hover:bg-[#F09212] transition-colors shadow-[0_7px_20px_rgba(224,124,0,0.16)]">
                                         <Play className="w-[18px] h-[18px] fill-current" />
                                         Lancer la session
                                     </button>
@@ -625,7 +625,7 @@ export default function SDRDashboardPage() {
                     {stats && (
                         <div className="bg-white rounded-xl border border-[#E8EBF0] p-5">
                             <div className="flex justify-between items-center mb-4">
-                                <h3 className="text-[14px] font-semibold text-[#12122A]">Progression par rapport à last week</h3>
+                                <h3 className="text-[14px] font-semibold text-[#12122A]">Progression vs. semaine dernière</h3>
                                 <div className={cn(
                                     "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold",
                                     (stats.weeklyProgress ?? 0) >= 0 ? "bg-[#F0FDF4] text-[#10B981]" : "bg-[#FEF3C7] text-[#B45309]"

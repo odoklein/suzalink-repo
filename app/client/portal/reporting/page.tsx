@@ -30,23 +30,23 @@ interface ClientSession {
     createdAt: string;
 }
 const SESSION_TYPE_COLORS: Record<SessionType, string> = {
-    "Kick-Off": "bg-indigo-100 text-indigo-700 border-indigo-200",
+    "Kick-Off": "bg-[#dbe4df] text-[#0c3b38] border-[rgba(12,59,56,0.18)]",
     "Onboarding": "bg-emerald-100 text-emerald-700 border-emerald-200",
-    "Validation": "bg-pink-100 text-pink-700 border-pink-200",
+    "Validation": "bg-[#fff1d6] text-[#e07c00] border-[rgba(224,124,0,0.22)]",
     "Reporting": "bg-amber-100 text-amber-700 border-amber-200",
-    "Suivi": "bg-slate-100 text-slate-600 border-slate-200",
-    "Autre": "bg-purple-100 text-purple-700 border-purple-200",
+    "Suivi": "bg-[#ece5d8] text-[#5c6e69] border-[rgba(21,32,30,0.13)]",
+    "Autre": "bg-[#f4f0e8] text-[#394b46] border-[rgba(12,59,56,0.14)]",
 };
 const ROLE_BADGE: Record<string, { color: string; bg: string; label: string }> = {
-    SDR: { color: "#10B981", bg: "rgba(16,185,129,0.1)", label: "SDR" },
-    MANAGER: { color: "#F59E0B", bg: "rgba(245,158,11,0.1)", label: "Manager" },
-    DEV: { color: "#3B82F6", bg: "rgba(59,130,246,0.1)", label: "Dev" },
-    ALWAYS: { color: "#8B5CF6", bg: "rgba(139,92,246,0.1)", label: "Tous" },
+    SDR: { color: "#25745f", bg: "rgba(37,116,95,0.1)", label: "SDR" },
+    MANAGER: { color: "#e07c00", bg: "rgba(224,124,0,0.1)", label: "Manager" },
+    DEV: { color: "#0C3B38", bg: "rgba(219,228,223,0.7)", label: "Dev" },
+    ALWAYS: { color: "#0C3B38", bg: "rgba(219,228,223,0.7)", label: "Tous" },
 };
 const PRIORITY_INDICATOR: Record<string, { color: string; label: string }> = {
-    URGENT: { color: "#EF4444", label: "⚡" },
-    HIGH: { color: "#F59E0B", label: "↑" },
-    MEDIUM: { color: "#3B82F6", label: "→" },
+    URGENT: { color: "#b9433e", label: "⚡" },
+    HIGH: { color: "#e07c00", label: "↑" },
+    MEDIUM: { color: "#0C3B38", label: "→" },
     LOW: { color: "#6B7280", label: "↓" },
 };
 
@@ -177,8 +177,8 @@ export default function ClientPortalReportingPage() {
             {/* Sessions & Comptes Rendus — same view as manager (read-only) */}
             <div className="animate-fade-up space-y-4" style={{ animationDelay: "40ms" }}>
                 <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center shadow-sm shadow-indigo-500/20">
-                        <FileText className="w-4 h-4 text-white" />
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#0c3b38] to-[#114b46] flex items-center justify-center shadow-sm shadow-[rgba(12,59,56,0.2)]">
+                        <FileText className="w-4 h-4 text-[#f4f0e8]" />
                     </div>
                     <h2 className="text-sm font-bold text-[#12122A] uppercase tracking-wider">
                         Sessions & Comptes Rendus
@@ -186,7 +186,7 @@ export default function ClientPortalReportingPage() {
                 </div>
                 {isLoadingSessions ? (
                     <div className="flex items-center justify-center py-12 rounded-2xl border border-[#E8EBF0] bg-white">
-                        <Loader2 className="w-8 h-8 animate-spin text-[#6C3AFF]" />
+                        <Loader2 className="w-8 h-8 animate-spin text-[#ff9e1b]" />
                     </div>
                 ) : sessions.length === 0 ? (
                     <div className="text-center py-12 rounded-2xl border border-[#E8EBF0] bg-white">
@@ -354,7 +354,7 @@ export default function ClientPortalReportingPage() {
                     {/* Gradient header */}
                     <div
                         className="px-6 py-5 flex items-center justify-between"
-                        style={{ background: "linear-gradient(135deg, #1E1B4B 0%, #312E81 50%, #4338CA 100%)" }}
+                        style={{ background: "#0C3B38" }}
                     >
                         <div className="flex items-center gap-3">
                             <div className="w-9 h-9 rounded-lg bg-white/15 flex items-center justify-center">
@@ -384,13 +384,13 @@ export default function ClientPortalReportingPage() {
                                     className={cn(
                                         "flex items-center gap-4 p-3 rounded-xl transition-all duration-300",
                                         isCurrent
-                                            ? "bg-gradient-to-r from-indigo-50 to-violet-50/50 border border-indigo-200/50 shadow-sm"
-                                            : "hover:bg-[#F8F7FF] border border-transparent"
+                                            ? "bg-gradient-to-r from-[#dbe4df] to-[#f4f0e8] border border-[rgba(12,59,56,0.16)] shadow-sm"
+                                            : "hover:bg-[#f4f0e8] border border-transparent"
                                     )}
                                 >
                                     <span className={cn(
                                         "text-sm font-semibold w-24 flex-shrink-0",
-                                        isCurrent ? "text-[#6C3AFF]" : "text-[#12122A]"
+                                        isCurrent ? "text-[#0c3b38]" : "text-[#12122A]"
                                     )}>
                                         {MONTH_NAMES[entry.month]} {entry.year}
                                     </span>
@@ -401,7 +401,7 @@ export default function ClientPortalReportingPage() {
                                         <AnimatedNumber value={entry.meetingsBooked} /> RDV
                                     </span>
                                     {isCurrent && (
-                                        <span className="text-[10px] font-bold text-white bg-gradient-to-r from-[#6C3AFF] to-[#7C5CFC] px-2.5 py-1 rounded-full shadow-sm shadow-[#7C5CFC]/20">
+                                        <span className="text-[10px] font-bold text-[#15201E] bg-[#FF9E1B] border border-[#E07C00] px-2.5 py-1 rounded-full shadow-sm">
                                             en cours
                                         </span>
                                     )}
@@ -416,8 +416,8 @@ export default function ClientPortalReportingPage() {
             {data.length > 0 && (
                 <div>
                     <div className="flex items-center gap-2.5 mb-5">
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#7C5CFC] to-[#A78BFA] flex items-center justify-center shadow-sm shadow-[#7C5CFC]/20">
-                            <BarChart3 className="w-4 h-4 text-white" />
+                        <div className="w-8 h-8 rounded-lg bg-[#FF9E1B] flex items-center justify-center shadow-sm">
+                            <BarChart3 className="w-4 h-4 text-[#15201E]" />
                         </div>
                         <h2 className="text-sm font-bold text-[#12122A] uppercase tracking-wider">
                             Rapports mensuels

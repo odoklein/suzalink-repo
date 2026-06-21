@@ -57,7 +57,7 @@ export function ReportLayout({ data: d, printMode, className }: ReportLayoutProp
                         {d.clientName} · Généré le {d.generatedDate}
                     </p>
                     <div className="relative rounded-2xl bg-gradient-to-br from-[#1A1040] to-[#12122A] px-8 py-10">
-                        <div className="absolute top-0 right-0 w-40 h-40 bg-[#7C5CFC]/10 rounded-full blur-3xl" />
+                        <div className="absolute top-0 right-0 w-40 h-40 bg-[#ff9e1b]/10 rounded-full blur-3xl" />
                         <div className="relative text-center">
                             <p className="text-5xl md:text-6xl font-bold text-white tabular-nums">
                                 {d.meetingsBooked}
@@ -162,8 +162,8 @@ export function ReportLayout({ data: d, printMode, className }: ReportLayoutProp
                                         <AreaChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                                             <defs>
                                                 <linearGradient id="reportLineGrad" x1="0" y1="0" x2="0" y2="1">
-                                                    <stop offset="0%" stopColor="#7C5CFC" stopOpacity={0.2} />
-                                                    <stop offset="100%" stopColor="#7C5CFC" stopOpacity={0} />
+                                                    <stop offset="0%" stopColor="#0c3b38" stopOpacity={0.2} />
+                                                    <stop offset="100%" stopColor="#0c3b38" stopOpacity={0} />
                                                 </linearGradient>
                                             </defs>
                                             <CartesianGrid strokeDasharray="3 3" stroke="#E8EBF0" vertical={false} />
@@ -191,7 +191,7 @@ export function ReportLayout({ data: d, printMode, className }: ReportLayoutProp
                                             <Area
                                                 type="monotone"
                                                 dataKey="count"
-                                                stroke="#7C5CFC"
+                                                stroke="#0c3b38"
                                                 strokeWidth={1.5}
                                                 fill="url(#reportLineGrad)"
                                             />

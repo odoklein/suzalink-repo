@@ -691,7 +691,7 @@ export function ListingSearchTab({ onImport }: ListingSearchTabProps) {
                                 : "bg-white/50 border-[#E8EBF0] text-[#8B8BA7] hover:bg-white hover:text-[#12122A]"
                         )}
                     >
-                        <Globe className="w-4 h-4" style={{ color: source === "apollo" ? "#7C5CFC" : undefined }} />
+                        <Globe className="w-4 h-4" style={{ color: source === "apollo" ? "#0C3B38" : undefined }} />
                         <span>Apollo.io</span>
                         {creditData && source === "apollo" && (
                             <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#F4F6F9] text-[#8B8BA7] font-semibold">

@@ -303,7 +303,7 @@ export default function ClientPortalSettingsPage() {
                 style={{
                     animation: "settingsFadeUp 0.35s ease both",
                     animationDelay: "50ms",
-                    background: "linear-gradient(135deg, #1E1B4B 0%, #312E81 50%, #4338CA 100%)",
+                    background: "#0C3B38",
                 }}
             >
                 <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-white/[0.04] -translate-y-1/2 translate-x-1/3 pointer-events-none" />
@@ -312,11 +312,11 @@ export default function ClientPortalSettingsPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                     <p className="text-white font-bold text-lg leading-tight truncate">{name || "—"}</p>
-                    <p className="text-indigo-200/80 text-sm truncate mt-0.5">{profile?.email ?? ""}</p>
+                    <p className="text-[#C0CCC7] text-sm truncate mt-0.5">{profile?.email ?? ""}</p>
                 </div>
                 <button
                     onClick={() => setActiveTab("profile")}
-                    className="shrink-0 flex items-center gap-1.5 text-xs font-semibold text-indigo-200 hover:text-white transition-colors"
+                    className="shrink-0 flex items-center gap-1.5 text-xs font-semibold text-[#FF9E1B] hover:text-white transition-colors"
                 >
                     Modifier <ChevronRight className="w-3.5 h-3.5" />
                 </button>

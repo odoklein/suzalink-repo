@@ -9,6 +9,8 @@ import {
   Users,
   FolderKanban,
   Calendar,
+  CalendarDays,
+  CalendarClock,
   Phone,
   Briefcase,
   Settings,
@@ -28,6 +30,8 @@ import {
   Activity,
   Key,
   Brain,
+  Clock,
+  BookOpen,
 } from "lucide-react";
 import { UserRole } from "@prisma/client";
 
@@ -39,22 +43,22 @@ export interface NavItem {
   href: string;
   icon: LucideIcon;
   label: string;
-  permission?: string; // Permission code required to view this item
-  roles?: UserRole[]; // Restrict to specific roles (if no permission set)
-  badge?: string; // Optional badge text (e.g. count)
-  badgeDetail?: string; // Optional secondary badge (e.g. "Proch. 31 janv.")
-  children?: NavItem[]; // Sub-items for nested navigation
-  openInNewTab?: boolean; // Open in new tab (e.g. email inbox)
+  permission?: string;
+  roles?: UserRole[];
+  badge?: string;
+  badgeDetail?: string;
+  children?: NavItem[];
+  openInNewTab?: boolean;
 }
 
 export interface NavSection {
-  title?: string; // Section title (optional)
+  title?: string;
   items: NavItem[];
-  dividerBefore?: boolean; // Show separator above this section (for admin zone)
+  dividerBefore?: boolean;
 }
 
 // ============================================
-// MANAGER NAVIGATION — Grouped Sections
+// MANAGER NAVIGATION
 // ============================================
 
 export const MANAGER_NAV: NavSection[] = [
@@ -63,7 +67,7 @@ export const MANAGER_NAV: NavSection[] = [
       {
         href: "/manager/dashboard",
         icon: LayoutDashboard,
-        label: "Accueil",
+        label: "Tableau de bord",
         permission: "pages.dashboard",
       },
     ],
@@ -72,27 +76,27 @@ export const MANAGER_NAV: NavSection[] = [
     title: "Prospection",
     items: [
       {
-        href: "/manager/lists",
-        icon: Database,
-        label: "Listes & Prospection",
-        permission: "pages.prospects",
-      },
-      {
         href: "/manager/missions",
         icon: Target,
         label: "Missions",
         permission: "pages.missions",
       },
       {
+        href: "/manager/lists",
+        icon: Database,
+        label: "Listes",
+        permission: "pages.prospects",
+      },
+      {
         href: "/manager/prospection",
-        icon: Phone,
-        label: "Appels",
+        icon: Activity,
+        label: "Suivi des appels",
         permission: "pages.missions",
       },
     ],
   },
   {
-    title: "Suivi",
+    title: "Résultats",
     items: [
       {
         href: "/manager/clients",
@@ -102,8 +106,8 @@ export const MANAGER_NAV: NavSection[] = [
       },
       {
         href: "/manager/rdv",
-        icon: Calendar,
-        label: "SAS RDV",
+        icon: CalendarClock,
+        label: "Rendez-vous",
         permission: "pages.analytics",
       },
       {
@@ -118,12 +122,6 @@ export const MANAGER_NAV: NavSection[] = [
         label: "Analyse IA",
         permission: "pages.analytics",
       },
-      {
-        href: "/manager/emails",
-        icon: Mail,
-        label: "Email Hub",
-        permission: "pages.email",
-      },
     ],
   },
   {
@@ -132,18 +130,12 @@ export const MANAGER_NAV: NavSection[] = [
       {
         href: "/manager/utilisateurs",
         icon: Users,
-        label: "Utilisateurs",
-        permission: "pages.sdrs",
-      },
-      {
-        href: "/manager/sdr-feedback",
-        icon: MessageSquare,
-        label: "Avis SDR",
+        label: "Collaborateurs",
         permission: "pages.sdrs",
       },
       {
         href: "/manager/planning",
-        icon: Calendar,
+        icon: CalendarDays,
         label: "Planning",
         permission: "pages.planning",
       },
@@ -153,6 +145,12 @@ export const MANAGER_NAV: NavSection[] = [
         label: "Projets",
         permission: "pages.projects",
       },
+      {
+        href: "/manager/sdr-feedback",
+        icon: MessageSquare,
+        label: "Avis équipe",
+        permission: "pages.sdrs",
+      },
     ],
   },
   {
@@ -160,15 +158,21 @@ export const MANAGER_NAV: NavSection[] = [
     dividerBefore: true,
     items: [
       {
-        href: "/manager/settings",
+        href: "/manager/emails",
         icon: Mail,
-        label: "Paramètres email",
-        permission: "pages.sdrs",
+        label: "Email Hub",
+        permission: "pages.email",
       },
       {
-        href: "/manager/api",
-        icon: Key,
-        label: "API & Intégrations",
+        href: "/manager/files",
+        icon: FileText,
+        label: "Fichiers",
+        permission: "pages.files",
+      },
+      {
+        href: "/manager/settings",
+        icon: Settings,
+        label: "Paramètres",
         permission: "pages.sdrs",
       },
       {
@@ -178,22 +182,21 @@ export const MANAGER_NAV: NavSection[] = [
         permission: "pages.billing",
       },
       {
-        href: "/manager/files",
-        icon: FileText,
-        label: "Fichiers",
-        permission: "pages.files",
+        href: "/manager/api",
+        icon: Key,
+        label: "API & Intégrations",
+        permission: "pages.sdrs",
       },
     ],
   },
 ];
 
 // ============================================
-// SDR NAVIGATION — Grouped Sections
+// SDR NAVIGATION
 // ============================================
 
 export const SDR_NAV: NavSection[] = [
   {
-    // No title — home
     items: [
       {
         href: "/sdr",
@@ -204,7 +207,7 @@ export const SDR_NAV: NavSection[] = [
     ],
   },
   {
-    title: "Actions",
+    title: "Mon travail",
     items: [
       {
         href: "/sdr/action",
@@ -214,15 +217,20 @@ export const SDR_NAV: NavSection[] = [
       },
       {
         href: "/sdr/callbacks",
-        icon: Calendar,
+        icon: CalendarClock,
         label: "Rappels",
         permission: "pages.action",
       },
+    ],
+  },
+  {
+    title: "Résultats",
+    items: [
       {
-        href: "/sdr/calendar",
-        icon: Calendar,
-        label: "Calendrier",
-        permission: "pages.action",
+        href: "/sdr/meetings",
+        icon: Briefcase,
+        label: "Mes RDV",
+        permission: "pages.opportunities",
       },
       {
         href: "/sdr/history",
@@ -231,15 +239,15 @@ export const SDR_NAV: NavSection[] = [
         permission: "pages.action",
       },
       {
-        href: "/sdr/meetings",
-        icon: Calendar,
-        label: "Mes RDV",
-        permission: "pages.opportunities",
+        href: "/sdr/calendar",
+        icon: CalendarDays,
+        label: "Calendrier",
+        permission: "pages.action",
       },
     ],
   },
   {
-    title: "Communication",
+    title: "Organisation",
     items: [
       {
         href: "/sdr/emails",
@@ -247,11 +255,6 @@ export const SDR_NAV: NavSection[] = [
         label: "Email Hub",
         permission: "pages.email",
       },
-    ],
-  },
-  {
-    title: "Organisation",
-    items: [
       {
         href: "/sdr/projects",
         icon: FolderKanban,
@@ -260,7 +263,7 @@ export const SDR_NAV: NavSection[] = [
       },
       {
         href: "/sdr/planning",
-        icon: Calendar,
+        icon: CalendarDays,
         label: "Planning",
         permission: "pages.planning",
       },
@@ -269,13 +272,11 @@ export const SDR_NAV: NavSection[] = [
 ];
 
 // ============================================
-// BOOKER NAVIGATION — Focused: Lists, Missions, Calling
-// No planning, no projects, no VOIP, no comms
+// BOOKER NAVIGATION
 // ============================================
 
 export const BOOKER_NAV: NavSection[] = [
   {
-    // No title — home
     items: [
       {
         href: "/sdr",
@@ -286,7 +287,7 @@ export const BOOKER_NAV: NavSection[] = [
     ],
   },
   {
-    title: "Prospection",
+    title: "Mes appels",
     items: [
       {
         href: "/sdr/lists",
@@ -303,11 +304,11 @@ export const BOOKER_NAV: NavSection[] = [
     ],
   },
   {
-    title: "Suivi",
+    title: "Mon suivi",
     items: [
       {
         href: "/sdr/callbacks",
-        icon: Calendar,
+        icon: CalendarClock,
         label: "Rappels",
         permission: "pages.action",
       },
@@ -319,7 +320,7 @@ export const BOOKER_NAV: NavSection[] = [
       },
       {
         href: "/sdr/meetings",
-        icon: Calendar,
+        icon: Briefcase,
         label: "Mes RDV",
         permission: "pages.opportunities",
       },
@@ -328,12 +329,11 @@ export const BOOKER_NAV: NavSection[] = [
 ];
 
 // ============================================
-// BUSINESS DEVELOPER NAVIGATION — Grouped
+// BUSINESS DEVELOPER NAVIGATION
 // ============================================
 
 export const BD_NAV: NavSection[] = [
   {
-    // No title — home
     items: [
       {
         href: "/bd/dashboard",
@@ -344,7 +344,7 @@ export const BD_NAV: NavSection[] = [
     ],
   },
   {
-    title: "Commercial",
+    title: "Portefeuille",
     items: [
       {
         href: "/bd/clients",
@@ -359,27 +359,9 @@ export const BD_NAV: NavSection[] = [
         permission: "pages.missions",
       },
       {
-        href: "/sdr/action",
-        icon: Phone,
-        label: "Appeler",
-        permission: "pages.action",
-      },
-      {
-        href: "/sdr/callbacks",
-        icon: Calendar,
-        label: "Rappels",
-        permission: "pages.action",
-      },
-      {
-        href: "/sdr/history",
-        icon: History,
-        label: "Historique",
-        permission: "pages.action",
-      },
-      {
         href: "/sdr/opportunities",
         icon: Briefcase,
-        label: "Opportunites",
+        label: "Opportunités",
         permission: "pages.opportunities",
       },
       {
@@ -391,7 +373,30 @@ export const BD_NAV: NavSection[] = [
     ],
   },
   {
-    title: "Communication",
+    title: "Actions",
+    items: [
+      {
+        href: "/sdr/action",
+        icon: Phone,
+        label: "Appeler",
+        permission: "pages.action",
+      },
+      {
+        href: "/sdr/callbacks",
+        icon: CalendarClock,
+        label: "Rappels",
+        permission: "pages.action",
+      },
+      {
+        href: "/sdr/history",
+        icon: History,
+        label: "Historique",
+        permission: "pages.action",
+      },
+    ],
+  },
+  {
+    title: "Compte",
     items: [
       {
         href: "/bd/settings",
@@ -404,12 +409,11 @@ export const BD_NAV: NavSection[] = [
 ];
 
 // ============================================
-// DEVELOPER NAVIGATION — Grouped
+// DEVELOPER NAVIGATION
 // ============================================
 
 export const DEVELOPER_NAV: NavSection[] = [
   {
-    // No title — home
     items: [
       {
         href: "/developer/dashboard",
@@ -431,19 +435,24 @@ export const DEVELOPER_NAV: NavSection[] = [
       {
         href: "/developer/tasks",
         icon: List,
-        label: "Taches",
+        label: "Tâches",
         permission: "pages.projects",
       },
+    ],
+  },
+  {
+    title: "Compte",
+    items: [
       {
         href: "/developer/integrations",
-        icon: Settings,
-        label: "Integrations",
+        icon: Key,
+        label: "Intégrations",
         permission: "pages.settings",
       },
       {
         href: "/developer/settings",
         icon: Settings,
-        label: "Parametres",
+        label: "Paramètres",
         permission: "pages.settings",
       },
     ],
@@ -451,7 +460,7 @@ export const DEVELOPER_NAV: NavSection[] = [
 ];
 
 // ============================================
-// CLIENT NAVIGATION — Portal + Outils groups
+// CLIENT NAVIGATION
 // ============================================
 
 export const CLIENT_NAV: NavSection[] = [
@@ -463,15 +472,20 @@ export const CLIENT_NAV: NavSection[] = [
         label: "Accueil",
         permission: "pages.dashboard",
       },
+    ],
+  },
+  {
+    title: "Mon suivi",
+    items: [
       {
         href: "/client/portal/meetings",
-        icon: Calendar,
+        icon: CalendarClock,
         label: "Mes RDV",
         permission: "pages.dashboard",
       },
       {
         href: "/client/portal/reporting",
-        icon: FileDown,
+        icon: BarChart3,
         label: "Rapports",
         permission: "pages.dashboard",
       },
@@ -484,18 +498,18 @@ export const CLIENT_NAV: NavSection[] = [
     ],
   },
   {
-    title: "Outils",
+    title: "Ressources",
     items: [
       {
         href: "/client/portal/email",
         icon: Mail,
-        label: "Mon Email",
+        label: "Email",
         permission: "pages.dashboard",
       },
       {
         href: "/client/portal/database",
         icon: Database,
-        label: "Base de données",
+        label: "Contacts",
         permission: "pages.dashboard",
       },
       {
@@ -506,14 +520,8 @@ export const CLIENT_NAV: NavSection[] = [
       },
       {
         href: "/client/portal/sales-playbook",
-        icon: Target,
-        label: "Sales Playbook",
-        permission: "pages.dashboard",
-      },
-      {
-        href: "/client/portal/aide",
-        icon: HelpCircle,
-        label: "Aide",
+        icon: BookOpen,
+        label: "Argumentaire",
         permission: "pages.dashboard",
       },
     ],
@@ -527,12 +535,18 @@ export const CLIENT_NAV: NavSection[] = [
         label: "Paramètres",
         permission: "pages.dashboard",
       },
+      {
+        href: "/client/portal/aide",
+        icon: HelpCircle,
+        label: "Aide",
+        permission: "pages.dashboard",
+      },
     ],
   },
 ];
 
 // ============================================
-// COMMERCIAL NAVIGATION — Portal for ClientInterlocuteurs
+// COMMERCIAL NAVIGATION
 // ============================================
 
 export const COMMERCIAL_NAV: NavSection[] = [
@@ -550,7 +564,7 @@ export const COMMERCIAL_NAV: NavSection[] = [
     items: [
       {
         href: "/commercial/portal/meetings",
-        icon: Calendar,
+        icon: CalendarClock,
         label: "Mes RDV",
       },
       {
@@ -603,52 +617,52 @@ export function getNavByRole(role: UserRole): NavSection[] {
 
 export interface RoleConfig {
   label: string;
-  color: string; // Tailwind color name (e.g., "indigo", "emerald")
-  gradient: string; // Full gradient class
+  color: string;
+  gradient: string;
   defaultPath: string;
 }
 
 export const ROLE_CONFIG: Record<UserRole, RoleConfig> = {
   MANAGER: {
     label: "Manager",
-    color: "indigo",
-    gradient: "from-indigo-500 to-indigo-600",
+    color: "amber",
+    gradient: "from-[#0c3b38] to-[#25745f]",
     defaultPath: "/manager/dashboard",
   },
   SDR: {
     label: "Sales",
-    color: "indigo",
-    gradient: "from-indigo-500 to-indigo-600",
+    color: "amber",
+    gradient: "from-[#0c3b38] to-[#25745f]",
     defaultPath: "/sdr/action",
   },
   BOOKER: {
     label: "Booker",
-    color: "indigo",
-    gradient: "from-indigo-500 to-indigo-600",
+    color: "amber",
+    gradient: "from-[#0c3b38] to-[#25745f]",
     defaultPath: "/sdr/action",
   },
   BUSINESS_DEVELOPER: {
     label: "BD",
     color: "emerald",
-    gradient: "from-emerald-500 to-emerald-600",
+    gradient: "from-[#25745f] to-[#0c3b38]",
     defaultPath: "/bd/dashboard",
   },
   DEVELOPER: {
     label: "Dev",
-    color: "blue",
-    gradient: "from-blue-500 to-blue-600",
+    color: "amber",
+    gradient: "from-[#ff9e1b] to-[#e07c00]",
     defaultPath: "/developer/dashboard",
   },
   CLIENT: {
     label: "Client",
-    color: "indigo",
-    gradient: "from-indigo-500 to-violet-600",
+    color: "amber",
+    gradient: "from-[#0c3b38] to-[#25745f]",
     defaultPath: "/client/portal",
   },
   COMMERCIAL: {
     label: "Commercial",
     color: "emerald",
-    gradient: "from-emerald-500 to-teal-600",
+    gradient: "from-[#25745f] to-[#0c3b38]",
     defaultPath: "/commercial/portal",
   },
 };

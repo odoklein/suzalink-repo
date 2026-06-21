@@ -2033,14 +2033,14 @@ export default function SDRActionPage() {
         return (
             <div className="space-y-4">
                 {/* Header — Table View */}
-                <div className="relative overflow-hidden bg-gradient-to-br from-[#0f0f12] via-slate-950 to-violet-950 rounded-2xl p-5 shadow-xl">
-                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-violet-600/20 via-transparent to-transparent" />
-                    <div className="absolute -top-16 -right-16 w-48 h-48 bg-violet-500/10 rounded-full blur-2xl" />
+                <div className="relative overflow-hidden bg-gradient-to-br from-[#0c3b38] via-[#082c2a] to-[#0c3b38] rounded-2xl p-5 shadow-xl">
+                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-[rgba(255,158,27,0.12)] via-transparent to-transparent" />
+                    <div className="absolute -top-16 -right-16 w-48 h-48 bg-[rgba(255,158,27,0.06)] rounded-full blur-2xl" />
 
                     <div className="relative flex flex-col lg:flex-row lg:items-center justify-between gap-3">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-violet-500/20 flex items-center justify-center border border-violet-400/20">
-                                <Phone className="w-5 h-5 text-violet-300" />
+                            <div className="w-10 h-10 rounded-xl bg-[rgba(255,158,27,0.16)] flex items-center justify-center border border-[rgba(255,158,27,0.22)]">
+                                <Phone className="w-5 h-5 text-[rgba(244,240,232,0.7)]" />
                             </div>
                             <div>
                                 <h1 className="text-[22px] font-[500] text-white leading-tight">Actions</h1>
@@ -2461,13 +2461,13 @@ export default function SDRActionPage() {
         return (
             <div className="space-y-4">
                 {/* Header — Empty Queue */}
-                <div className="relative overflow-hidden bg-gradient-to-br from-[#0f0f12] via-slate-950 to-violet-950 rounded-2xl p-5 shadow-xl">
-                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-violet-600/20 via-transparent to-transparent" />
-                    <div className="absolute -top-16 -right-16 w-48 h-48 bg-violet-500/10 rounded-full blur-2xl" />
+                <div className="relative overflow-hidden bg-gradient-to-br from-[#0c3b38] via-[#082c2a] to-[#0c3b38] rounded-2xl p-5 shadow-xl">
+                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-[rgba(255,158,27,0.12)] via-transparent to-transparent" />
+                    <div className="absolute -top-16 -right-16 w-48 h-48 bg-[rgba(255,158,27,0.06)] rounded-full blur-2xl" />
                     <div className="relative flex flex-col lg:flex-row lg:items-center justify-between gap-3">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-violet-500/20 flex items-center justify-center border border-violet-400/20">
-                                <Phone className="w-5 h-5 text-violet-300" />
+                            <div className="w-10 h-10 rounded-xl bg-[rgba(255,158,27,0.16)] flex items-center justify-center border border-[rgba(255,158,27,0.22)]">
+                                <Phone className="w-5 h-5 text-[rgba(244,240,232,0.7)]" />
                             </div>
                             <div>
                                 <h1 className="text-[22px] font-[500] text-white leading-tight">Actions</h1>
@@ -2532,17 +2532,16 @@ export default function SDRActionPage() {
             )}
 
             {/* Header */}
-            <div className="relative overflow-hidden bg-gradient-to-br from-[#0f0f12] via-slate-950 to-violet-950 rounded-2xl p-5 shadow-xl">
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-violet-600/20 via-transparent to-transparent" />
-                <div className="absolute -top-16 -right-16 w-48 h-48 bg-violet-500/10 rounded-full blur-2xl" />
-                <div className="absolute bottom-0 left-1/4 w-32 h-32 bg-blue-500/5 rounded-full blur-2xl" />
+            <div className="relative overflow-hidden bg-gradient-to-br from-[#0c3b38] via-[#082c2a] to-[#0c3b38] rounded-2xl p-5 shadow-xl">
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-[rgba(255,158,27,0.12)] via-transparent to-transparent" />
+                <div className="absolute -top-16 -right-16 w-48 h-48 bg-[rgba(255,158,27,0.06)] rounded-full blur-2xl" />
+                <div className="absolute bottom-0 left-1/4 w-32 h-32 bg-[rgba(219,228,223,0.04)] rounded-full blur-2xl" />
 
                 <div className="relative">
                     <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-                        {/* Left: Title & mission context */}
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-violet-500/20 backdrop-blur-sm flex items-center justify-center border border-violet-400/20 ring-1 ring-white/5">
-                                <Phone className="w-5 h-5 text-violet-300" />
+                            <div className="w-10 h-10 rounded-xl bg-[rgba(255,158,27,0.16)] backdrop-blur-sm flex items-center justify-center border border-[rgba(255,158,27,0.22)] ring-1 ring-white/5">
+                                <Phone className="w-5 h-5 text-[rgba(244,240,232,0.7)]" />
                             </div>
                             <div>
                                 <h1 className="text-[22px] font-[500] text-white leading-tight tracking-tight">Actions</h1>

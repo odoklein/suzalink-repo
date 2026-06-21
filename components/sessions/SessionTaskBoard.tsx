@@ -54,25 +54,25 @@ export interface SessionTaskItem {
 // ============================================
 
 const ROLE_TABS = [
-    { key: "ALL", label: "Toutes", icon: Globe, color: "#7C5CFC", bg: "#EEF2FF" },
+    { key: "ALL", label: "Toutes", icon: Globe, color: "#0C3B38", bg: "#DBE4DF" },
     { key: "SDR", label: "SDRs", icon: Headphones, color: "#10B981", bg: "#F0FDF4" },
     { key: "MANAGER", label: "Managers", icon: Briefcase, color: "#F59E0B", bg: "#FFF7ED" },
-    { key: "DEV", label: "Devs", icon: Monitor, color: "#3B82F6", bg: "#EFF6FF" },
-    { key: "ALWAYS", label: "Toujours", icon: Users, color: "#8B5CF6", bg: "#F5F3FF" },
+    { key: "DEV", label: "Devs", icon: Monitor, color: "#0C3B38", bg: "#DBE4DF" },
+    { key: "ALWAYS", label: "Toujours", icon: Users, color: "#0C3B38", bg: "#DBE4DF" },
 ] as const;
 
 const PRIORITY_CONFIG = {
     URGENT: { label: "Urgent", icon: Zap, color: "#EF4444", bg: "rgba(239,68,68,0.08)", border: "rgba(239,68,68,0.2)" },
     HIGH: { label: "Haute", icon: ArrowUp, color: "#F59E0B", bg: "rgba(245,158,11,0.08)", border: "rgba(245,158,11,0.2)" },
-    MEDIUM: { label: "Moyenne", icon: ArrowRight, color: "#3B82F6", bg: "rgba(59,130,246,0.08)", border: "rgba(59,130,246,0.2)" },
+    MEDIUM: { label: "Moyenne", icon: ArrowRight, color: "#0C3B38", bg: "rgba(219,228,223,0.7)", border: "rgba(12,59,56,0.2)" },
     LOW: { label: "Basse", icon: ArrowDown, color: "#6B7280", bg: "rgba(107,114,128,0.08)", border: "rgba(107,114,128,0.2)" },
 };
 
 const ROLE_BADGE_CONFIG = {
     SDR: { label: "SDR", color: "#10B981", bg: "rgba(16,185,129,0.1)" },
     MANAGER: { label: "Manager", color: "#F59E0B", bg: "rgba(245,158,11,0.1)" },
-    DEV: { label: "Dev", color: "#3B82F6", bg: "rgba(59,130,246,0.1)" },
-    ALWAYS: { label: "Tous", color: "#8B5CF6", bg: "rgba(139,92,246,0.1)" },
+    DEV: { label: "Dev", color: "#0C3B38", bg: "rgba(219,228,223,0.7)" },
+    ALWAYS: { label: "Tous", color: "#0C3B38", bg: "rgba(219,228,223,0.7)" },
 };
 
 // ============================================
@@ -185,20 +185,19 @@ export default function SessionTaskBoard() {
             <div
                 className="relative overflow-hidden rounded-2xl p-6 mb-6"
                 style={{
-                    background: "linear-gradient(135deg, #1A1040 0%, #0F0A2A 50%, #12122A 100%)",
+                    background: "#0C3B38",
                 }}
             >
                 {/* Background effects */}
-                <div className="absolute top-0 right-0 w-64 h-64 rounded-full blur-[80px] pointer-events-none" style={{ background: "rgba(124,92,252,0.12)" }} />
-                <div className="absolute bottom-0 left-1/4 w-48 h-48 rounded-full blur-[60px] pointer-events-none" style={{ background: "rgba(167,139,250,0.06)" }} />
-                <div className="absolute top-1/2 right-1/3 w-32 h-32 rounded-full blur-[40px] pointer-events-none" style={{ background: "rgba(59,130,246,0.05)" }} />
+                <div className="absolute top-0 right-0 w-64 h-64 rounded-full blur-[80px] pointer-events-none" style={{ background: "rgba(255,158,27,0.10)" }} />
+                <div className="absolute bottom-0 left-1/4 w-48 h-48 rounded-full blur-[60px] pointer-events-none" style={{ background: "rgba(244,240,232,0.05)" }} />
 
                 <div className="relative z-10">
                     <div className="flex items-center justify-between mb-5">
                         <div>
                             <h1 className="text-[22px] font-bold text-white tracking-tight flex items-center gap-2.5">
-                                <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(124,92,252,0.2)" }}>
-                                    <Sparkles className="w-[18px] h-[18px] text-[#A78BFA]" />
+                                <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(255,158,27,0.18)" }}>
+                                    <Sparkles className="w-[18px] h-[18px] text-[#FF9E1B]" />
                                 </div>
                                 Tâches d'équipe
                             </h1>
@@ -222,7 +221,7 @@ export default function SessionTaskBoard() {
                                             ? "text-white shadow-lg"
                                             : "text-[#6A6A8A] hover:text-[#9A9ABB]"
                                     )}
-                                    style={view === key ? { background: "rgba(124,92,252,0.25)" } : {}}
+                                    style={view === key ? { background: "rgba(255,158,27,0.20)", color: "#F4F0E8" } : {}}
                                 >
                                     <Icon className="w-3.5 h-3.5" />
                                     {label}

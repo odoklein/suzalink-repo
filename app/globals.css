@@ -1700,8 +1700,8 @@ textarea::placeholder {
     z-index: 50;
     display: flex;
     flex-direction: column;
-    background: #12122A;
-    border-right: 1px solid #1E1E3A;
+    background: #0a302d;
+    border-right: 1px solid rgba(255,255,255,0.07);
     transition: width 280ms cubic-bezier(0.16, 1, 0.3, 1),
         transform 280ms cubic-bezier(0.16, 1, 0.3, 1),
         box-shadow 280ms cubic-bezier(0.16, 1, 0.3, 1);
@@ -1719,8 +1719,8 @@ textarea::placeholder {
 
 .cp-sidebar-hover-expanded {
     width: 240px;
-    box-shadow: 8px 0 32px -4px rgba(0, 0, 0, 0.08),
-        2px 0 8px -2px rgba(0, 0, 0, 0.04);
+    box-shadow: 8px 0 32px -4px rgba(0, 0, 0, 0.15),
+        2px 0 8px -2px rgba(0, 0, 0, 0.08);
     z-index: 60;
 }
 
@@ -1788,7 +1788,7 @@ textarea::placeholder {
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    background: linear-gradient(135deg, #7C5CFC 0%, #A78BFA 100%);
+    background: linear-gradient(135deg, #ff9e1b 0%, #ffb64f 100%);
     transition: transform 200ms ease;
 }
 
@@ -1807,7 +1807,7 @@ textarea::placeholder {
 }
 
 .cp-brand-name-accent {
-    color: #A78BFA;
+    color: #ff9e1b;
 }
 
 .cp-collapse-btn {
@@ -1817,7 +1817,7 @@ textarea::placeholder {
     border-radius: 6px;
     align-items: center;
     justify-content: center;
-    color: #8B8BA7;
+    color: rgba(255,255,255,0.40);
     background: transparent;
     border: none;
     cursor: pointer;
@@ -1830,14 +1830,14 @@ textarea::placeholder {
 }
 
 .cp-collapse-btn:hover {
-    background: #1A1A35;
+    background: rgba(255,255,255,0.08);
     color: #fff;
 }
 
 .cp-mobile-close {
     display: none;
     padding: 6px;
-    color: #8B8BA7;
+    color: rgba(255,255,255,0.40);
     background: none;
     border: none;
     cursor: pointer;
@@ -1846,7 +1846,7 @@ textarea::placeholder {
 }
 
 .cp-mobile-close:hover {
-    background: #1A1A35;
+    background: rgba(255,255,255,0.08);
     color: #fff;
 }
 
@@ -1868,22 +1868,22 @@ textarea::placeholder {
     margin: 4px 12px 6px;
     padding: 7px 10px;
     border-radius: 8px;
-    border: 1px solid #1E1E3A;
-    background: #1A1A35;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.05);
     cursor: pointer;
     transition: all 150ms ease;
     flex-shrink: 0;
 }
 
 .cp-search-trigger:hover {
-    background: #252550;
-    border-color: #2A2A5A;
+    background: rgba(255,255,255,0.10);
+    border-color: rgba(255,255,255,0.14);
 }
 
 .cp-search-text {
     flex: 1;
     font-size: 12.5px;
-    color: #8B8BA7;
+    color: rgba(255,255,255,0.40);
     text-align: left;
     white-space: nowrap;
 }
@@ -1895,9 +1895,9 @@ textarea::placeholder {
     padding: 2px 5px;
     font-size: 10px;
     font-weight: 600;
-    color: #8B8BA7;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid #1E1E3A;
+    color: rgba(255,255,255,0.35);
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
     border-radius: 4px;
     font-family: inherit;
     line-height: 1;
@@ -1912,15 +1912,15 @@ textarea::placeholder {
     margin: 4px auto 6px;
     border-radius: 8px;
     border: none;
-    background: #1A1A35;
-    color: #8B8BA7;
+    background: rgba(255,255,255,0.05);
+    color: rgba(255,255,255,0.40);
     cursor: pointer;
     transition: all 150ms ease;
     flex-shrink: 0;
 }
 
 .cp-search-trigger-mini:hover {
-    background: #252550;
+    background: rgba(255,255,255,0.10);
     color: #fff;
 }
 
@@ -1943,7 +1943,7 @@ textarea::placeholder {
 
 .cp-section-divider {
     height: 1px;
-    background: #1E1E3A;
+    background: rgba(255,255,255,0.07);
     margin: 12px 8px;
 }
 
@@ -1951,7 +1951,7 @@ textarea::placeholder {
     padding: 20px 8px 6px;
     font-size: 10px;
     font-weight: 700;
-    color: #4A4A6A;
+    color: rgba(255,255,255,0.30);
     letter-spacing: 0.08em;
     text-transform: uppercase;
     white-space: nowrap;
@@ -1969,17 +1969,17 @@ textarea::placeholder {
     width: 4px;
     height: 4px;
     border-radius: 50%;
-    background: #4A4A6A;
+    background: rgba(255,255,255,0.20);
 }
 
-/* Admin section (Réglages, Facturation, Fichiers) — muted style */
+/* Admin section — muted style */
 .cp-nav-section-admin .cp-nav-item {
-    color: #4A4A6A;
+    color: rgba(255,255,255,0.30);
 }
 
 .cp-nav-section-admin .cp-nav-item:hover {
-    color: #6A6A8A;
-    background: #1A1A35;
+    color: rgba(255,255,255,0.55);
+    background: rgba(255,255,255,0.06);
 }
 
 .cp-nav-items {
@@ -1998,7 +1998,7 @@ textarea::placeholder {
     border-radius: 8px;
     font-size: 13px;
     font-weight: 500;
-    color: #8B8BA7;
+    color: rgba(255,255,255,0.50);
     text-decoration: none;
     cursor: pointer;
     transition: all 150ms ease;
@@ -2010,7 +2010,7 @@ textarea::placeholder {
 
 .cp-nav-item:hover {
     color: #fff;
-    background: #1A1A35;
+    background: rgba(255,255,255,0.07);
 }
 
 .cp-nav-item:active {
@@ -2019,12 +2019,12 @@ textarea::placeholder {
 
 .cp-nav-item-active {
     color: #fff;
-    background: rgba(124, 92, 252, 0.15);
+    background: rgba(255,158,27,0.12);
 }
 
 .cp-nav-item-active:hover {
     color: #fff;
-    background: rgba(124, 92, 252, 0.2);
+    background: rgba(255,158,27,0.18);
 }
 
 /* Active indicator bar */
@@ -2037,7 +2037,7 @@ textarea::placeholder {
     width: 3px;
     height: 20px;
     border-radius: 0 2px 2px 0;
-    background: #7C5CFC;
+    background: #ff9e1b;
 }
 
 /* --- Nav Icon --- */
@@ -2053,7 +2053,7 @@ textarea::placeholder {
 }
 
 .cp-nav-icon-active {
-    color: #7C5CFC;
+    color: #ff9e1b;
 }
 
 .cp-nav-item:hover .cp-nav-icon-wrap {
@@ -2090,7 +2090,7 @@ textarea::placeholder {
     font-size: 10px;
     font-weight: 700;
     border-radius: 9px;
-    background: #6366f1;
+    background: #ff9e1b;
     color: #fff;
     flex-shrink: 0;
     letter-spacing: -0.01em;
@@ -2106,8 +2106,8 @@ textarea::placeholder {
     padding: 0;
     font-size: 0;
     border-radius: 50%;
-    background: #6366f1;
-    border: 1.5px solid #fff;
+    background: #ff9e1b;
+    border: 1.5px solid #0a302d;
 }
 
 .cp-nav-detail {
@@ -2170,7 +2170,7 @@ textarea::placeholder {
     position: relative;
     flex-shrink: 0;
     padding: 8px 12px 16px;
-    border-top: 1px solid #1E1E3A;
+    border-top: 1px solid rgba(255,255,255,0.07);
 }
 
 .cp-expand-btn {
@@ -2182,14 +2182,14 @@ textarea::placeholder {
     border-radius: 6px;
     border: none;
     background: transparent;
-    color: #8B8BA7;
+    color: rgba(255,255,255,0.35);
     cursor: pointer;
     transition: all 150ms ease;
     margin-bottom: 4px;
 }
 
 .cp-expand-btn:hover {
-    background: #1A1A35;
+    background: rgba(255,255,255,0.07);
     color: #fff;
 }
 
@@ -2209,7 +2209,7 @@ textarea::placeholder {
 }
 
 .cp-user-btn:hover {
-    background: #1A1A35;
+    background: rgba(255,255,255,0.07);
 }
 
 .cp-user-btn-collapsed {
@@ -2222,7 +2222,7 @@ textarea::placeholder {
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #7C5CFC 0%, #A78BFA 100%);
+    background: linear-gradient(135deg, #ff9e1b 0%, #ffb64f 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2241,7 +2241,7 @@ textarea::placeholder {
     height: 8px;
     border-radius: 50%;
     background: #22c55e;
-    border: 1.5px solid #12122A;
+    border: 1.5px solid #0a302d;
 }
 
 .cp-user-info {
@@ -2262,7 +2262,7 @@ textarea::placeholder {
 
 .cp-user-role {
     font-size: 10px;
-    color: #4A4A6A;
+    color: rgba(255,255,255,0.30);
     line-height: 1.3;
 }
 

@@ -188,7 +188,7 @@ export default function ClientPortal() {
     const meetingsBooked = totalMeetingsCount || stats?.meetingsBooked || 0;
 
     return (
-        <div className="min-h-full bg-gradient-to-br from-[#F8F9FC] via-[#F4F6F9] to-[#ECEEF4] p-4 md:p-6 space-y-6">
+        <div className="min-h-full bg-[#ECE5D8] p-4 md:p-6 space-y-6">
             {/* ── Greeting bar ── */}
             <div className="flex flex-wrap items-center justify-between gap-4" style={{ animation: "dashFadeUp 0.4s ease both" }}>
                 <div>
@@ -220,7 +220,7 @@ export default function ClientPortal() {
             {/* ── Hero Card ── */}
             <div
                 className="relative overflow-hidden rounded-2xl shadow-xl"
-                style={{ animation: "dashFadeUp 0.4s ease both", animationDelay: "60ms", background: "linear-gradient(135deg, #1E1B4B 0%, #312E81 35%, #4338CA 70%, #6366F1 100%)" }}
+                style={{ animation: "dashFadeUp 0.4s ease both", animationDelay: "60ms", background: "#0C3B38" }}
             >
                 {/* Decorative orbs */}
                 <div className="absolute top-0 right-0 w-72 h-72 rounded-full bg-white/[0.04] -translate-y-1/2 translate-x-1/3" />
@@ -232,7 +232,7 @@ export default function ClientPortal() {
                 <div className="relative p-6 md:p-8">
                     {/* Large RDV count */}
                     <div className="flex flex-col items-center md:items-start mb-8">
-                        <p className="text-[11px] font-semibold text-indigo-200/80 uppercase tracking-[0.2em]">
+                        <p className="text-[11px] font-semibold text-[rgba(244,240,232,0.6)] uppercase tracking-[0.2em]">
                             Rendez-vous cumulés
                         </p>
                         <div className="mt-3 flex items-baseline gap-1">
@@ -240,19 +240,19 @@ export default function ClientPortal() {
                                 value={meetingsBooked}
                                 className="text-[72px] md:text-[80px] font-black text-white leading-none drop-shadow-lg"
                             />
-                            <span className="text-2xl font-bold text-indigo-300/60 mb-2">RDV</span>
+                            <span className="text-2xl font-bold text-[rgba(244,240,232,0.45)] mb-2">RDV</span>
                         </div>
                     </div>
 
                     {/* Appels passés (month selector + single KPI) */}
                     <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                         <div className="flex items-center gap-2">
-                            <span className="text-[11px] font-semibold text-indigo-200/80 uppercase tracking-wider">Appels passés</span>
+                            <span className="text-[11px] font-semibold text-[rgba(244,240,232,0.6)] uppercase tracking-wider">Appels passés</span>
                             <div className="flex items-center rounded-lg bg-white/[0.08] border border-white/[0.06] p-0.5">
                                 <button
                                     type="button"
                                     onClick={() => setCallsMonthOffset((o) => o - 1)}
-                                    className="w-8 h-8 rounded-md flex items-center justify-center text-indigo-200/80 hover:bg-white/[0.12] hover:text-white transition-all"
+                                    className="w-8 h-8 rounded-md flex items-center justify-center text-[rgba(244,240,232,0.6)] hover:bg-white/[0.12] hover:text-white transition-all"
                                     aria-label="Mois précédent"
                                 >
                                     <ChevronLeft className="w-4 h-4" />
@@ -264,7 +264,7 @@ export default function ClientPortal() {
                                     type="button"
                                     onClick={() => setCallsMonthOffset((o) => Math.min(o + 1, 0))}
                                     disabled={callsMonthOffset >= 0}
-                                    className="w-8 h-8 rounded-md flex items-center justify-center text-indigo-200/80 hover:bg-white/[0.12] hover:text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                                    className="w-8 h-8 rounded-md flex items-center justify-center text-[rgba(244,240,232,0.6)] hover:bg-white/[0.12] hover:text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
                                     aria-label="Mois suivant"
                                 >
                                     <ChevronRight className="w-4 h-4" />
@@ -272,15 +272,15 @@ export default function ClientPortal() {
                             </div>
                         </div>
                         <div className="flex items-center gap-3 rounded-xl bg-white/[0.08] backdrop-blur-sm border border-white/[0.06] px-4 py-3.5 hover:bg-white/[0.12] transition-all duration-200 group">
-                            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-400/30 to-indigo-400/30 flex items-center justify-center shrink-0 group-hover:from-violet-400/40 group-hover:to-indigo-400/40 transition-all duration-200">
-                                <PhoneCall className="w-[18px] h-[18px] text-indigo-200" />
+                            <div className="w-10 h-10 rounded-lg bg-[rgba(255,158,27,0.18)] flex items-center justify-center shrink-0 group-hover:bg-[rgba(255,158,27,0.26)] transition-all duration-200">
+                                <PhoneCall className="w-[18px] h-[18px] text-[rgba(244,240,232,0.7)]" />
                             </div>
                             <div>
                                 <AnimatedNumber
                                     value={callsCountForMonth}
                                     className="text-xl font-extrabold text-white leading-none"
                                 />
-                                <p className="text-[11px] text-indigo-200/60 mt-0.5 font-medium">ce mois</p>
+                                <p className="text-[11px] text-[rgba(244,240,232,0.5)] mt-0.5 font-medium">ce mois</p>
                             </div>
                         </div>
                     </div>
@@ -293,22 +293,22 @@ export default function ClientPortal() {
                     {portalSettings?.portalShowCallHistory && (
                         <Link
                             href="/client/portal/calls"
-                            className="flex items-center gap-4 p-4 rounded-xl border border-[#E8EBF0] bg-white/80 backdrop-blur-sm hover:border-[#7C5CFC]/30 hover:shadow-md hover:shadow-[#7C5CFC]/5 transition-all duration-200 group"
+                            className="flex items-center gap-4 p-4 rounded-xl border border-[rgba(12,59,56,0.10)] bg-white/80 backdrop-blur-sm hover:border-[rgba(12,59,56,0.26)] hover:shadow-md hover:shadow-[rgba(12,59,56,0.06)] transition-all duration-200 group"
                         >
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500/10 to-indigo-500/10 flex items-center justify-center shrink-0 group-hover:from-violet-500/20 group-hover:to-indigo-500/20 transition-colors">
-                                <PhoneCall className="w-5 h-5 text-[#7C5CFC]" />
+                            <div className="w-10 h-10 rounded-xl bg-[rgba(219,228,223,0.5)] flex items-center justify-center shrink-0 group-hover:bg-[rgba(219,228,223,0.8)] transition-colors">
+                                <PhoneCall className="w-5 h-5 text-[#0c3b38]" />
                             </div>
                             <div className="flex-1 min-w-0">
                                 <p className="text-sm font-semibold text-[#12122A]">Historique des appels</p>
                                 <p className="text-xs text-[#6B7194] mt-0.5">Consultez tous les appels passés par l&apos;équipe.</p>
                             </div>
-                            <ArrowRight className="w-4 h-4 text-[#A0A3BD] group-hover:text-[#7C5CFC] group-hover:translate-x-0.5 transition-all shrink-0" />
+                            <ArrowRight className="w-4 h-4 text-[#7f8e89] group-hover:text-[#0c3b38] group-hover:translate-x-0.5 transition-all shrink-0" />
                         </Link>
                     )}
                     {portalSettings?.portalShowDatabase && (
                         <Link
                             href="/client/portal/database"
-                            className="flex items-center gap-4 p-4 rounded-xl border border-[#E8EBF0] bg-white/80 backdrop-blur-sm hover:border-[#7C5CFC]/30 hover:shadow-md hover:shadow-[#7C5CFC]/5 transition-all duration-200 group"
+                            className="flex items-center gap-4 p-4 rounded-xl border border-[rgba(12,59,56,0.10)] bg-white/80 backdrop-blur-sm hover:border-[rgba(12,59,56,0.26)] hover:shadow-md hover:shadow-[rgba(12,59,56,0.06)] transition-all duration-200 group"
                         >
                             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500/10 to-teal-500/10 flex items-center justify-center shrink-0 group-hover:from-emerald-500/20 group-hover:to-teal-500/20 transition-colors">
                                 <Users className="w-5 h-5 text-emerald-600" />
@@ -330,8 +330,8 @@ export default function ClientPortal() {
             <div className="premium-card overflow-hidden" style={{ animation: "dashFadeUp 0.4s ease both", animationDelay: "140ms" }}>
                 <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-[#E8EBF0]">
                     <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#7C5CFC] to-[#A78BFA] flex items-center justify-center shadow-sm shadow-[#7C5CFC]/20">
-                            <CalendarCheck className="w-4 h-4 text-white" />
+                        <div className="w-8 h-8 rounded-lg bg-[#FF9E1B] flex items-center justify-center shadow-sm">
+                            <CalendarCheck className="w-4 h-4 text-[#15201E]" />
                         </div>
                         <h2 className="text-sm font-semibold text-[#12122A] uppercase tracking-wider">
                             Prochains rendez-vous

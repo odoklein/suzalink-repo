@@ -60,9 +60,9 @@ const PIE_LABELS: Record<string, string> = {
     BAD_CONTACT: "Mauvais N.", DISQUALIFIED: "Hors cible",
 };
 const PIE_COLORS: Record<string, string> = {
-    MEETING_BOOKED: "#7C5CFC", INTERESTED: "#A78BFA",
-    CALLBACK_REQUESTED: "#F59E0B", NO_RESPONSE: "#E2E8F0",
-    BAD_CONTACT: "#CBD5E1", DISQUALIFIED: "#94A3B8",
+    MEETING_BOOKED: "#ff9e1b", INTERESTED: "#ffb64f",
+    CALLBACK_REQUESTED: "#e07c00", NO_RESPONSE: "#ece5d8",
+    BAD_CONTACT: "#e4dbca", DISQUALIFIED: "#8d9b96",
 };
 const DAYS = ["L", "M", "Me", "J", "V", "S", "D"];
 
@@ -103,7 +103,7 @@ function useCountUp(target: number, duration = 1000) {
 }
 
 /* ─── Progress Ring ─── */
-function ProgressRing({ pct, size = 56, stroke = 5, color = "#7C5CFC" }: {
+function ProgressRing({ pct, size = 56, stroke = 5, color = "#0c3b38" }: {
     pct: number; size?: number; stroke?: number; color?: string;
 }) {
     const r = (size - stroke) / 2;
@@ -130,17 +130,17 @@ function HeroKpiCard({ label, value, sub, pct, icon: Icon, sparkData }: {
     const count = useCountUp(value);
     return (
         <div className="flex-[2] relative overflow-hidden rounded-2xl p-6 flex flex-col gap-3"
-            style={{ background: "linear-gradient(145deg, #16103A 0%, #1A1040 40%, #0D0A2E 100%)" }}>
+            style={{ background: "#0C3B38" }}>
             {/* Glow blobs */}
             <div className="absolute -top-10 -right-10 w-44 h-44 rounded-full blur-3xl opacity-30"
-                style={{ background: "radial-gradient(circle, #7C5CFC, transparent)" }} />
+                style={{ background: "radial-gradient(circle, #FF9E1B, transparent)" }} />
             <div className="absolute -bottom-10 -left-10 w-36 h-36 rounded-full blur-3xl opacity-15"
-                style={{ background: "radial-gradient(circle, #A78BFA, transparent)" }} />
+                style={{ background: "radial-gradient(circle, #F4F0E8, transparent)" }} />
 
             <div className="relative z-10 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center">
-                        <Icon className="w-4 h-4 text-violet-300" />
+                        <Icon className="w-4 h-4 text-[#FF9E1B]" />
                     </div>
                     <span className="text-[13px] font-medium text-white/50">{label}</span>
                 </div>
@@ -169,11 +169,11 @@ function HeroKpiCard({ label, value, sub, pct, icon: Icon, sparkData }: {
                     <AreaChart data={sparkData}>
                         <defs>
                             <linearGradient id="spark-hero" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stopColor="#7C5CFC" stopOpacity={0.35} />
-                                <stop offset="100%" stopColor="#7C5CFC" stopOpacity={0} />
+                                <stop offset="0%" stopColor="#FF9E1B" stopOpacity={0.35} />
+                                <stop offset="100%" stopColor="#FF9E1B" stopOpacity={0} />
                             </linearGradient>
                         </defs>
-                        <Area type="monotone" dataKey="rdv" stroke="#7C5CFC" strokeWidth={2}
+                        <Area type="monotone" dataKey="rdv" stroke="#FF9E1B" strokeWidth={2}
                             fill="url(#spark-hero)" />
                     </AreaChart>
                 </ResponsiveContainer>
@@ -183,13 +183,13 @@ function HeroKpiCard({ label, value, sub, pct, icon: Icon, sparkData }: {
             <div className="relative z-10">
                 <div className="flex items-center justify-between mb-1.5">
                     <span className="text-[11px] text-white/30">Objectif hebdomadaire</span>
-                    <span className="text-[11px] font-bold text-violet-400">{Math.round((value / RDV_WEEKLY_GOAL) * 100)}%</span>
+                    <span className="text-[11px] font-bold text-[#FF9E1B]">{Math.round((value / RDV_WEEKLY_GOAL) * 100)}%</span>
                 </div>
                 <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
                     <div className="h-full rounded-full transition-all duration-1000"
                         style={{
                             width: `${Math.min(100, (value / RDV_WEEKLY_GOAL) * 100)}%`,
-                            background: "linear-gradient(90deg, #7C5CFC, #A78BFA)",
+                            background: "linear-gradient(90deg, #FF9E1B, #E07C00)",
                         }} />
                 </div>
             </div>
@@ -381,8 +381,8 @@ export default function ManagerDashboard() {
 
                     {/* New mission CTA */}
                     <Link href="/manager/missions/new"
-                        className="flex items-center gap-2 px-4 py-2 rounded-xl text-[13px] font-bold text-white shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 hover:scale-[1.02] transition-all duration-150"
-                        style={{ background: "linear-gradient(135deg, #7C5CFC 0%, #5C3DFA 100%)" }}>
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl text-[13px] font-bold text-[#15201E] border border-[#E07C00] shadow-lg hover:scale-[1.02] transition-all duration-150"
+                        style={{ background: "#FF9E1B" }}>
                         <span className="text-lg leading-none">+</span>
                         <span>Nouvelle mission</span>
                     </Link>
@@ -541,8 +541,8 @@ export default function ManagerDashboard() {
                                                     style={{
                                                         width: `${pct}%`,
                                                         background: isHot
-                                                            ? "linear-gradient(90deg, #7C5CFC, #A78BFA)"
-                                                            : pct >= 60 ? "#F59E0B" : "#CBD5E1",
+                                                            ? "linear-gradient(90deg, #ff9e1b, #ffb64f)"
+                                                            : pct >= 60 ? "#e07c00" : "#e4dbca",
                                                     }} />
                                             </div>
                                         </Link>
@@ -629,7 +629,7 @@ export default function ManagerDashboard() {
                                                     <div className="h-full rounded-full transition-all duration-700"
                                                         style={{
                                                             width: `${barPct}%`,
-                                                            background: isFirst ? "linear-gradient(90deg,#7C5CFC,#A78BFA)" : "#CBD5E1"
+                                                            background: isFirst ? "linear-gradient(90deg,#FF9E1B,#E07C00)" : "#B8C2BD"
                                                         }} />
                                                 </div>
                                             </div>
@@ -660,7 +660,7 @@ export default function ManagerDashboard() {
                                     <YAxis hide domain={[0, Math.max(35, (stats?.meetingsBooked ?? 0) + 5)]} />
                                     <Tooltip content={<CustomTooltip />} />
                                     <Line type="monotone" dataKey="objectif" stroke="#E2E8F0" strokeWidth={1.5} strokeDasharray="4 3" dot={false} name="Objectif" />
-                                    <Line type="monotone" dataKey="cumul" stroke="#7C5CFC" strokeWidth={2.5} dot={false} name="Réalisé" />
+                                    <Line type="monotone" dataKey="cumul" stroke="#0c3b38" strokeWidth={2.5} dot={false} name="Réalisé" />
                                 </LineChart>
                             </ResponsiveContainer>
                         </div>

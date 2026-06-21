@@ -137,7 +137,7 @@ function getInitials(m: Meeting): string {
     return (f + l).toUpperCase() || "?";
 }
 
-const AVATAR_COLORS = ["#6366f1", "#8b5cf6", "#059669", "#d97706", "#0ea5e9", "#ec4899", "#64748b"];
+const AVATAR_COLORS = ["#0c3b38", "#114b46", "#25745f", "#e07c00", "#ff9e1b", "#082c2a", "#5c6e69"];
 
 function getAvatarColor(m: Meeting): string {
     let h = 0;

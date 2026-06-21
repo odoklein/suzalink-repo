@@ -58,14 +58,14 @@ interface AITaskExtractorProps {
 const ROLE_OPTIONS = [
     { key: "SDR", label: "SDR", icon: Headphones, color: "#10B981" },
     { key: "MANAGER", label: "Manager", icon: Briefcase, color: "#F59E0B" },
-    { key: "DEV", label: "Dev", icon: Monitor, color: "#3B82F6" },
-    { key: "ALWAYS", label: "Tous", icon: Users, color: "#8B5CF6" },
+    { key: "DEV", label: "Dev", icon: Monitor, color: "#0C3B38" },
+    { key: "ALWAYS", label: "Tous", icon: Users, color: "#0C3B38" },
 ] as const;
 
 const PRIORITY_OPTIONS = [
     { key: "URGENT", label: "Urgent", icon: Zap, color: "#EF4444" },
     { key: "HIGH", label: "Haute", icon: ArrowUp, color: "#F59E0B" },
-    { key: "MEDIUM", label: "Moyenne", icon: ArrowRight, color: "#3B82F6" },
+    { key: "MEDIUM", label: "Moyenne", icon: ArrowRight, color: "#0C3B38" },
     { key: "LOW", label: "Basse", icon: ArrowDown, color: "#6B7280" },
 ] as const;
 
@@ -166,9 +166,9 @@ export default function AITaskExtractor({
                 <div className="flex items-center gap-2.5">
                     <div
                         className="w-8 h-8 rounded-lg flex items-center justify-center"
-                        style={{ background: "linear-gradient(135deg, #7C5CFC 0%, #A78BFA 100%)" }}
+                        style={{ background: "#FF9E1B", color: "#15201E" }}
                     >
-                        <Wand2 className="w-4 h-4 text-white" />
+                        <Wand2 className="w-4 h-4 text-[#15201E]" />
                     </div>
                     <div>
                         <h3 className="text-[14px] font-bold text-[#12122A]">Tâches d'équipe</h3>
@@ -194,12 +194,12 @@ export default function AITaskExtractor({
                         disabled={isExtracting || !content || content.trim().length < 10}
                         className={cn(
                             "flex items-center gap-1.5 px-4 py-2 rounded-lg text-[12px] font-semibold transition-all shadow-sm",
-                            "text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                            "text-[#15201E] disabled:opacity-50 disabled:cursor-not-allowed"
                         )}
                         style={{
                             background: isExtracting
-                                ? "#6C4CE0"
-                                : "linear-gradient(135deg, #7C5CFC 0%, #6C4CE0 100%)",
+                                ? "#E07C00"
+                                : "#FF9E1B",
                         }}
                     >
                         {isExtracting ? (

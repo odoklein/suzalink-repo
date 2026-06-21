@@ -84,23 +84,22 @@ function getInitials(first?: string | null, last?: string | null): string {
 const RESULT_META_FALLBACK: Record<string, { label: string; color: string; bg: string; border: string }> = {
     MEETING_BOOKED: { label: "RDV pris", color: "#059669", bg: "#ecfdf5", border: "#6ee7b7" },
     CALLBACK_REQUESTED: { label: "Rappel demandé", color: "#d97706", bg: "#fffbeb", border: "#fcd34d" },
-    INTERESTED: { label: "Intéressé", color: "#4f46e5", bg: "#eef2ff", border: "#c7d2fe" },
-    NO_RESPONSE: { label: "Pas de réponse", color: "#64748b", bg: "#f8fafc", border: "#e2e8f0" },
-    DISQUALIFIED: { label: "Disqualifié", color: "#dc2626", bg: "#fef2f2", border: "#fecaca" },
+    INTERESTED: { label: "Intéressé", color: "#0c3b38", bg: "#dbe4df", border: "#a8bdb4" },
+    NO_RESPONSE: { label: "Pas de réponse", color: "#5c6e69", bg: "#f4f0e8", border: "#d6ccbc" },
+    DISQUALIFIED: { label: "Disqualifié", color: "#b9433e", bg: "#fae9e6", border: "#e8c5c2" },
 };
 
-// Avatar gradient palettes keyed by first letter
 const AVATAR_GRADIENTS: Record<string, string> = {
-    A: "from-violet-500 to-indigo-600", B: "from-indigo-500 to-blue-600",
-    C: "from-blue-500 to-cyan-600",     D: "from-cyan-500 to-teal-600",
-    E: "from-teal-500 to-emerald-600",  F: "from-emerald-500 to-green-600",
-    G: "from-green-500 to-lime-600",    H: "from-amber-500 to-orange-600",
-    I: "from-orange-500 to-red-600",    J: "from-rose-500 to-pink-600",
-    K: "from-pink-500 to-fuchsia-600",  L: "from-fuchsia-500 to-violet-600",
+    A: "from-[#0c3b38] to-[#114b46]",   B: "from-[#114b46] to-[#25745f]",
+    C: "from-[#25745f] to-[#0c3b38]",   D: "from-[#0c3b38] to-[#25745f]",
+    E: "from-[#25745f] to-[#114b46]",   F: "from-[#114b46] to-[#0c3b38]",
+    G: "from-[#0c3b38] to-[#082c2a]",   H: "from-[#e07c00] to-[#ff9e1b]",
+    I: "from-[#ff9e1b] to-[#e07c00]",   J: "from-[#082c2a] to-[#0c3b38]",
+    K: "from-[#114b46] to-[#082c2a]",   L: "from-[#082c2a] to-[#114b46]",
 };
 function avatarGradient(name: string): string {
     const letter = name.trim().toUpperCase()[0] ?? "A";
-    return AVATAR_GRADIENTS[letter] ?? "from-violet-500 to-indigo-600";
+    return AVATAR_GRADIENTS[letter] ?? "from-[#0c3b38] to-[#114b46]";
 }
 
 // ─── Result Badge ─────────────────────────────────────────────────────────────
@@ -108,7 +107,7 @@ function ResultBadge({ result, resultMeta }: {
     result: string;
     resultMeta: Record<string, { label: string; color: string; bg: string; border: string }>;
 }) {
-    const meta = resultMeta[result] ?? { label: ACTION_RESULT_LABELS[result] ?? result, color: "#64748b", bg: "#f8fafc", border: "#e2e8f0" };
+    const meta = resultMeta[result] ?? { label: ACTION_RESULT_LABELS[result] ?? result, color: "#5c6e69", bg: "#f4f0e8", border: "#d6ccbc" };
     return (
         <span
             style={{ background: meta.bg, borderColor: meta.border, color: meta.color }}
@@ -147,7 +146,7 @@ function CallCard({ call, resultMeta, index }: {
     const name = [call.contact?.firstName, call.contact?.lastName].filter(Boolean).join(" ") || "—";
     const co = call.contact?.company?.name ?? "—";
     const dur = fmtDuration(call.duration ?? null);
-    const meta = resultMeta[call.result] ?? { color: "#64748b", bg: "#f8fafc", border: "#e2e8f0", label: "" };
+    const meta = resultMeta[call.result] ?? { color: "#5c6e69", bg: "#f4f0e8", border: "#d6ccbc", label: "" };
     const initials = getInitials(call.contact?.firstName, call.contact?.lastName);
     const grad = avatarGradient(name);
     const delay = `${index * 40}ms`;
@@ -230,8 +229,8 @@ function CallCard({ call, resultMeta, index }: {
             {/* Collapsible note */}
             {call.note && noteOpen && (
                 <div className="px-3.5 py-3 border-t border-[#EEF0F8]">
-                    <div className="rounded-xl border border-[#E8EBF0] bg-gradient-to-br from-violet-50/80 to-indigo-50/60 px-3 py-2.5">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-[#7C5CFC] mb-1">Note agent</p>
+                    <div className="rounded-xl border border-[rgba(12,59,56,0.12)] bg-gradient-to-br from-[#dbe4df] to-[#f4f0e8] px-3 py-2.5">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-[#0c3b38] mb-1">Note agent</p>
                         <p className="text-xs text-[#4B4D7A] italic leading-relaxed">&quot;{call.note}&quot;</p>
                     </div>
                 </div>
@@ -294,7 +293,7 @@ function DayBlock({ dateKey: dk, calls, statusOrder, resultMeta, defaultOpen = f
                 >
                     {/* Date chip – matching BreakdownCharts gradient style */}
                     <div className="flex-shrink-0 w-[52px] rounded-xl overflow-hidden text-center shadow-sm"
-                        style={{ background: "linear-gradient(135deg, #7C5CFC 0%, #4338CA 100%)" }}>
+                        style={{ background: "#0C3B38" }}>
                         <p className="text-[8px] font-bold uppercase tracking-widest text-white/60 pt-1.5 leading-none">{weekday}</p>
                         <p className="text-[22px] font-black text-white leading-tight">{dayNum}</p>
                         <p className="text-[8px] font-bold uppercase tracking-widest text-white/60 pb-1.5 leading-none">{month}</p>
@@ -435,10 +434,10 @@ function MissionSection({ missionName, calls, defaultOpen, statusOrder, resultMe
     const campaigns = [...new Set(calls.map((c) => c.campaign.name))];
 
     const kpis = [
-        { value: calls.length, label: "appels", from: "from-indigo-50", to: "to-violet-50", border: "border-indigo-100/60", text: "text-indigo-700" },
-        { value: byDay.length,  label: "jours",  from: "from-sky-50",    to: "to-cyan-50",   border: "border-sky-100/60",    text: "text-sky-700"   },
-        { value: meetings,      label: "RDV",    from: "from-emerald-50",to: "to-teal-50",   border: "border-emerald-100/60",text: "text-emerald-700"},
-        { value: `${convRate}%`,label: "taux",   from: "from-violet-50", to: "to-purple-50", border: "border-violet-100/60", text: "text-violet-700" },
+        { value: calls.length, label: "appels", from: "from-[#dbe4df]", to: "to-[#f4f0e8]", border: "border-[rgba(12,59,56,0.14)]", text: "text-[#0c3b38]" },
+        { value: byDay.length,  label: "jours",  from: "from-[#f4f0e8]", to: "to-[#ece5d8]", border: "border-[rgba(12,59,56,0.10)]", text: "text-[#394b46]" },
+        { value: meetings,      label: "RDV",    from: "from-[#ecfdf5]", to: "to-[#dbe4df]", border: "border-[rgba(37,116,95,0.18)]", text: "text-[#25745f]" },
+        { value: `${convRate}%`,label: "taux",   from: "from-[#fff8eb]", to: "to-[#fff1d6]", border: "border-[rgba(224,124,0,0.18)]", text: "text-[#e07c00]" },
     ];
 
     return (
@@ -449,8 +448,8 @@ function MissionSection({ missionName, calls, defaultOpen, statusOrder, resultMe
             {/* Mission header – mirrors BreakdownCharts header */}
             <div className="flex flex-wrap items-center justify-between gap-3 px-5 pt-4 pb-4 border-b border-[#E8EBF0]">
                 <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center shadow-sm shadow-violet-500/20 flex-shrink-0">
-                        <Target className="w-4.5 h-4.5 text-white" style={{ width: 18, height: 18 }} />
+                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#0c3b38] to-[#114b46] flex items-center justify-center shadow-sm shadow-[rgba(12,59,56,0.2)] flex-shrink-0">
+                        <Target className="w-4.5 h-4.5 text-[#f4f0e8]" style={{ width: 18, height: 18 }} />
                     </div>
                     <div className="min-w-0">
                         <h3 className="text-sm font-semibold text-[#12122A] uppercase tracking-wider truncate">
@@ -662,8 +661,8 @@ export default function ClientPortalActivitePage() {
             >
                 <div className="flex flex-wrap items-center justify-between gap-3 px-6 pt-5 pb-4 border-b border-[#E8EBF0]">
                     <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center shadow-sm shadow-violet-500/20">
-                            <PhoneCall className="w-4 h-4 text-white" />
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#0c3b38] to-[#114b46] flex items-center justify-center shadow-sm shadow-[rgba(12,59,56,0.2)]">
+                            <PhoneCall className="w-4 h-4 text-[#f4f0e8]" />
                         </div>
                         <div>
                             <h1 className="text-sm font-semibold text-[#12122A] uppercase tracking-wider">
@@ -712,9 +711,9 @@ export default function ClientPortalActivitePage() {
                             value: stats.total,
                             label: "Appels passés",
                             sub: `sur ${dateRange} jours`,
-                            bg: "from-indigo-50 to-violet-50",
-                            border: "border-indigo-100/60",
-                            text: "text-indigo-600",
+                            bg: "from-[#dbe4df] to-[#f4f0e8]",
+                            border: "border-[rgba(12,59,56,0.14)]",
+                            text: "text-[#0c3b38]",
                         },
                         {
                             icon: <CalendarDays className="w-3.5 h-3.5" />,
@@ -739,9 +738,9 @@ export default function ClientPortalActivitePage() {
                             value: stats.missions,
                             label: "Missions actives",
                             sub: "sur la période",
-                            bg: "from-violet-50 to-purple-50",
-                            border: "border-violet-100/60",
-                            text: "text-violet-600",
+                            bg: "from-[#fff8eb] to-[#fff1d6]",
+                            border: "border-[rgba(224,124,0,0.18)]",
+                            text: "text-[#e07c00]",
                         },
                     ].map(({ icon, value, label, sub, bg, border, text }, i) => (
                         <div

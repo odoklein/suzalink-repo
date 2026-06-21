@@ -51,9 +51,9 @@ const INTENT_STYLES: Record<
     { color: string; bg: string; border: string; icon: string; label: string }
 > = {
     RDV: {
-        color: "#4F46E5",
-        bg: "#ECE8FF",
-        border: "rgba(99,102,241,0.25)",
+        color: "#0C3B38",
+        bg: "#DBE4DF",
+        border: "rgba(12,59,56,0.2)",
         icon: "📅",
         label: "Question RDV",
     },

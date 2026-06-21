@@ -83,7 +83,7 @@ export default async function SharedReportPage({ params }: Props) {
         <div className="min-h-screen bg-gradient-to-br from-[#F8F9FC] via-[#F4F6F9] to-[#ECEEF4]">
             <div className="max-w-3xl mx-auto p-6 md:p-10 space-y-8">
                 {/* Header */}
-                <div className="relative overflow-hidden rounded-2xl shadow-xl" style={{ background: "linear-gradient(135deg, #1E1B4B 0%, #312E81 35%, #4338CA 70%, #6366F1 100%)" }}>
+                <div className="relative overflow-hidden rounded-2xl shadow-xl" style={{ background: "#0C3B38" }}>
                     <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-white/5 -translate-y-1/2 translate-x-1/3" />
                     <div className="absolute bottom-0 left-0 w-32 h-32 rounded-full bg-white/5 translate-y-1/2 -translate-x-1/4" />
                     <div className="relative p-8 text-center">

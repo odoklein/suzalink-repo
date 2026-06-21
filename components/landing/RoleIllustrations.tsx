@@ -10,8 +10,8 @@ export const SDRIllustration = ({ className }: { className?: string }) => (
         <rect x="70" y="70" width="60" height="60" rx="12" stroke="currentColor" strokeWidth="4" className="text-slate-400/50" />
         <defs>
             <linearGradient id="sdr-gradient" x1="100" y1="0" x2="100" y2="200" gradientUnits="userSpaceOnUse">
-                <stop stopColor="#6366f1" />
-                <stop offset="1" stopColor="#818cf8" stopOpacity="0" />
+                <stop stopColor="#0c3b38" />
+                <stop offset="1" stopColor="#25745f" stopOpacity="0" />
             </linearGradient>
         </defs>
     </svg>
@@ -21,15 +21,15 @@ export const ManagerIllustration = ({ className }: { className?: string }) => (
     <svg viewBox="0 0 200 200" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
         <rect x="40" y="40" width="120" height="120" rx="16" fill="url(#manager-gradient)" fillOpacity="0.1" />
         <path d="M60 140V110" stroke="currentColor" strokeWidth="8" strokeLinecap="round" className="text-blue-400" />
-        <path d="M90 140V90" stroke="currentColor" strokeWidth="8" strokeLinecap="round" className="text-indigo-500" />
-        <path d="M120 140V70" stroke="currentColor" strokeWidth="8" strokeLinecap="round" className="text-violet-500" />
-        <path d="M150 140V100" stroke="currentColor" strokeWidth="8" strokeLinecap="round" className="text-purple-500" />
+        <path d="M90 140V90" stroke="currentColor" strokeWidth="8" strokeLinecap="round" className="text-[#25745f]" />
+        <path d="M120 140V70" stroke="currentColor" strokeWidth="8" strokeLinecap="round" className="text-[#0c3b38]" />
+        <path d="M150 140V100" stroke="currentColor" strokeWidth="8" strokeLinecap="round" className="text-[#ff9e1b]" />
         <path d="M50 140H150" stroke="currentColor" strokeWidth="4" strokeLinecap="round" className="text-slate-300" />
         <circle cx="160" cy="40" r="20" fill="currentColor" fillOpacity="0.2" className="text-yellow-400" />
         <defs>
             <linearGradient id="manager-gradient" x1="100" y1="40" x2="100" y2="160" gradientUnits="userSpaceOnUse">
-                <stop stopColor="#3b82f6" />
-                <stop offset="1" stopColor="#8b5cf6" stopOpacity="0" />
+                <stop stopColor="#0c3b38" />
+                <stop offset="1" stopColor="#ff9e1b" stopOpacity="0" />
             </linearGradient>
         </defs>
     </svg>
@@ -86,8 +86,8 @@ export const DeveloperIllustration = ({ className }: { className?: string }) => 
 
         <defs>
             <linearGradient id="dev-gradient" x1="130" y1="110" x2="190" y2="170" gradientUnits="userSpaceOnUse">
-                <stop stopColor="#6366f1" />
-                <stop offset="1" stopColor="#ec4899" />
+                <stop stopColor="#0c3b38" />
+                <stop offset="1" stopColor="#ff9e1b" />
             </linearGradient>
         </defs>
     </svg>

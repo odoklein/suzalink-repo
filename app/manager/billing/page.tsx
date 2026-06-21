@@ -333,8 +333,8 @@ export default function BillingDashboardPage() {
                             <AreaChart data={monthlyRevenue}>
                                 <defs>
                                     <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="0%" stopColor="#6366f1" stopOpacity={0.2} />
-                                        <stop offset="100%" stopColor="#6366f1" stopOpacity={0} />
+                                        <stop offset="0%" stopColor="#0c3b38" stopOpacity={0.2} />
+                                        <stop offset="100%" stopColor="#0c3b38" stopOpacity={0} />
                                     </linearGradient>
                                 </defs>
                                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
@@ -364,11 +364,11 @@ export default function BillingDashboardPage() {
                                 <Area
                                     type="monotone"
                                     dataKey="revenue"
-                                    stroke="#6366f1"
+                                    stroke="#0c3b38"
                                     strokeWidth={2.5}
                                     fill="url(#revenueGrad)"
-                                    dot={{ r: 4, fill: "white", stroke: "#6366f1", strokeWidth: 2 }}
-                                    activeDot={{ r: 6, fill: "#6366f1", stroke: "white", strokeWidth: 3 }}
+                                    dot={{ r: 4, fill: "white", stroke: "#0c3b38", strokeWidth: 2 }}
+                                    activeDot={{ r: 6, fill: "#0c3b38", stroke: "white", strokeWidth: 3 }}
                                 />
                             </AreaChart>
                         </ResponsiveContainer>

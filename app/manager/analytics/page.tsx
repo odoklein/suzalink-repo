@@ -16,9 +16,9 @@ import { DataTable } from "@/components/ui/DataTable";
 import { Modal } from "@/components/ui";
 
 const SDR_COLORS: Record<string, string> = {
-    'Mathieu Deville': '#7C5CFC', // updated to violet
-    'Rayan': '#059669', // emerald
-    'Anaïs': '#A78BFA', // lighter violet
+    'Mathieu Deville': '#0c3b38',
+    'Rayan': '#059669',
+    'Anaïs': '#ff9e1b',
 };
 const getSdrColor = (name: string) => SDR_COLORS[name] || '#94A3B8';
 
@@ -91,7 +91,7 @@ export default function AnalyticsPage() {
 
     // Status labels from mission config (or global fallback)
     const defaultColors: Record<string, string> = {
-        NO_RESPONSE: "#60a5fa", BAD_CONTACT: "#a78bfa", INTERESTED: "#f59e0b",
+        NO_RESPONSE: "#60a5fa", BAD_CONTACT: "#5c6e69", INTERESTED: "#f59e0b",
         CALLBACK_REQUESTED: "#f59e0b", MEETING_BOOKED: "#10b981",
         MEETING_CANCELLED: "#94a3b8", DISQUALIFIED: "#ef4444",
         ENVOIE_MAIL: "#94a3b8", NOT_INTERESTED: "#94a3b8",
@@ -669,12 +669,12 @@ export default function AnalyticsPage() {
             </div>
 
             {/* AI Hero Banner */}
-            <div className="relative overflow-hidden rounded-2xl p-6 lg:p-8 mb-6 shadow-xl" style={{ background: "linear-gradient(145deg, #16103A 0%, #1A1040 40%, #08051E 100%)" }}>
-                <div className="absolute -top-32 -right-32 w-80 h-80 rounded-full blur-3xl opacity-30 pointer-events-none" style={{ background: "radial-gradient(circle, #7C5CFC, transparent 70%)" }} />
-                <div className="absolute -bottom-32 -left-32 w-72 h-72 rounded-full blur-3xl opacity-20 pointer-events-none" style={{ background: "radial-gradient(circle, #A78BFA, transparent 70%)" }} />
+            <div className="relative overflow-hidden rounded-2xl p-6 lg:p-8 mb-6 shadow-xl" style={{ background: "#0C3B38" }}>
+                <div className="absolute -top-32 -right-32 w-80 h-80 rounded-full blur-3xl opacity-30 pointer-events-none" style={{ background: "radial-gradient(circle, #FF9E1B, transparent 70%)" }} />
+                <div className="absolute -bottom-32 -left-32 w-72 h-72 rounded-full blur-3xl opacity-20 pointer-events-none" style={{ background: "radial-gradient(circle, #F4F0E8, transparent 70%)" }} />
 
                 <button
-                    className="absolute top-6 right-6 flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-violet-600/80 to-indigo-600/80 hover:from-violet-500/90 hover:to-indigo-500/90 border border-violet-400/30 text-white transition-all text-[12px] font-bold backdrop-blur-sm z-20 disabled:opacity-60 shadow-lg shadow-violet-900/30"
+                    className="absolute top-6 right-6 flex items-center gap-2 px-4 py-2 rounded-xl bg-[#FF9E1B] hover:bg-[#F09212] border border-[#E07C00] text-[#15201E] transition-all text-[12px] font-bold z-20 disabled:opacity-60 shadow-lg"
                     onClick={() => fetchAiRecap()}
                     disabled={isLoadingAiRecap}
                 >
@@ -682,8 +682,8 @@ export default function AnalyticsPage() {
                 </button>
 
                 <div className="relative z-10 flex items-center gap-3 mb-5">
-                    <div className="flex items-center gap-2 bg-violet-600/30 border border-violet-500/50 text-violet-200 px-3 py-1.5 rounded-full text-[11px] font-bold tracking-wider">
-                        <Sparkles className="w-3.5 h-3.5 text-violet-400" />
+                    <div className="flex items-center gap-2 bg-[#FF9E1B]/15 border border-[#FF9E1B]/40 text-[#FF9E1B] px-3 py-1.5 rounded-full text-[11px] font-bold tracking-wider">
+                        <Sparkles className="w-3.5 h-3.5 text-[#FF9E1B]" />
                         ANALYSE IA
                     </div>
                     <span className="text-[13px] font-medium text-white/50">Analyse des notes et statuts</span>
@@ -971,8 +971,8 @@ export default function AnalyticsPage() {
                     <div className="h-10 mt-5 -mx-1">
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart data={dailyData}>
-                                <defs><linearGradient id="gViolet" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#7c3aed" stopOpacity={0.2} /><stop offset="100%" stopColor="#7c3aed" stopOpacity={0} /></linearGradient></defs>
-                                <Area type="monotone" dataKey="calls" stroke="#7c3aed" strokeWidth={2.5} fillOpacity={1} fill="url(#gViolet)" />
+                                <defs><linearGradient id="gPetrol" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#0c3b38" stopOpacity={0.2} /><stop offset="100%" stopColor="#0c3b38" stopOpacity={0} /></linearGradient></defs>
+                                <Area type="monotone" dataKey="calls" stroke="#0c3b38" strokeWidth={2.5} fillOpacity={1} fill="url(#gPetrol)" />
                             </AreaChart>
                         </ResponsiveContainer>
                     </div>
@@ -1069,7 +1069,7 @@ export default function AnalyticsPage() {
                                     </div>
                                 </div>
                                 <div className="h-2 bg-slate-100 rounded-full overflow-hidden mb-3">
-                                    <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${pct}%`, background: isHot ? "linear-gradient(90deg, #7C5CFC, #A78BFA)" : (pct >= 50 ? "#F59E0B" : "#CBD5E1") }} />
+                                    <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${pct}%`, background: isHot ? "linear-gradient(90deg, #FF9E1B, #E07C00)" : (pct >= 50 ? "#F59E0B" : "#B8C2BD") }} />
                                 </div>
                                 <div className="flex justify-between items-center text-[11px] font-semibold text-slate-500">
                                     <div className="flex gap-3">
@@ -1106,13 +1106,13 @@ export default function AnalyticsPage() {
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart data={dailyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                 <defs>
-                                    <linearGradient id="gV" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#7C5CFC" stopOpacity={0.15} /><stop offset="100%" stopColor="#7C5CFC" stopOpacity={0} /></linearGradient>
+                                    <linearGradient id="gV" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#0c3b38" stopOpacity={0.15} /><stop offset="100%" stopColor="#0c3b38" stopOpacity={0} /></linearGradient>
                                 </defs>
                                 <CartesianGrid stroke="#f1f5f9" vertical={false} />
                                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8', fontWeight: 600 }} dy={10} />
                                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8', fontWeight: 600 }} />
                                 <RechartsTooltip contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', fontSize: '12px', fontWeight: 600, padding: '10px 14px' }} />
-                                <Area type="monotone" dataKey="calls" stroke="#7C5CFC" strokeWidth={2.5} fillOpacity={1} fill="url(#gV)" />
+                                <Area type="monotone" dataKey="calls" stroke="#0c3b38" strokeWidth={2.5} fillOpacity={1} fill="url(#gV)" />
                                 <Area type="monotone" dataKey="meetings" stroke="#F59E0B" strokeWidth={2.5} fillOpacity={0} />
                             </AreaChart>
                         </ResponsiveContainer>
@@ -1241,8 +1241,8 @@ export default function AnalyticsPage() {
                 </div>
                 <div className="flex items-end gap-1 justify-center">
                     {[
-                        { label: 'Appels', value: funnel?.totalCalls || 0, color: '#6366f1', bg: 'bg-indigo-50' },
-                        { label: 'Contacts', value: funnel?.contacts || 0, color: '#8b5cf6', bg: 'bg-violet-50' },
+                        { label: 'Appels', value: funnel?.totalCalls || 0, color: '#0c3b38', bg: 'bg-[#dbe4df]' },
+                        { label: 'Contacts', value: funnel?.contacts || 0, color: '#25745f', bg: 'bg-[#e6ede9]' },
                         { label: 'Opportunités', value: funnel?.opportunities || 0, color: '#f59e0b', bg: 'bg-amber-50' },
                         { label: 'RDV', value: funnel?.meetings || 0, color: '#10b981', bg: 'bg-emerald-50' },
                     ].map((step, i, arr) => {

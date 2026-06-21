@@ -126,8 +126,8 @@ export function BreakdownCharts() {
             {/* ── Header ── */}
             <div className="flex flex-wrap items-center justify-between gap-3 px-6 pt-5 pb-4 border-b border-[#E8EBF0]">
                 <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center shadow-sm shadow-violet-500/20">
-                        <BarChart3 className="w-4 h-4 text-white" />
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#0c3b38] to-[#114b46] flex items-center justify-center shadow-sm shadow-[rgba(12,59,56,0.2)]">
+                        <BarChart3 className="w-4 h-4 text-[#f4f0e8]" />
                     </div>
                     <div>
                         <h2 className="text-sm font-semibold text-[#12122A] uppercase tracking-wider">
@@ -166,21 +166,21 @@ export function BreakdownCharts() {
                             icon: <Phone className="w-3.5 h-3.5" />,
                             value: data?.totalCalls,
                             label: "Appels passés",
-                            from: "from-indigo-400",
-                            to: "to-violet-500",
-                            bg: "from-indigo-50 to-violet-50",
-                            border: "border-indigo-100/60",
-                            text: "text-indigo-600",
+                            from: "from-[#0c3b38]",
+                            to: "to-[#114b46]",
+                            bg: "from-[#dbe4df] to-[#f4f0e8]",
+                            border: "border-[rgba(12,59,56,0.14)]",
+                            text: "text-[#0c3b38]",
                         },
                         {
                             icon: <CalendarCheck className="w-3.5 h-3.5" />,
                             value: data?.totalRdv,
                             label: "RDV décrochés",
-                            from: "from-violet-500",
-                            to: "to-purple-600",
-                            bg: "from-violet-50 to-purple-50",
-                            border: "border-violet-100/60",
-                            text: "text-violet-600",
+                            from: "from-[#e07c00]",
+                            to: "to-[#ff9e1b]",
+                            bg: "from-[#fff8eb] to-[#fff1d6]",
+                            border: "border-[rgba(224,124,0,0.18)]",
+                            text: "text-[#e07c00]",
                         },
                         {
                             icon: <TrendingUp className="w-3.5 h-3.5" />,
@@ -258,11 +258,11 @@ export function BreakdownCharts() {
                         {/* Legend */}
                         <div className="flex items-center gap-5 mb-3 text-[11px] font-medium text-[#8B8DAF]">
                             <div className="flex items-center gap-1.5">
-                                <div className="w-3 h-2.5 rounded-sm bg-gradient-to-r from-indigo-300 to-indigo-400 opacity-80" />
+                                <div className="w-3 h-2.5 rounded-sm bg-gradient-to-r from-[#a8bdb4] to-[#8d9b96] opacity-80" />
                                 Appels
                             </div>
                             <div className="flex items-center gap-1.5">
-                                <div className="w-3 h-2.5 rounded-sm bg-gradient-to-r from-violet-500 to-purple-600" />
+                                <div className="w-3 h-2.5 rounded-sm bg-gradient-to-r from-[#e07c00] to-[#ff9e1b]" />
                                 RDV décrochés
                             </div>
                             <div className="flex items-center gap-1.5 ml-auto">
@@ -297,7 +297,7 @@ export function BreakdownCharts() {
                                     </div>
 
                                     {/* Combined bar */}
-                                    <div className="flex-1 h-7 rounded-lg bg-[#EEF0F8] overflow-hidden relative">
+                                    <div className="flex-1 h-7 rounded-lg bg-[#ece5d8] overflow-hidden relative">
                                         <div
                                             className="h-full flex rounded-lg overflow-hidden transition-all ease-out duration-700"
                                             style={{
@@ -305,10 +305,9 @@ export function BreakdownCharts() {
                                                 transitionDelay: delay,
                                             }}
                                         >
-                                            {/* RDV portion — leftmost, violet */}
                                             {item.rdv > 0 && (
                                                 <div
-                                                    className="h-full bg-gradient-to-r from-violet-500 to-purple-500 flex items-center justify-center overflow-hidden shrink-0"
+                                                    className="h-full bg-gradient-to-r from-[#e07c00] to-[#ff9e1b] flex items-center justify-center overflow-hidden shrink-0"
                                                     style={{ width: `${rdvPct}%` }}
                                                 >
                                                     {rdvPct > 18 && (
@@ -318,8 +317,7 @@ export function BreakdownCharts() {
                                                     )}
                                                 </div>
                                             )}
-                                            {/* Remaining calls — indigo */}
-                                            <div className="h-full flex-1 bg-gradient-to-r from-indigo-300 to-indigo-400 opacity-70" />
+                                            <div className="h-full flex-1 bg-gradient-to-r from-[#a8bdb4] to-[#8d9b96] opacity-70" />
                                         </div>
 
                                         {/* Inline calls count on bar if wide enough */}
@@ -334,8 +332,8 @@ export function BreakdownCharts() {
                                     <div className="w-[68px] shrink-0 flex flex-col items-end gap-0.5">
                                         <div className="flex items-center gap-1 text-[11px] font-bold text-[#12122A]">
                                             <span>{item.calls}</span>
-                                            <span className="text-[#C0C3D8] font-normal">·</span>
-                                            <span className="text-[#7C5CFC]">{item.rdv}</span>
+                                            <span className="text-[#b8c2bd] font-normal">·</span>
+                                            <span className="text-[#e07c00]">{item.rdv}</span>
                                         </div>
                                         <RateChip rate={item.rate} />
                                     </div>

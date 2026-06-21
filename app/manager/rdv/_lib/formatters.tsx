@@ -6,8 +6,8 @@ export function hashColor(str: string): string {
   let h = 0;
   for (let i = 0; i < str.length; i++) h = str.charCodeAt(i) + ((h << 5) - h);
   const colors = [
-    "#6C63FF", "#059669", "#D97706", "#DC2626", "#2563EB",
-    "#DB2777", "#7C3AED", "#0D9488", "#EA580C", "#0891B2",
+    "#0c3b38", "#059669", "#D97706", "#DC2626", "#2563EB",
+    "#ff9e1b", "#25745f", "#0D9488", "#EA580C", "#0891B2",
   ];
   return colors[Math.abs(h) % colors.length];
 }

@@ -49,9 +49,9 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; 
 };
 
 const PRESET_COLORS = [
-    "#6366f1", "#8b5cf6", "#a855f7", "#ec4899", "#f43f5e",
+    "#0c3b38", "#25745f", "#ff9e1b", "#e07c00", "#b9433e",
     "#ef4444", "#f97316", "#eab308", "#22c55e", "#14b8a6",
-    "#06b6d4", "#3b82f6", "#0ea5e9", "#64748b",
+    "#06b6d4", "#3b82f6", "#0ea5e9", "#5c6e69",
 ];
 
 // ============================================
@@ -76,7 +76,7 @@ export default function ManagerProjectsPage() {
         name: "",
         description: "",
         clientId: "",
-        color: "#6366f1",
+        color: "#0c3b38",
         startDate: "",
         endDate: "",
         memberIds: [] as string[],
@@ -134,7 +134,7 @@ export default function ManagerProjectsPage() {
             if (json.success) {
                 success("Projet créé", createForm.name);
                 setShowCreate(false);
-                setCreateForm({ name: "", description: "", clientId: "", color: "#6366f1", startDate: "", endDate: "", memberIds: [] });
+                setCreateForm({ name: "", description: "", clientId: "", color: "#0c3b38", startDate: "", endDate: "", memberIds: [] });
                 fetchProjects();
             } else {
                 showError("Erreur", json.error || "Impossible de créer le projet");
@@ -194,7 +194,7 @@ export default function ManagerProjectsPage() {
             {/* Header */}
             <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-200">
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-[rgba(12,59,56,0.15)]">
                         <FolderKanban className="w-6 h-6 text-white" />
                     </div>
                     <div>
@@ -206,8 +206,8 @@ export default function ManagerProjectsPage() {
                 </div>
                 <button
                     onClick={() => setShowCreate(true)}
-                    className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white rounded-xl transition-all shadow-lg shadow-indigo-200 hover:shadow-xl hover:shadow-indigo-300 hover:scale-[1.02]"
-                    style={{ background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)" }}
+                    className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white rounded-xl transition-all shadow-lg shadow-[rgba(12,59,56,0.15)] hover:shadow-xl hover:shadow-[rgba(12,59,56,0.22)] hover:scale-[1.02]"
+                    style={{ background: "linear-gradient(135deg, #0c3b38 0%, #25745f 100%)" }}
                 >
                     <Plus className="w-4 h-4" />
                     Nouveau projet
@@ -310,7 +310,7 @@ export default function ManagerProjectsPage() {
                     </p>
                     <button
                         onClick={() => setShowCreate(true)}
-                        className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-lg shadow-indigo-200 transition-all"
+                        className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-lg shadow-[rgba(12,59,56,0.15)] transition-all"
                     >
                         <Plus className="w-4 h-4" />
                         Créer un projet
@@ -456,8 +456,8 @@ export default function ManagerProjectsPage() {
                     <button
                         onClick={handleCreate}
                         disabled={!createForm.name.trim() || creating}
-                        className="px-5 py-2.5 text-sm font-semibold text-white rounded-xl disabled:opacity-50 flex items-center gap-2 transition-all shadow-lg shadow-indigo-200"
-                        style={{ background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)" }}
+                        className="px-5 py-2.5 text-sm font-semibold text-white rounded-xl disabled:opacity-50 flex items-center gap-2 transition-all shadow-lg shadow-[rgba(12,59,56,0.15)]"
+                        style={{ background: "linear-gradient(135deg, #0c3b38 0%, #25745f 100%)" }}
                     >
                         {creating && <Loader2 className="w-4 h-4 animate-spin" />}
                         Créer le projet

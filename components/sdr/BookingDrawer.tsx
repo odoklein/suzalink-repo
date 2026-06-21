@@ -99,12 +99,12 @@ interface CalendarOption {
 }
 
 const AVATAR_COLORS = [
-    "bg-indigo-100 text-indigo-700",
-    "bg-rose-100 text-rose-700",
+    "bg-[#dbe4df] text-[#0c3b38]",
+    "bg-[#fff1d6] text-[#e07c00]",
     "bg-emerald-100 text-emerald-700",
     "bg-amber-100 text-amber-700",
-    "bg-purple-100 text-purple-700",
-    "bg-cyan-100 text-cyan-700",
+    "bg-[#ece5d8] text-[#394b46]",
+    "bg-[#f4f0e8] text-[#5c6e69]",
 ];
 
 function hashStr(s: string) {

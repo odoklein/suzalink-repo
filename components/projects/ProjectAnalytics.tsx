@@ -24,17 +24,17 @@ interface ProjectAnalyticsProps {
 }
 
 const STATUS_COLORS = {
-    "À faire": "#94a3b8",
-    "En cours": "#3b82f6",
-    "En revue": "#f59e0b",
-    "Terminé": "#10b981",
+    "À faire": "#8d9b96",
+    "En cours": "#0c3b38",
+    "En revue": "#e07c00",
+    "Terminé": "#25745f",
 };
 
 const PRIORITY_COLORS = {
-    Basse: "#94a3b8",
-    Moyenne: "#3b82f6",
-    Haute: "#f97316",
-    Urgent: "#ef4444",
+    Basse: "#8d9b96",
+    Moyenne: "#0c3b38",
+    Haute: "#e07c00",
+    Urgent: "#b9433e",
 };
 
 export function ProjectAnalytics({ taskStats, className }: ProjectAnalyticsProps) {
@@ -194,8 +194,8 @@ export function ProjectAnalytics({ taskStats, className }: ProjectAnalyticsProps
                                         name === "completed" ? "Terminées" : "Restantes",
                                     ]}
                                 />
-                                <Bar dataKey="completed" stackId="a" fill="#10b981" radius={[0, 0, 0, 0]} />
-                                <Bar dataKey="remaining" stackId="a" fill="#e2e8f0" radius={[0, 4, 4, 0]} />
+                                <Bar dataKey="completed" stackId="a" fill="#25745f" radius={[0, 0, 0, 0]} />
+                                <Bar dataKey="remaining" stackId="a" fill="#ece5d8" radius={[0, 4, 4, 0]} />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>

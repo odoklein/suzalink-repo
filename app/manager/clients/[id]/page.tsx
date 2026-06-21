@@ -231,14 +231,14 @@ interface SessionTask {
 const ROLE_BADGE_COLORS: Record<string, { color: string; bg: string; label: string }> = {
     SDR: { color: "#10B981", bg: "rgba(16,185,129,0.1)", label: "SDR" },
     MANAGER: { color: "#F59E0B", bg: "rgba(245,158,11,0.1)", label: "Manager" },
-    DEV: { color: "#3B82F6", bg: "rgba(59,130,246,0.1)", label: "Dev" },
-    ALWAYS: { color: "#8B5CF6", bg: "rgba(139,92,246,0.1)", label: "Tous" },
+    DEV: { color: "#0C3B38", bg: "rgba(219,228,223,0.7)", label: "Dev" },
+    ALWAYS: { color: "#0C3B38", bg: "rgba(219,228,223,0.7)", label: "Tous" },
 };
 
 const PRIORITY_INDICATOR: Record<string, { color: string; label: string }> = {
     URGENT: { color: "#EF4444", label: "⚡" },
     HIGH: { color: "#F59E0B", label: "↑" },
-    MEDIUM: { color: "#3B82F6", label: "→" },
+    MEDIUM: { color: "#0C3B38", label: "→" },
     LOW: { color: "#6B7280", label: "↓" },
 };
 
@@ -258,19 +258,19 @@ interface ClientSession {
 }
 
 const SESSION_TYPE_COLORS: Record<SessionType, string> = {
-    "Kick-Off":  "bg-indigo-100 text-indigo-700 border-indigo-200",
+    "Kick-Off":  "bg-[#dbe4df] text-[#0c3b38] border-[rgba(12,59,56,.18)]",
     "Onboarding":"bg-emerald-100 text-emerald-700 border-emerald-200",
-    "Validation":"bg-pink-100 text-pink-700 border-pink-200",
+    "Validation":"bg-[#fff1d6] text-[#e07c00] border-[rgba(224,124,0,.22)]",
     "Reporting": "bg-amber-100 text-amber-700 border-amber-200",
-    "Suivi":     "bg-slate-100 text-slate-600 border-slate-200",
-    "Autre":     "bg-purple-100 text-purple-700 border-purple-200",
+    "Suivi":     "bg-[#ece5d8] text-[#5c6e69] border-[rgba(21,32,30,0.13)]",
+    "Autre":     "bg-[#f4f0e8] text-[#394b46] border-[rgba(12,59,56,.14)]",
 };
 
 const SESSION_MARKDOWN_CLASS =
     "prose prose-sm prose-slate max-w-none text-slate-800 " +
     "[&_h1]:text-slate-900 [&_h2]:text-slate-900 [&_h3]:text-slate-900 [&_h4]:text-slate-900 " +
     "[&_p]:text-slate-700 [&_li]:text-slate-700 [&_strong]:text-slate-900 " +
-    "[&_a]:text-indigo-700 [&_a]:underline [&_code]:text-slate-900 [&_pre]:text-slate-900 [&_blockquote]:text-slate-700";
+    "[&_a]:text-[#0c3b38] [&_a]:underline [&_code]:text-slate-900 [&_pre]:text-slate-900 [&_blockquote]:text-slate-700";
 
 const CHANNEL_LABELS = { CALL: "Appel", EMAIL: "Email", LINKEDIN: "LinkedIn" };
 
@@ -1955,12 +1955,12 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
                                                     const primaryPhone = interl.phones.find(p => p.isPrimary) || interl.phones[0];
                                                     const hash = interl.id.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
                                                     const avatarColors = [
-                                                        "bg-indigo-100 text-indigo-700",
-                                                        "bg-rose-100 text-rose-700",
+                                                        "bg-[#dbe4df] text-[#0c3b38]",
+                                                        "bg-[#fff1d6] text-[#e07c00]",
                                                         "bg-emerald-100 text-emerald-700",
                                                         "bg-amber-100 text-amber-700",
-                                                        "bg-purple-100 text-purple-700",
-                                                        "bg-cyan-100 text-cyan-700",
+                                                        "bg-[#ece5d8] text-[#394b46]",
+                                                        "bg-[#f4f0e8] text-[#5c6e69]",
                                                     ];
                                                     const avatarColor = avatarColors[hash % avatarColors.length];
                                                     return (
