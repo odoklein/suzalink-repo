@@ -33,16 +33,24 @@ const CHANNEL_ICONS: Record<CommsChannelType, typeof Target> = {
     BROADCAST: Megaphone,
 };
 
+const CHANNEL_COLORS: Record<CommsChannelType, string> = {
+    MISSION: "bg-[#0C3B38]/10 text-[#0C3B38]",
+    CLIENT: "bg-emerald-50 text-emerald-700",
+    CAMPAIGN: "bg-amber-50 text-amber-700",
+    GROUP: "bg-violet-50 text-violet-700",
+    DIRECT: "bg-[#0C3B38]/8 text-[#0C3B38]",
+    BROADCAST: "bg-orange-50 text-orange-700",
+};
+
 const CHANNEL_TAGS: Record<CommsChannelType, string> = {
     MISSION: "Mission",
     CLIENT: "Client",
     CAMPAIGN: "Campagne",
     GROUP: "Groupe",
     DIRECT: "Direct",
-    BROADCAST: "Inbound",
+    BROADCAST: "Annonce",
 };
 
-// Get display name for a thread
 function getThreadDisplayName(thread: CommsThreadListItem, _currentUserId?: string): string {
     if (thread.channelType === "DIRECT") {
         if (thread.otherParticipantName) return thread.otherParticipantName;
@@ -53,7 +61,6 @@ function getThreadDisplayName(thread: CommsThreadListItem, _currentUserId?: stri
     return thread.channelName;
 }
 
-// Short relative time (5m, 1h, Yesterday, 2d ago)
 function formatShortTime(date: Date): string {
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
@@ -69,6 +76,10 @@ function formatShortTime(date: Date): string {
     return formatDistanceToNow(date, { addSuffix: false, locale: fr });
 }
 
+function getInitials(name: string): string {
+    return name.trim().split(/\s+/).map((n) => n[0]).join("").toUpperCase().slice(0, 2) || "?";
+}
+
 export function ThreadList({
     threads,
     selectedId,
@@ -78,16 +89,16 @@ export function ThreadList({
 }: ThreadListProps) {
     if (isLoading) {
         return (
-            <div className="space-y-0">
+            <div className="space-y-0 p-2">
                 {[1, 2, 3, 4, 5].map((i) => (
                     <div
                         key={i}
-                        className="flex items-start gap-3 p-4 border-b border-slate-100 dark:border-slate-800 animate-pulse"
+                        className="flex items-start gap-3 p-3.5 rounded-xl animate-pulse"
                     >
-                        <div className="size-10 rounded-full bg-slate-200 dark:bg-slate-700 shrink-0 mt-1" />
-                        <div className="flex-1 space-y-2">
-                            <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-3/4" />
-                            <div className="h-3 bg-slate-100 dark:bg-slate-800 rounded w-1/2" />
+                        <div className="size-10 rounded-full bg-slate-100 shrink-0" />
+                        <div className="flex-1 space-y-2 pt-1">
+                            <div className="h-3.5 bg-slate-100 rounded-md w-3/4" />
+                            <div className="h-3 bg-slate-50 rounded-md w-1/2" />
                         </div>
                     </div>
                 ))}
@@ -98,13 +109,13 @@ export function ThreadList({
     if (threads.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center py-16 px-4">
-                <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-4">
-                    <MessageCircle className="w-8 h-8 text-slate-400" />
+                <div className="w-14 h-14 rounded-2xl bg-[#ECE5D8] flex items-center justify-center mb-4">
+                    <MessageCircle className="w-7 h-7 text-[#8B8BA7]" />
                 </div>
-                <p className="text-base font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <p className="text-[14px] font-semibold text-[#12122A] mb-1">
                     Aucune discussion
                 </p>
-                <p className="text-sm text-slate-500 text-center">
+                <p className="text-[13px] text-[#8B8BA7] text-center">
                     Les conversations apparaîtront ici
                 </p>
             </div>
@@ -112,7 +123,7 @@ export function ThreadList({
     }
 
     return (
-        <div className="flex flex-col">
+        <div className="flex flex-col p-1.5 gap-0.5">
             {threads.map((thread) => {
                 const ChannelIcon = CHANNEL_ICONS[thread.channelType];
                 const isSelected = selectedId === thread.id;
@@ -130,101 +141,96 @@ export function ThreadList({
                         key={thread.id}
                         onClick={() => onSelect(thread)}
                         className={cn(
-                            "w-full text-left flex items-start gap-3 p-4 border-b border-slate-100 dark:border-slate-800",
-                            "hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer relative group transition-colors",
-                            isSelected && "bg-indigo-500/5 dark:bg-indigo-500/10",
-                            !isSelected && hasUnread && "bg-slate-50/50 dark:bg-slate-800/30"
+                            "w-full text-left flex items-start gap-3 p-3 rounded-xl relative group transition-all duration-200",
+                            isSelected
+                                ? "bg-[#0C3B38]/[0.06] shadow-sm"
+                                : "hover:bg-[#F4F0E8]/60",
+                            hasUnread && !isSelected && "bg-[#FFF9F0]/50"
                         )}
                     >
-                        {/* Active indicator - left accent bar */}
                         {isSelected && (
-                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-indigo-500 rounded-r" />
+                            <div className="absolute left-0 top-3 bottom-3 w-[3px] bg-[#0C3B38] rounded-r-full" />
                         )}
 
-                        {/* Avatar - circular like inspo */}
                         <div
                             className={cn(
-                                "size-10 rounded-full flex items-center justify-center shrink-0 mt-0.5 flex-shrink-0",
+                                "size-10 rounded-full flex items-center justify-center shrink-0 transition-all duration-200",
                                 thread.channelType === "DIRECT"
-                                    ? "bg-gradient-to-br from-indigo-100 to-indigo-200 dark:from-indigo-900/50 dark:to-indigo-800/50 text-indigo-600 dark:text-indigo-400 font-semibold text-sm"
-                                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
+                                    ? "bg-gradient-to-br from-[#0C3B38] to-[#25745f] text-white text-[13px] font-bold shadow-sm"
+                                    : cn("shadow-sm", CHANNEL_COLORS[thread.channelType])
                             )}
                         >
                             {thread.channelType === "DIRECT" ? (
-                                displayName.charAt(0).toUpperCase()
+                                getInitials(displayName)
                             ) : (
-                                <ChannelIcon className="w-5 h-5" />
+                                <ChannelIcon className="w-4.5 h-4.5" />
                             )}
                         </div>
 
-                        {/* Content */}
                         <div className="flex flex-col flex-1 min-w-0">
-                            <div className="flex justify-between items-baseline mb-0.5 gap-2">
+                            <div className="flex justify-between items-center mb-0.5 gap-2">
                                 <p
                                     className={cn(
-                                        "text-sm truncate pr-2",
+                                        "text-[13px] truncate",
                                         hasUnread
-                                            ? "font-semibold text-slate-900 dark:text-white"
-                                            : "font-medium text-slate-900 dark:text-white"
+                                            ? "font-bold text-[#12122A]"
+                                            : "font-semibold text-[#12122A]"
                                     )}
                                 >
                                     {displayName}
                                 </p>
-                                {hasUnread ? (
-                                    <span className="size-2 rounded-full bg-emerald-500 shrink-0 mt-1.5" />
-                                ) : (
-                                    <span
-                                        className={cn(
-                                            "text-xs shrink-0",
-                                            isSelected
-                                                ? "text-indigo-600 dark:text-indigo-400 font-medium"
-                                                : "text-slate-400 font-normal"
-                                        )}
-                                    >
-                                        {formatShortTime(updatedDate)}
-                                    </span>
-                                )}
+                                <span
+                                    className={cn(
+                                        "text-[11px] shrink-0 font-medium",
+                                        hasUnread
+                                            ? "text-[#0C3B38] font-semibold"
+                                            : "text-[#8B8BA7]"
+                                    )}
+                                >
+                                    {formatShortTime(updatedDate)}
+                                </span>
                             </div>
+
+                            {thread.subject && thread.channelType !== "DIRECT" && (
+                                <p className="text-[12px] text-[#5A5A7A] font-medium truncate mb-0.5">
+                                    {thread.subject}
+                                </p>
+                            )}
 
                             {lastPreview && (
                                 <p
                                     className={cn(
-                                        "text-xs truncate",
+                                        "text-[12px] truncate leading-relaxed",
                                         hasUnread
-                                            ? "text-slate-700 dark:text-slate-300 font-medium"
-                                            : "text-slate-500 dark:text-slate-400"
+                                            ? "text-[#3A3A5A] font-medium"
+                                            : "text-[#8B8BA7]"
                                     )}
                                 >
                                     {lastPreview}
                                 </p>
                             )}
 
-                            {/* Tags - small pills like inspo */}
-                            <div className="mt-2 flex items-center gap-2 flex-wrap">
+                            <div className="mt-1.5 flex items-center gap-1.5">
                                 {thread.channelType !== "DIRECT" && (
-                                    <span className="text-[10px] bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded px-1.5 py-0.5 text-slate-500 dark:text-slate-400">
+                                    <span className={cn(
+                                        "text-[10px] font-semibold rounded-md px-1.5 py-0.5",
+                                        CHANNEL_COLORS[thread.channelType]
+                                    )}>
                                         {CHANNEL_TAGS[thread.channelType]}
                                     </span>
                                 )}
                                 {thread.isBroadcast && (
-                                    <span className="text-[10px] bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded px-1.5 py-0.5 font-medium">
+                                    <span className="text-[10px] bg-orange-50 text-orange-600 rounded-md px-1.5 py-0.5 font-semibold">
                                         Annonce
                                     </span>
                                 )}
-                                {thread.status === "OPEN" && thread.unreadCount > 0 && (
-                                    <span className="text-[10px] bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded px-1.5 py-0.5 font-medium">
-                                        Non lu
+                                {hasUnread && (
+                                    <span className="ml-auto flex-shrink-0 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full text-[10px] font-bold bg-[#0C3B38] text-white">
+                                        {thread.unreadCount > 99 ? "99+" : thread.unreadCount}
                                     </span>
                                 )}
                             </div>
                         </div>
-
-                        {/* Unread count badge */}
-                        {hasUnread && (
-                            <span className="flex-shrink-0 min-w-[1.25rem] h-5 px-1.5 flex items-center justify-center rounded-full text-[10px] font-bold bg-indigo-500 text-white mt-1">
-                                {thread.unreadCount > 99 ? "99+" : thread.unreadCount}
-                            </span>
-                        )}
                     </button>
                 );
             })}

@@ -154,15 +154,27 @@ export const MANAGER_NAV: NavSection[] = [
     ],
   },
   {
-    title: "",
+    title: "Communication",
     dividerBefore: true,
     items: [
+      {
+        href: "/manager/comms",
+        icon: MessageSquare,
+        label: "Messagerie",
+        permission: "pages.dashboard",
+      },
       {
         href: "/manager/emails",
         icon: Mail,
         label: "Email Hub",
         permission: "pages.email",
       },
+    ],
+  },
+  {
+    title: "",
+    dividerBefore: true,
+    items: [
       {
         href: "/manager/files",
         icon: FileText,
@@ -247,14 +259,25 @@ export const SDR_NAV: NavSection[] = [
     ],
   },
   {
-    title: "Organisation",
+    title: "Communication",
     items: [
+      {
+        href: "/sdr/comms",
+        icon: MessageSquare,
+        label: "Messagerie",
+        permission: "pages.dashboard",
+      },
       {
         href: "/sdr/emails",
         icon: Mail,
         label: "Email Hub",
         permission: "pages.email",
       },
+    ],
+  },
+  {
+    title: "Organisation",
+    items: [
       {
         href: "/sdr/projects",
         icon: FolderKanban,
@@ -396,6 +419,17 @@ export const BD_NAV: NavSection[] = [
     ],
   },
   {
+    title: "Communication",
+    items: [
+      {
+        href: "/bd/comms",
+        icon: MessageSquare,
+        label: "Messagerie",
+        permission: "pages.dashboard",
+      },
+    ],
+  },
+  {
     title: "Compte",
     items: [
       {
@@ -437,6 +471,17 @@ export const DEVELOPER_NAV: NavSection[] = [
         icon: List,
         label: "Tâches",
         permission: "pages.projects",
+      },
+    ],
+  },
+  {
+    title: "Communication",
+    items: [
+      {
+        href: "/developer/comms",
+        icon: MessageSquare,
+        label: "Messagerie",
+        permission: "pages.dashboard",
       },
     ],
   },

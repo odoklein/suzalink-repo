@@ -66,24 +66,24 @@ export function CommsPageHeader({
                 className
             )}
         >
-            <div className="flex items-center gap-3 min-w-0">
+            <div className="flex items-center gap-3.5 min-w-0">
                 {icon && (
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/25 shrink-0 text-white">
+                    <div className="w-11 h-11 rounded-xl bg-[#0C3B38] flex items-center justify-center shadow-lg shadow-[#0C3B38]/20 shrink-0 text-white">
                         {icon}
                     </div>
                 )}
                 <div className="min-w-0">
-                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white truncate">
+                    <h1 className="text-xl font-bold text-[#12122A] dark:text-white truncate tracking-tight">
                         {title}
                     </h1>
                     {subtitle && (
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5 truncate">
+                        <p className="text-[13px] text-[#8B8BA7] dark:text-slate-400 mt-0.5 truncate">
                             {subtitle}
                         </p>
                     )}
                 </div>
             </div>
-            <div className="flex items-center gap-3 shrink-0">{actions}</div>
+            <div className="flex items-center gap-2.5 shrink-0">{actions}</div>
         </header>
     );
 }
