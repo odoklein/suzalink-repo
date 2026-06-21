@@ -284,8 +284,8 @@ export async function generateClientReportPdf(data: ReportData): Promise<Buffer>
         margins: { top: 56, right: 48, bottom: 56, left: 48 },
         info: {
             Title: `Rapport d'activite - ${data.clientName}`,
-            Author: "Captain Prospect CRM",
-            Creator: "Captain Prospect CRM",
+            Author: "élan",
+            Creator: "élan",
         },
     });
 
@@ -351,7 +351,7 @@ export async function generateClientReportPdf(data: ReportData): Promise<Buffer>
         }
     }
 
-    doc.fillColor(COLORS.inkMuted).font("Helvetica").fontSize(8).text("Document genere par le moteur de reporting Captain Prospect CRM.", left, doc.page.height - 32, {
+    doc.fillColor(COLORS.inkMuted).font("Helvetica").fontSize(8).text("Document généré par le moteur de reporting élan.", left, doc.page.height - 32, {
         width: pageWidth,
         align: "center",
     });

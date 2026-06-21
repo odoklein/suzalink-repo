@@ -27,47 +27,47 @@ export function PageHeader({
 }: PageHeaderProps) {
     if (variant === "hero") {
         return (
-            <div className={cn(
-                "relative overflow-hidden bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-2xl p-8 text-white",
-                className
-            )}>
-                <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMSIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjAzKSIvPjwvc3ZnPg==')] opacity-50" />
+            <div
+                className={cn(
+                    "relative overflow-hidden rounded-[16px] bg-[#0C3B38] p-8 text-[#F4F0E8]",
+                    "after:absolute after:inset-x-0 after:bottom-0 after:h-1 after:bg-[#FF9E1B]",
+                    className
+                )}
+            >
                 <div className="relative z-10">
                     {icon && (
-                        <div className="flex items-center gap-2 text-indigo-400 text-sm font-medium mb-2">
+                        <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-[#FF9E1B]">
                             {icon}
                         </div>
                     )}
-                    <h1 className="text-3xl font-bold mb-2">{title}</h1>
-                    {subtitle && (
-                        <p className="text-slate-400 max-w-xl">{subtitle}</p>
-                    )}
-                    {actions && (
-                        <div className="mt-6 flex items-center gap-3">{actions}</div>
-                    )}
+                    <h1 className="font-display mb-2 text-3xl font-bold tracking-[-0.025em]">
+                        {title}
+                    </h1>
+                    {subtitle && <p className="max-w-xl text-[#C0CCC7]">{subtitle}</p>}
+                    {actions && <div className="mt-6 flex items-center gap-3">{actions}</div>}
                 </div>
             </div>
         );
     }
 
     return (
-        <div className={cn("flex items-center justify-between", className)}>
+        <div className={cn("flex items-center justify-between gap-5", className)}>
             <div>
-                <h1 className="text-2xl font-bold text-slate-900">{title}</h1>
-                {subtitle && (
-                    <p className="text-sm text-slate-500 mt-1">{subtitle}</p>
-                )}
+                <h1 className="font-display text-[28px] font-bold leading-tight tracking-[-0.025em] text-[#15201E]">
+                    {title}
+                </h1>
+                {subtitle && <p className="mt-1 text-sm text-[#5C6E69]">{subtitle}</p>}
             </div>
             <div className="flex items-center gap-3">
                 {onRefresh && (
                     <button
                         onClick={onRefresh}
-                        className="p-2.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 transition-colors"
+                        className="rounded-[9px] border border-[rgba(21,32,30,.16)] bg-[#F4F0E8] p-2.5 transition-colors hover:bg-[#ECE5D8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF9E1B]/35"
+                        aria-label="Rafraîchir"
                     >
-                        <RefreshCw className={cn(
-                            "w-4 h-4 text-slate-500",
-                            isRefreshing && "animate-spin"
-                        )} />
+                        <RefreshCw
+                            className={cn("h-4 w-4 text-[#5C6E69]", isRefreshing && "animate-spin")}
+                        />
                     </button>
                 )}
                 {actions}

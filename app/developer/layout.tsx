@@ -11,12 +11,11 @@ import {
     Mail,
     Settings,
     LogOut,
-    Code2,
-    User,
     ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NotificationBell } from "@/components/ui/NotificationBell";
+import { ElanLogo } from "@/components/brand/ElanLogo";
 
 const NAV_ITEMS = [
     { href: "/developer/dashboard", icon: LayoutDashboard, label: "Dashboard" },
@@ -62,15 +61,12 @@ export default function DeveloperLayout({ children }: { children: React.ReactNod
     return (
         <div className="min-h-screen bg-slate-100 flex">
             {/* Premium Sidebar */}
-            <aside className="w-64 bg-[#051423] flex flex-col shadow-xl">
+            <aside className="w-64 bg-[#0C3B38] flex flex-col shadow-xl">
                 {/* Premium Brand Header */}
                 <div className="h-16 flex items-center gap-3 px-5 border-b border-white/5">
-                    <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/25">
-                        <Code2 className="w-5 h-5 text-white" />
-                    </div>
                     <div className="flex items-center gap-2">
-                        <span className="font-semibold text-white tracking-tight">Suzalink</span>
-                        <span className="text-xs font-medium text-blue-400 px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20">
+                        <ElanLogo className="text-[28px]" />
+                        <span className="text-[10px] font-mono uppercase tracking-[0.08em] text-[#FF9E1B] px-2 py-0.5 rounded-full bg-white/5 border border-white/10">
                             Dev
                         </span>
                     </div>

@@ -62,7 +62,7 @@ export default function MigrationPopup() {
                             Nouvelle adresse
                         </h2>
                         <p style={{ fontSize: 13, color: "#666", margin: 0 }}>
-                            CaptainProspect a migré vers sa propre infrastructure
+                            élan dispose maintenant de sa propre infrastructure
                         </p>
                     </div>
                     <button
@@ -112,7 +112,7 @@ export default function MigrationPopup() {
                         </div>
                         <div>
                             <p style={{ fontSize: 13, fontWeight: 500, color: "#111", margin: 0 }}>
-                                CaptainProspect CRM
+                                élan
                             </p>
                             <p style={{ fontSize: 12, color: "#888", margin: 0 }}>
                                 Migration vers infrastructure dédiée

@@ -6,10 +6,10 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const CARD_VARIANTS: Record<string, string> = {
-    default: "bg-white border border-slate-200",
-    glass: "bg-white/80 backdrop-blur-xl border border-slate-200/50",
+    default: "bg-[#F4F0E8] border border-[rgba(21,32,30,.13)]",
+    glass: "bg-[#F4F0E8]/92 backdrop-blur-xl border border-[rgba(21,32,30,.13)]",
     elevated:
-        "bg-white border border-slate-200 shadow-xl shadow-slate-200/50",
+        "bg-[#F4F0E8] border border-[rgba(21,32,30,.13)] shadow-[0_18px_50px_rgba(12,59,56,.09)]",
 };
 
 const Card = forwardRef<HTMLDivElement, CardProps>(
@@ -18,7 +18,7 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
             <div
                 ref={ref}
                 className={cn(
-                    "rounded-2xl p-6 transition-all duration-200",
+                    "rounded-[14px] p-6 transition-all duration-200",
                     CARD_VARIANTS[variant],
                     className
                 )}
@@ -48,7 +48,7 @@ const CardTitle = forwardRef<HTMLHeadingElement, CardTitleProps>(
     ({ className, ...props }, ref) => (
         <h3
             ref={ref}
-            className={cn("text-lg font-semibold text-slate-900", className)}
+            className={cn("font-display text-lg font-bold tracking-[-0.015em] text-[#15201E]", className)}
             {...props}
         />
     )

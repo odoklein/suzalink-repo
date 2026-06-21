@@ -1324,7 +1324,7 @@ function FbModal({ m, onClose, out, recontact, note, done, sub, onOut, onReconta
         <textarea className="cp-textarea" value={note} onChange={e=>onNote(e.target.value)} rows={4}
           placeholder="Points clés abordés, impressions, prochaines étapes…"
           style={{minHeight:100}} />
-        <p style={{fontSize:11,color:tk.ink4,marginTop:8}}>Visible par votre équipe CaptainProspect.</p>
+        <p style={{fontSize:11,color:tk.ink4,marginTop:8}}>Visible par votre équipe élan.</p>
       </Sec>
     </Modal>
   );

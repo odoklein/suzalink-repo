@@ -205,7 +205,7 @@ export function buildRdvNotificationEmail(data: RdvNotificationData): {
           <tr>
             <td style="background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%); border-radius: 12px 12px 0 0; padding: 28px 36px; text-align: center;">
               <p style="margin: 0; font-size: 22px; font-weight: 800; color: #ffffff; letter-spacing: -0.02em;">
-                ⚓ Captain Prospect
+                élan
               </p>
               <p style="margin: 6px 0 0; font-size: 13px; color: #94a3b8; letter-spacing: 0.04em; text-transform: uppercase;">
                 Notification · Rendez-vous
@@ -322,10 +322,10 @@ export function buildRdvNotificationEmail(data: RdvNotificationData): {
           <tr>
             <td style="background-color: #f8fafc; border-radius: 0 0 12px 12px; border: 1px solid #e2e8f0; border-top: none; padding: 20px 36px; text-align: center;">
               <p style="margin: 0 0 4px; font-size: 12px; color: #94a3b8;">
-                <strong style="color: #64748b;">Captain Prospect</strong> · Plateforme de prospection B2B
+                <strong style="color: #0C3B38;">élan</strong> · Plateforme d'exécution commerciale
               </p>
               <p style="margin: 0; font-size: 11px; color: #cbd5e1; line-height: 1.5;">
-                Vous recevez cet email car vous êtes client sur la plateforme Captain Prospect.<br/>
+                Vous recevez cet email car vous êtes client sur la plateforme élan.<br/>
                 Pour toute question, contactez votre chargé de compte.
               </p>
             </td>
@@ -440,7 +440,7 @@ export const DEFAULT_RDV_TEMPLATE_HTML = `<!DOCTYPE html>
           <!-- HEADER -->
           <tr>
             <td style="background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%); border-radius: 12px 12px 0 0; padding: 28px 36px; text-align: center;">
-              <p style="margin: 0; font-size: 22px; font-weight: 800; color: #ffffff; letter-spacing: -0.02em;">⚓ Captain Prospect</p>
+              <p style="margin: 0; font-size: 22px; font-weight: 800; color: #F4F0E8; letter-spacing: -0.03em;">élan</p>
               <p style="margin: 6px 0 0; font-size: 13px; color: #94a3b8; letter-spacing: 0.04em; text-transform: uppercase;">Notification · Rendez-vous</p>
             </td>
           </tr>
@@ -494,8 +494,8 @@ export const DEFAULT_RDV_TEMPLATE_HTML = `<!DOCTYPE html>
           <!-- FOOTER -->
           <tr>
             <td style="background-color: #f8fafc; border-radius: 0 0 12px 12px; border: 1px solid #e2e8f0; border-top: none; padding: 20px 36px; text-align: center;">
-              <p style="margin: 0 0 4px; font-size: 12px; color: #94a3b8;"><strong style="color: #64748b;">Captain Prospect</strong> · Plateforme de prospection B2B</p>
-              <p style="margin: 0; font-size: 11px; color: #cbd5e1; line-height: 1.5;">Vous recevez cet email car vous êtes client sur la plateforme Captain Prospect.<br/>Pour toute question, contactez votre chargé de compte.</p>
+              <p style="margin: 0 0 4px; font-size: 12px; color: #5C6E69;"><strong style="color: #0C3B38;">élan</strong> · Plateforme d'exécution commerciale</p>
+              <p style="margin: 0; font-size: 11px; color: #7B8984; line-height: 1.5;">Vous recevez cet email car vous êtes client sur la plateforme élan.<br/>Pour toute question, contactez votre chargé de compte.</p>
             </td>
           </tr>
 

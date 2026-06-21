@@ -53,7 +53,7 @@ async function getConfiguredFromAddress(): Promise<string> {
   return (
     process.env.SYSTEM_SMTP_FROM ||
     process.env.SMTP_FROM ||
-    `Captain Prospect <${process.env.SYSTEM_SMTP_USER || process.env.SMTP_USER}>`
+    `élan <${process.env.SYSTEM_SMTP_USER || process.env.SMTP_USER}>`
   );
 }
 

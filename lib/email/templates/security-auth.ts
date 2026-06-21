@@ -11,7 +11,7 @@ export const PASSWORD_OTP_TEMPLATE_VARIABLES = [
 ] as const;
 
 export const DEFAULT_PASSWORD_RECOVERY_SUBJECT =
-  "Reinitialisation de votre mot de passe - Captain Prospect";
+  "Réinitialisation de votre mot de passe | élan";
 
 export const DEFAULT_PASSWORD_RECOVERY_HTML = `<!DOCTYPE html>
 <html lang="fr">
@@ -58,7 +58,7 @@ export const DEFAULT_PASSWORD_RECOVERY_HTML = `<!DOCTYPE html>
 </html>`;
 
 export const DEFAULT_PASSWORD_OTP_SUBJECT =
-  "Votre code OTP de recuperation - Captain Prospect";
+  "Votre code OTP de récupération | élan";
 
 export const DEFAULT_PASSWORD_OTP_HTML = `<!DOCTYPE html>
 <html lang="fr">

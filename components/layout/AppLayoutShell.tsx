@@ -558,7 +558,7 @@ function InnerLayout({
                                                 className={cn(
                                                     "text-left rounded-xl border px-3 py-2 transition-colors",
                                                     isSelected
-                                                        ? "border-[#7C5CFC] bg-[#F5F3FF]"
+                                                        ? "border-[#E07C00] bg-[#DBE4DF]"
                                                         : "border-[#E8EBF0] bg-white hover:border-[#C5C8D4]",
                                                 )}
                                             >
@@ -583,7 +583,7 @@ function InnerLayout({
                                 value={dailyReviewText}
                                 onChange={(e) => setDailyReviewText(e.target.value)}
                                 placeholder="Résumez votre performance, vos difficultés et vos succès (min. 20 caractères)..."
-                                className="w-full min-h-[92px] rounded-xl border border-[#E8EBF0] px-3 py-2.5 text-[13px] text-[#12122A] placeholder:text-[#8B8BA7] focus:outline-none focus:ring-2 focus:ring-[#7C5CFC]/25 focus:border-[#7C5CFC] resize-y"
+                                className="w-full min-h-[92px] rounded-xl border border-[#E8EBF0] px-3 py-2.5 text-[13px] text-[#12122A] placeholder:text-[#8B8BA7] focus:outline-none focus:ring-2 focus:ring-[#FF9E1B]/25 focus:border-[#E07C00] resize-y"
                             />
                             <p className="mt-1 text-[11px] text-[#8B8BA7]">
                                 {dailyReviewText.trim().length}/20 minimum
@@ -598,7 +598,7 @@ function InnerLayout({
                                 value={dailyReviewObjections}
                                 onChange={(e) => setDailyReviewObjections(e.target.value)}
                                 placeholder="Ex: budget, timing, concurrence, pas le bon contact... (min. 10 caractères)"
-                                className="w-full min-h-[82px] rounded-xl border border-[#E8EBF0] px-3 py-2.5 text-[13px] text-[#12122A] placeholder:text-[#8B8BA7] focus:outline-none focus:ring-2 focus:ring-[#7C5CFC]/25 focus:border-[#7C5CFC] resize-y"
+                                className="w-full min-h-[82px] rounded-xl border border-[#E8EBF0] px-3 py-2.5 text-[13px] text-[#12122A] placeholder:text-[#8B8BA7] focus:outline-none focus:ring-2 focus:ring-[#FF9E1B]/25 focus:border-[#E07C00] resize-y"
                             />
                             <p className="mt-1 text-[11px] text-[#8B8BA7]">
                                 {dailyReviewObjections.trim().length}/10 minimum
@@ -613,7 +613,7 @@ function InnerLayout({
                                 value={dailyReviewMissionComment}
                                 onChange={(e) => setDailyReviewMissionComment(e.target.value)}
                                 placeholder="Besoin de script, meilleure accroche, feedback ciblage... (min. 10 caractères)"
-                                className="w-full min-h-[82px] rounded-xl border border-[#E8EBF0] px-3 py-2.5 text-[13px] text-[#12122A] placeholder:text-[#8B8BA7] focus:outline-none focus:ring-2 focus:ring-[#7C5CFC]/25 focus:border-[#7C5CFC] resize-y"
+                                className="w-full min-h-[82px] rounded-xl border border-[#E8EBF0] px-3 py-2.5 text-[13px] text-[#12122A] placeholder:text-[#8B8BA7] focus:outline-none focus:ring-2 focus:ring-[#FF9E1B]/25 focus:border-[#E07C00] resize-y"
                             />
                             <p className="mt-1 text-[11px] text-[#8B8BA7]">
                                 {dailyReviewMissionComment.trim().length}/10 minimum
@@ -631,7 +631,7 @@ function InnerLayout({
                                         className={cn(
                                             "h-8 px-3 rounded-lg text-[12px] font-semibold border transition-colors",
                                             dailyReviewScore === score
-                                                ? "bg-[#7C5CFC] text-white border-[#7C5CFC]"
+                                                ? "bg-[#FF9E1B] text-[#15201E] border-[#E07C00]"
                                                 : "bg-white text-[#5A5A7A] border-[#E8EBF0] hover:border-[#C5C8D4]",
                                         )}
                                     >
@@ -652,7 +652,7 @@ function InnerLayout({
                                     dailyReviewSubmitting ||
                                     dailyReviewMissionIds.length === 0
                                 }
-                                className="h-9 px-4 rounded-lg bg-[#7C5CFC] text-white text-[13px] font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="h-9 px-4 rounded-lg bg-[#FF9E1B] text-[#15201E] border border-[#E07C00] text-[13px] font-semibold hover:bg-[#F09212] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {dailyReviewSubmitting ? "Envoi..." : "Envoyer mon feedback"}
                             </button>

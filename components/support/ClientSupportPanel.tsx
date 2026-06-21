@@ -405,7 +405,7 @@ export function ClientSupportPanel({
                             letterSpacing: "-0.01em",
                         }}
                     >
-                        Équipe support Captain Prospect
+                        Équipe support élan
                     </div>
                     <div
                         style={{

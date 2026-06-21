@@ -727,7 +727,7 @@ export default function ManagerSettingsPage() {
                     setTransactionalEmailFrom(e.target.value);
                     setTransactionalEmailError(null);
                   }}
-                  placeholder='Ex: "Captain Prospect" <notifications@captainprospect.fr>'
+                  placeholder='Ex: "élan" <notifications@captainprospect.fr>'
                   className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
                 />
               </div>

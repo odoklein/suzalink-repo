@@ -10,20 +10,20 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const BUTTON_BASE_STYLES =
-    "inline-flex items-center justify-center gap-2 font-medium rounded-xl transition-all duration-200 cursor-pointer border-none disabled:opacity-50 disabled:cursor-not-allowed";
+    "inline-flex items-center justify-center gap-2 whitespace-nowrap font-semibold rounded-[10px] transition-all duration-150 cursor-pointer border disabled:opacity-45 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF9E1B]/35 focus-visible:ring-offset-2 active:translate-y-px";
 
 const BUTTON_VARIANTS: Record<string, string> = {
     primary:
-        "bg-gradient-to-br from-indigo-500 to-indigo-600 text-white hover:from-indigo-400 hover:to-indigo-500 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-indigo-500/30",
+        "bg-[#FF9E1B] text-[#15201E] border-[#E07C00] hover:bg-[#F09212] hover:shadow-[0_7px_20px_rgba(224,124,0,.16)]",
     secondary:
-        "bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 hover:border-slate-400",
+        "bg-[#F4F0E8] text-[#15201E] border-[#CFC5B5] hover:bg-[#ECE5D8] hover:border-[#BEB19F]",
     outline:
-        "bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 hover:border-slate-400",
+        "bg-transparent text-[#0C3B38] border-[#AAB8B2] hover:bg-[#DBE4DF] hover:border-[#0C3B38]",
     success:
-        "bg-gradient-to-br from-emerald-500 to-emerald-600 text-white hover:-translate-y-0.5 hover:shadow-lg hover:shadow-emerald-500/30",
+        "bg-[#25745F] text-white border-[#1E604F] hover:bg-[#1E604F]",
     danger:
-        "bg-gradient-to-br from-red-500 to-red-600 text-white hover:-translate-y-0.5 hover:shadow-lg hover:shadow-red-500/30",
-    ghost: "bg-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-100",
+        "bg-[#B9433E] text-white border-[#963632] hover:bg-[#963632]",
+    ghost: "bg-transparent text-[#5C6E69] border-transparent hover:text-[#15201E] hover:bg-[#E4DBCA]",
 };
 
 const BUTTON_SIZES: Record<string, string> = {

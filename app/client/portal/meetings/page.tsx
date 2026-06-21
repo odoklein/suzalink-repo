@@ -1585,7 +1585,7 @@ function FbModal({ m, onClose, out, note, done, sub, onOut, onNote, onSubmit }: 
           Merci pour votre retour
         </h3>
         <p style={{fontSize:13.5,color:tk.ink3,maxWidth:280,lineHeight:1.6,margin:0}}>
-          Votre avis a été transmis à votre équipe CaptainProspect.
+          Votre avis a été transmis à votre équipe élan.
         </p>
       </div>
     </Modal>
@@ -1623,7 +1623,7 @@ function FbModal({ m, onClose, out, note, done, sub, onOut, onNote, onSubmit }: 
         <textarea className="cp-textarea" value={note} onChange={e=>onNote(e.target.value)} rows={4}
           placeholder="Points clés abordés, impressions, prochaines étapes…"
           style={{minHeight:100}} />
-        <p style={{fontSize:11,color:tk.ink4,marginTop:8}}>Visible uniquement par votre équipe CaptainProspect.</p>
+        <p style={{fontSize:11,color:tk.ink4,marginTop:8}}>Visible uniquement par votre équipe élan.</p>
       </Sec>
     </Modal>
   );

@@ -242,8 +242,8 @@ export default function ForgotPasswordPage() {
 
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
-                            src="/logocaptainblue-rose.png"
-                            alt="Captain Prospect"
+                            src="/elan-mark.svg"
+                            alt="élan"
                             className="lp-logo"
                             draggable={false}
                         />
@@ -329,7 +329,7 @@ export default function ForgotPasswordPage() {
                 </div>
 
                 <p className="lp-footer">
-                    Captain Prospect &copy; {new Date().getFullYear()}
+                    élan &copy; {new Date().getFullYear()} · Produit par Suzali
                 </p>
             </div>
         </>

@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState, useMemo, useCallback, useRef } from "react";
-import Image from "next/image";
 import { useSession, signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
@@ -21,8 +20,8 @@ import { usePermissions } from "@/lib/permissions/PermissionProvider";
 import { NavSection, NavItem, ROLE_CONFIG } from "@/lib/navigation/config";
 import { UserRole } from "@prisma/client";
 import { formatCallbackDate } from "@/lib/utils/parseDateFromNote";
-import logoCaptain from "../../logocaptainroseblanc.png";
 import { ManagerSupportSidebarEntry } from "@/components/support/ManagerSupportSidebarEntry";
+import { ElanLogo } from "@/components/brand/ElanLogo";
 
 interface GlobalSidebarProps {
     navigation: NavSection[];
@@ -345,17 +344,10 @@ export function GlobalSidebar({ navigation }: GlobalSidebarProps) {
                             !isExpanded && "cp-brand-collapsed"
                         )}
                     >
-                        <div className="flex items-center">
-                            <Image
-                                src={logoCaptain}
-                                alt="Captain Prospect"
-                                priority
-                                className={cn(
-                                    "h-7 w-auto",
-                                    !isExpanded && "h-8"
-                                )}
-                            />
-                        </div>
+                        <ElanLogo
+                            compact={!isExpanded}
+                            className={cn(isExpanded ? "text-[30px]" : "text-[28px]")}
+                        />
                     </Link>
 
                     {isExpanded && (
@@ -447,18 +439,7 @@ export function GlobalSidebar({ navigation }: GlobalSidebarProps) {
                             <div className="cp-user-menu-items">
                                 {roleConfig && (
                                     <div className="cp-user-menu-role">
-                                        <div
-                                            className={cn(
-                                                "w-2 h-2 rounded-full",
-                                                roleConfig.color === "indigo" &&
-                                                    "bg-indigo-500",
-                                                roleConfig.color ===
-                                                    "emerald" &&
-                                                    "bg-emerald-500",
-                                                roleConfig.color === "blue" &&
-                                                    "bg-blue-500"
-                                            )}
-                                        />
+                                        <div className="w-2 h-2 rounded-[2px] bg-[#FF9E1B]" />
                                         <span>{roleConfig.label}</span>
                                     </div>
                                 )}
