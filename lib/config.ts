@@ -129,6 +129,14 @@ export const config = {
       enabled: process.env.APOLLO_ENABLED === "true",
       apiKey: process.env.APOLLO_API_KEY || "",
     },
+    umami: {
+      url: process.env.NEXT_PUBLIC_UMAMI_URL || "",
+      websiteId: process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID || "",
+      enabled: !!(
+        process.env.NEXT_PUBLIC_UMAMI_URL &&
+        process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID
+      ),
+    },
   },
 
   // ============================================

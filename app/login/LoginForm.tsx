@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { ElanLogo } from "@/components/brand/ElanLogo";
 import { CadenceBars } from "@/components/brand/CadenceBars";
+import { trackLogin } from "@/lib/analytics/umami";
 
 export default function LoginForm() {
     const router = useRouter();
@@ -33,6 +34,10 @@ export default function LoginForm() {
         return () => cancelAnimationFrame(frame);
     }, []);
 
+    useEffect(() => {
+        if (errorCode) trackLogin(false);
+    }, [errorCode]);
+
     const errorMessage = errorCode
         ? errorCode.includes("verrouillé") || errorCode.includes("Trop")
             ? errorCode
@@ -46,6 +51,7 @@ export default function LoginForm() {
         setIsLoading(true);
         try {
             await signIn("credentials", { email, password, callbackUrl });
+            trackLogin(true);
         } finally {
             setIsLoading(false);
         }

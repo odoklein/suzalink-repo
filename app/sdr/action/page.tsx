@@ -46,6 +46,8 @@ import { AlloCallPickerModal } from "@/components/sdr/AlloCallPickerModal";
 import { ScriptCompanionDrawer } from "@/components/sdr/ScriptCompanionDrawer";
 import { useSidebar } from "@/components/layout/SidebarProvider";
 
+import { trackActionCreated, trackEvent, UMAMI_EVENTS } from "@/lib/analytics/umami";
+
 const UnifiedActionDrawer = dynamic(
     () => import("@/components/drawers/UnifiedActionDrawer").then((m) => ({ default: m.UnifiedActionDrawer })),
     { ssr: false }
@@ -1319,6 +1321,7 @@ export default function SDRActionPage() {
             if (json.success) {
                 queryClient.invalidateQueries({ queryKey: queueQueryKey });
                 setActionsCompleted((c) => c + 1);
+                trackActionCreated({ channel: row.channel, result, hasContact: !!row.contactId, hasCompany: !!row.companyId });
             } else {
                 showError(json.error || "Erreur lors de l'enregistrement");
             }
@@ -1452,6 +1455,8 @@ export default function SDRActionPage() {
         });
         await Promise.all(promises);
 
+        trackEvent(UMAMI_EVENTS.ACTION_BULK_DISQUALIFIED, { count: rowsToProcess.length, failCount });
+
         if (failCount > 0) {
             await refreshQueue();
             showError("Erreur", `${failCount} élément(s) n'ont pas pu être traités.`);
@@ -1486,6 +1491,7 @@ export default function SDRActionPage() {
                     showError(json.error || "Erreur lors de l'enregistrement de l'email");
                     return;
                 }
+                trackEvent(UMAMI_EVENTS.EMAIL_SENT, { mode: "card" });
                 setActionsCompleted((c) => c + 1);
                 await loadNextAction();
             } else if (!isCardMode && "row" in pendingEmailAction) {
@@ -1507,6 +1513,7 @@ export default function SDRActionPage() {
                     showError(json.error || "Erreur lors de l'enregistrement de l'email");
                     return;
                 }
+                trackEvent(UMAMI_EVENTS.EMAIL_SENT, { mode: "queue" });
                 queryClient.invalidateQueries({ queryKey: queueQueryKey });
                 setActionsCompleted((c) => c + 1);
             }
@@ -1634,6 +1641,7 @@ export default function SDRActionPage() {
                     showError("Appel non enregistré", "Erreur réseau lors de l'enrichissement.");
                 }
             }
+            trackActionCreated({ channel: currentAction.channel, result: selectedResult, hasContact: !!currentAction.contact, hasCompany: !!currentAction.company });
             setShowSuccess(true);
             setActionsCompleted((prev) => prev + 1);
             await loadNextAction();

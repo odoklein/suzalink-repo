@@ -4,6 +4,7 @@ import "./globals.css";
 import "./elan-theme.css";
 import Providers from "@/components/providers/Providers";
 import { Analytics } from "@vercel/analytics/next"
+import { UmamiScript } from "@/components/providers/UmamiScript";
 
 const displayFont = Bricolage_Grotesque({
   variable: "--font-elan-display",
@@ -46,6 +47,7 @@ export default function RootLayout({
       >
         <Providers>{children}</Providers>
         <Analytics />
+        <UmamiScript />
       </body>
     </html>
   );

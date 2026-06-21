@@ -20,6 +20,7 @@ import {
     CalendarCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { trackMeetingBooked } from "@/lib/analytics/umami";
 
 // ============================================
 // TYPES
@@ -499,6 +500,7 @@ export function BookingDrawer({
             });
             const json = await res.json();
             if (json.success) {
+                trackMeetingBooked({ type: (effectiveMeetingType as "VISIO" | "PHYSIQUE" | "TELEPHONIQUE") || "VISIO", hasCalendly: false });
                 setBooked(true);
                 success("Rendez-vous confirmé", `Le rendez-vous avec ${contactName} a été enregistré`);
                 onBookingSuccess?.();
