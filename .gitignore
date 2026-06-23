@@ -53,3 +53,18 @@ next-env.d.ts
 
 # Sentry Config File
 .env.sentry-build-plugin
+
+# deployment payload cleanup
+uploads/
+private/queue/failed/
+docs/
+designsystemfinal/
+.claude/
+.cursor/
+.fallow/
+.gemini/
+.windsurf/
+*.log
+ts_errors*.txt
+email-code-dump.txt
+DATE_AUDIT_RAW.json

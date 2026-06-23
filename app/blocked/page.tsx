@@ -5,7 +5,7 @@ import { ShieldX, LogOut, Mail } from "lucide-react";
 
 export default function BlockedPage() {
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-gradient-to-br from-[#0c3b38] via-[#114b46] to-[#0c3b38] flex items-center justify-center p-4">
             <div className="max-w-md w-full text-center">
                 {/* Icon */}
                 <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
@@ -18,7 +18,7 @@ export default function BlockedPage() {
                 </h1>
 
                 {/* Description */}
-                <p className="text-slate-400 mb-8">
+                <p className="text-[#b8c2bd] mb-8">
                     Votre compte a été désactivé par un administrateur. 
                     Si vous pensez qu&apos;il s&apos;agit d&apos;une erreur, veuillez contacter le support.
                 </p>
@@ -27,7 +27,7 @@ export default function BlockedPage() {
                 <div className="space-y-3">
                     <button
                         onClick={() => signOut({ callbackUrl: "/login" })}
-                        className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-medium transition-colors"
+                        className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-[var(--elan-amber)] hover:bg-[var(--elan-amber-deep)] text-[var(--elan-ink)] font-medium transition-colors"
                     >
                         <LogOut className="w-4 h-4" />
                         Se déconnecter
@@ -35,7 +35,7 @@ export default function BlockedPage() {
                     
                     <a
                         href="mailto:support@suzalink.com"
-                        className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-slate-700 hover:bg-slate-800 text-slate-300 font-medium transition-colors"
+                        className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-[rgba(255,252,246,0.18)] hover:bg-[rgba(255,252,246,0.08)] text-[var(--elan-paper)] font-medium transition-colors"
                     >
                         <Mail className="w-4 h-4" />
                         Contacter le support
@@ -43,7 +43,7 @@ export default function BlockedPage() {
                 </div>
 
                 {/* Footer */}
-                <p className="mt-8 text-sm text-slate-500">
+                <p className="mt-8 text-sm text-[#899892]">
                     Code d&apos;erreur: ACCOUNT_DISABLED
                 </p>
             </div>

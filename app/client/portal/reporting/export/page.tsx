@@ -55,17 +55,17 @@ function ExportContent() {
 
     if (error) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-[#F4F6F9] p-8">
-                <p className="text-sm text-[#8B8BA7]">{error}</p>
+            <div className="min-h-screen flex items-center justify-center bg-[var(--elan-paper)] p-8">
+                <p className="text-sm text-[var(--elan-slate)]">{error}</p>
             </div>
         );
     }
 
     if (!data) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center bg-[#F4F6F9] p-8">
-                <Loader2 className="w-8 h-8 text-[#7C5CFC] animate-spin" />
-                <p className="text-[13px] text-[#8B8BA7] mt-4">Chargement du rapport…</p>
+            <div className="min-h-screen flex flex-col items-center justify-center bg-[var(--elan-paper)] p-8">
+                <Loader2 className="w-8 h-8 text-[var(--elan-petrol)] animate-spin" />
+                <p className="text-[13px] text-[var(--elan-slate)] mt-4">Chargement du rapport…</p>
             </div>
         );
     }
@@ -81,9 +81,9 @@ export default function ClientPortalReportingExportPage() {
     return (
         <Suspense
             fallback={
-                <div className="min-h-screen flex flex-col items-center justify-center bg-[#F4F6F9] p-8">
-                    <Loader2 className="w-8 h-8 text-[#7C5CFC] animate-spin" />
-                    <p className="text-[13px] text-[#8B8BA7] mt-4">Chargement…</p>
+                <div className="min-h-screen flex flex-col items-center justify-center bg-[var(--elan-paper)] p-8">
+                    <Loader2 className="w-8 h-8 text-[var(--elan-petrol)] animate-spin" />
+                    <p className="text-[13px] text-[var(--elan-slate)] mt-4">Chargement…</p>
                 </div>
             }
         >

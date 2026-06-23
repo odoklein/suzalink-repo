@@ -208,9 +208,9 @@ const RESULT_OPTIONS_FALLBACK: { value: ActionResult; label: string; icon: React
     { value: "BAD_CONTACT", label: "Mauvais contact", icon: <Ban className="w-4 h-4" />, key: "2", color: "red" },
     { value: "INTERESTED", label: "Intéressé", icon: <Sparkles className="w-4 h-4" />, key: "3", color: "emerald" },
     { value: "CALLBACK_REQUESTED", label: "Rappel demandé", icon: <Clock className="w-4 h-4" />, key: "4", color: "amber" },
-    { value: "MEETING_BOOKED", label: "RDV pris", icon: <Calendar className="w-4 h-4" />, key: "5", color: "indigo" },
+    { value: "MEETING_BOOKED", label: "RDV pris", icon: <Calendar className="w-4 h-4" />, key: "5", color: "amber" },
     { value: "DISQUALIFIED", label: "Disqualifié", icon: <XCircle className="w-4 h-4" />, key: "6", color: "slate" },
-    { value: "ENVOIE_MAIL", label: "Mail à envoyer", icon: <Mail className="w-4 h-4" />, key: "7", color: "blue" },
+    { value: "ENVOIE_MAIL", label: "Mail à envoyer", icon: <Mail className="w-4 h-4" />, key: "7", color: "amber" },
     { value: "MAIL_ENVOYE", label: "Mail envoyé", icon: <Send className="w-4 h-4" />, key: "8", color: "emerald" },
 ];
 
@@ -255,13 +255,13 @@ const RESULT_SEMANTIC: Record<string, {
     CALLBACK_REQUESTED: { iconCls: "bg-amber-100 text-amber-600",   selectedCls: "bg-amber-50 border-amber-400",      hoverCls: "hover:border-amber-200 hover:bg-amber-50/60",  activeBorder: "border-l-amber-400" },
     RELANCE:            { iconCls: "bg-amber-100 text-amber-600",   selectedCls: "bg-amber-50 border-amber-400",      hoverCls: "hover:border-amber-200 hover:bg-amber-50/60",  activeBorder: "border-l-amber-400" },
     RAPPEL:             { iconCls: "bg-amber-100 text-amber-600",   selectedCls: "bg-amber-50 border-amber-400",      hoverCls: "hover:border-amber-200 hover:bg-amber-50/60",  activeBorder: "border-l-amber-400" },
-    MEETING_BOOKED:     { iconCls: "bg-violet-100 text-violet-600", selectedCls: "bg-violet-50 border-violet-400",    hoverCls: "hover:border-violet-200 hover:bg-violet-50/60", activeBorder: "border-l-violet-500" },
+    MEETING_BOOKED:     { iconCls: "bg-[rgba(255,158,27,0.12)] text-[var(--elan-petrol)]", selectedCls: "bg-[rgba(255,158,27,0.1)] border-[rgba(224,124,0,0.24)]", hoverCls: "hover:border-[rgba(224,124,0,0.2)] hover:bg-[rgba(255,158,27,0.12)]", activeBorder: "border-l-[var(--elan-amber-deep)]" },
     MEETING_CANCELLED:  { iconCls: "bg-slate-100 text-slate-500",   selectedCls: "bg-slate-50 border-slate-400",      hoverCls: "hover:border-slate-300 hover:bg-slate-50",     activeBorder: "border-l-slate-400" },
     DISQUALIFIED:       { iconCls: "bg-slate-100 text-slate-500",   selectedCls: "bg-slate-100 border-slate-400",     hoverCls: "hover:border-slate-300 hover:bg-slate-100/60", activeBorder: "border-l-slate-400" },
-    ENVOIE_MAIL:        { iconCls: "bg-blue-100 text-blue-600",     selectedCls: "bg-blue-50 border-blue-400",        hoverCls: "hover:border-blue-200 hover:bg-blue-50/60",    activeBorder: "border-l-blue-400" },
+    ENVOIE_MAIL:        { iconCls: "bg-[rgba(12,59,56,0.1)] text-[var(--elan-petrol)]",     selectedCls: "bg-[rgba(12,59,56,0.06)] border-[rgba(12,59,56,0.22)]",        hoverCls: "hover:border-[rgba(12,59,56,0.18)] hover:bg-[rgba(12,59,56,0.08)]",    activeBorder: "border-l-[#25745f]" },
     MAIL_ENVOYE:        { iconCls: "bg-emerald-100 text-emerald-600", selectedCls: "bg-emerald-50 border-emerald-400", hoverCls: "hover:border-emerald-200 hover:bg-emerald-50/60", activeBorder: "border-l-emerald-500" },
 };
-const DEFAULT_SEMANTIC = { iconCls: "bg-violet-100 text-violet-600", selectedCls: "bg-violet-50 border-violet-400", hoverCls: "hover:border-violet-200 hover:bg-violet-50/60", activeBorder: "border-l-violet-400" };
+const DEFAULT_SEMANTIC = { iconCls: "bg-[rgba(255,158,27,0.12)] text-[var(--elan-petrol)]", selectedCls: "bg-[rgba(255,158,27,0.1)] border-[rgba(224,124,0,0.24)]", hoverCls: "hover:border-[rgba(224,124,0,0.2)] hover:bg-[rgba(255,158,27,0.12)]", activeBorder: "border-l-[var(--elan-amber-deep)]" };
 
 const getInitials = (firstName?: string | null, lastName?: string | null, fallback?: string | null): string => {
     const f = firstName?.trim() || "";
@@ -276,7 +276,7 @@ const STATS_QUEUE_LIMIT = 250;
 const PRIORITY_LABELS: Record<string, { label: string; color: string }> = {
     ABSENT_RDV: { label: "⚠ RDV Absent", color: "bg-red-100 text-red-800 border-red-300 font-bold animate-pulse" },
     CALLBACK: { label: "Rappel", color: "bg-amber-50 text-amber-700 border-amber-200" },
-    FOLLOW_UP: { label: "Suivi", color: "bg-blue-50 text-blue-700 border-blue-200" },
+    FOLLOW_UP: { label: "Suivi", color: "bg-[rgba(12,59,56,0.08)] text-[var(--elan-petrol)] border-[rgba(12,59,56,0.18)]" },
     NEW: { label: "Nouveau", color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
     RETRY: { label: "Relance", color: "bg-slate-50 text-slate-700 border-slate-200" },
 };
@@ -330,7 +330,7 @@ function ActionStatsModalBody({
     if (loading) {
         return (
             <div className="flex items-center justify-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+                <Loader2 className="w-8 h-8 animate-spin text-[var(--elan-amber)]" />
             </div>
         );
     }
@@ -385,7 +385,7 @@ function ActionStatsModalBody({
                                                 "border-b last:border-0 cursor-pointer transition-colors",
                                                 isAbsent
                                                     ? "bg-red-50 border-red-100 hover:bg-red-100/80"
-                                                    : "border-slate-100 hover:bg-indigo-50/80"
+                                                    : "border-slate-100 hover:bg-[rgba(255,158,27,0.08)]"
                                             )}
                                         >
                                             <td className="py-2.5 px-3">
@@ -774,7 +774,7 @@ export default function SDRActionPage() {
             label: s.label,
             icon: RESULT_ICON_MAP[s.code] ?? <XCircle className="w-4 h-4" />,
             key: String(i + 1),
-            color: ["slate", "red", "emerald", "amber", "indigo", "slate", "blue"][i % 7] as string,
+            color: ["slate", "red", "emerald", "amber", "amber", "slate", "emerald"][i % 7] as string,
         }))
         : RESULT_OPTIONS_FALLBACK;
 
@@ -1788,7 +1788,7 @@ export default function SDRActionPage() {
                             <div className={cn(
                                 "w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 border transition-colors",
                                 row.contactId
-                                    ? "bg-indigo-50 border-indigo-100 text-indigo-600"
+                                    ? "bg-[rgba(255,158,27,0.1)] border-[rgba(224,124,0,0.18)] text-[var(--elan-petrol)]"
                                     : "bg-slate-50 border-slate-200 text-slate-500"
                             )}>
                                 {row.contactId ? (
@@ -1848,8 +1848,8 @@ export default function SDRActionPage() {
                 header: "Canal",
                 render: (v) => {
                     const channelConfig: Record<string, { icon: React.ReactNode; color: string; label: string }> = {
-                        CALL: { icon: <Phone className="w-3.5 h-3.5" />, color: "bg-indigo-50 text-indigo-700 border-indigo-200", label: "Appel" },
-                        EMAIL: { icon: <MailOpen className="w-3.5 h-3.5" />, color: "bg-blue-50 text-blue-700 border-blue-200", label: "Email" },
+                        CALL: { icon: <Phone className="w-3.5 h-3.5" />, color: "bg-[rgba(255,158,27,0.1)] text-[var(--elan-petrol)] border-[rgba(224,124,0,0.22)]", label: "Appel" },
+                        EMAIL: { icon: <MailOpen className="w-3.5 h-3.5" />, color: "bg-[rgba(12,59,56,0.08)] text-[var(--elan-petrol)] border-[rgba(12,59,56,0.18)]", label: "Email" },
                         LINKEDIN: { icon: <Linkedin className="w-3.5 h-3.5" />, color: "bg-sky-50 text-sky-700 border-sky-200", label: "LinkedIn" },
                     };
                     const cfg = channelConfig[v as string] || { icon: <Globe className="w-3.5 h-3.5" />, color: "bg-slate-50 text-slate-600 border-slate-200", label: v };
@@ -1880,9 +1880,9 @@ export default function SDRActionPage() {
                         CALLBACK_REQUESTED: { badge: "bg-amber-50 text-amber-700 border-amber-200", dot: "bg-amber-400" },
                         RELANCE: { badge: "bg-amber-50 text-amber-700 border-amber-200", dot: "bg-amber-400" },
                         RAPPEL: { badge: "bg-amber-50 text-amber-700 border-amber-200", dot: "bg-amber-400" },
-                        MEETING_BOOKED: { badge: "bg-indigo-50 text-indigo-700 border-indigo-200", dot: "bg-indigo-400" },
+                        MEETING_BOOKED: { badge: "bg-[rgba(255,158,27,0.1)] text-[var(--elan-petrol)] border-[rgba(224,124,0,0.22)]", dot: "bg-[var(--elan-amber)]" },
                         DISQUALIFIED: { badge: "bg-slate-100 text-slate-500 border-slate-200", dot: "bg-slate-400" },
-                        ENVOIE_MAIL: { badge: "bg-blue-50 text-blue-700 border-blue-200", dot: "bg-blue-400" },
+                        ENVOIE_MAIL: { badge: "bg-[rgba(12,59,56,0.08)] text-[var(--elan-petrol)] border-[rgba(12,59,56,0.18)]", dot: "bg-[#25745f]" },
                         MAIL_ENVOYE: { badge: "bg-emerald-50 text-emerald-700 border-emerald-200", dot: "bg-emerald-400" },
                     };
                     const color = resultColor[row.lastAction.result] || { badge: "bg-slate-100 text-slate-600 border-slate-200", dot: "bg-slate-400" };
@@ -1949,7 +1949,7 @@ export default function SDRActionPage() {
                         : isCritical
                             ? "bg-amber-50 text-amber-700 border-amber-200"
                             : isSoon
-                                ? "bg-indigo-50 text-indigo-700 border-indigo-200"
+                                ? "bg-[rgba(255,158,27,0.1)] text-[var(--elan-petrol)] border-[rgba(224,124,0,0.22)]"
                                 : "bg-emerald-50 text-emerald-700 border-emerald-200";
 
                     return (
@@ -1981,7 +1981,7 @@ export default function SDRActionPage() {
                     return (
                         <div className="flex items-center gap-1">
                             {submitting && (
-                                <span className="flex items-center justify-center w-8 h-8 text-indigo-500">
+                                <span className="flex items-center justify-center w-8 h-8 text-[var(--elan-amber)]">
                                     <Loader2 className="w-4 h-4 animate-spin" />
                                 </span>
                             )}
@@ -1993,9 +1993,9 @@ export default function SDRActionPage() {
                                     CALLBACK_REQUESTED: "hover:border-amber-300 hover:bg-amber-50 hover:text-amber-600 hover:shadow-sm hover:shadow-amber-100",
                                     RELANCE: "hover:border-amber-300 hover:bg-amber-50 hover:text-amber-600 hover:shadow-sm hover:shadow-amber-100",
                                     RAPPEL: "hover:border-amber-300 hover:bg-amber-50 hover:text-amber-600 hover:shadow-sm hover:shadow-amber-100",
-                                    MEETING_BOOKED: "hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600 hover:shadow-sm hover:shadow-indigo-100",
+                                    MEETING_BOOKED: "hover:border-[rgba(224,124,0,0.24)] hover:bg-[rgba(255,158,27,0.12)] hover:text-[var(--elan-petrol)] hover:shadow-sm hover:shadow-[rgba(255,158,27,0.12)]",
                                     DISQUALIFIED: "hover:border-slate-400 hover:bg-slate-100 hover:text-slate-600 hover:shadow-sm",
-                                    ENVOIE_MAIL: "hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600 hover:shadow-sm hover:shadow-blue-100",
+                                    ENVOIE_MAIL: "hover:border-[rgba(12,59,56,0.22)] hover:bg-[rgba(12,59,56,0.08)] hover:text-[var(--elan-petrol)] hover:shadow-sm hover:shadow-[rgba(12,59,56,0.08)]",
                                     MAIL_ENVOYE: "hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-600 hover:shadow-sm hover:shadow-emerald-100",
                                 };
                                 return (
@@ -2011,7 +2011,7 @@ export default function SDRActionPage() {
                                         className={cn(
                                             "w-8 h-8 rounded-lg border flex items-center justify-center transition-all duration-150",
                                             "border-slate-200 text-slate-400 bg-white",
-                                            actionColors[opt.value] || "hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600",
+                                            actionColors[opt.value] || "hover:border-[rgba(224,124,0,0.24)] hover:bg-[rgba(255,158,27,0.12)] hover:text-[var(--elan-petrol)]",
                                             submitting && "opacity-40 pointer-events-none",
                                             "active:scale-95"
                                         )}
@@ -2028,7 +2028,7 @@ export default function SDRActionPage() {
                                     openDrawerForRow(row);
                                 }}
                                 title="Voir la fiche complète"
-                                className="w-8 h-8 rounded-lg border border-dashed border-slate-200 flex items-center justify-center text-slate-400 hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600 transition-all duration-150 active:scale-95"
+                                className="w-8 h-8 rounded-lg border border-dashed border-slate-200 flex items-center justify-center text-slate-400 hover:border-[rgba(224,124,0,0.24)] hover:bg-[rgba(255,158,27,0.12)] hover:text-[var(--elan-petrol)] transition-all duration-150 active:scale-95"
                             >
                                 <Eye className="w-4 h-4" />
                             </button>
@@ -2086,13 +2086,13 @@ export default function SDRActionPage() {
                     <div className="px-5 py-3.5 border-b border-[#e5e5e5] bg-[#f5f5f5]/50">
                         <div className="flex items-center justify-between gap-4">
                             <div className="flex items-center gap-2.5">
-                                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-600 to-violet-700 flex items-center justify-center shadow-sm shadow-violet-500/20">
+                                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#0c3b38] to-[#114b46] flex items-center justify-center shadow-sm shadow-[rgba(12,59,56,0.18)]">
                                     <Filter className="w-3.5 h-3.5 text-white" />
                                 </div>
                                 <div>
                                     <h3 className="text-[14px] font-[500] text-[#1a1a1a]">Filtres</h3>
                                     {hasTableFiltersActive && (
-                                        <p className="text-[12px] text-violet-600 font-[500]">
+                                        <p className="text-[12px] text-[var(--elan-petrol)] font-[500]">
                                             {[tableFilterResult, tableFilterPriority, tableFilterChannel, tableFilterType].filter(Boolean).length} actif{[tableFilterResult, tableFilterPriority, tableFilterChannel, tableFilterType].filter(Boolean).length > 1 ? "s" : ""}
                                         </p>
                                     )}
@@ -2112,14 +2112,14 @@ export default function SDRActionPage() {
                             {/* Mission */}
                             <div className="space-y-1 xl:col-span-2">
                                 <label className="text-[11px] font-[500] text-slate-400 uppercase tracking-wide block">Mission</label>
-                                <select value={selectedMissionId || ""} onChange={handleMissionChange} className="w-full h-9 px-3 text-[13px] border border-[#e5e5e5] rounded-lg bg-white text-[#1a1a1a] focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-shadow cursor-pointer">
+                                <select value={selectedMissionId || ""} onChange={handleMissionChange} className="w-full h-9 px-3 text-[13px] border border-[#e5e5e5] rounded-lg bg-white text-[#1a1a1a] focus:outline-none focus:ring-2 focus:ring-[rgba(255,158,27,0.28)] focus:border-[var(--elan-amber-deep)] transition-shadow cursor-pointer">
                                     {selectableMissions.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
                                 </select>
                             </div>
                             {/* Liste */}
                             <div className="space-y-1">
                                 <label className="text-[11px] font-[500] text-slate-400 uppercase tracking-wide block">Liste</label>
-                                <select value={selectedListId || "all"} onChange={handleListChange} className="w-full h-9 px-3 text-[13px] border border-[#e5e5e5] rounded-lg bg-white text-[#1a1a1a] focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-shadow cursor-pointer">
+                                <select value={selectedListId || "all"} onChange={handleListChange} className="w-full h-9 px-3 text-[13px] border border-[#e5e5e5] rounded-lg bg-white text-[#1a1a1a] focus:outline-none focus:ring-2 focus:ring-[rgba(255,158,27,0.28)] focus:border-[var(--elan-amber-deep)] transition-shadow cursor-pointer">
                                     <option value="all">Toutes</option>
                                     {filteredLists.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
                                 </select>
@@ -2127,12 +2127,12 @@ export default function SDRActionPage() {
                             {/* Search */}
                             <div className="space-y-1 sm:col-span-2 xl:col-span-2">
                                 <label className="text-[11px] font-[500] text-slate-400 uppercase tracking-wide block">Rechercher</label>
-                                <input type="text" value={tableSearchInput} onChange={(e) => setTableSearchInput(e.target.value)} placeholder="Contact ou société…" className="w-full h-9 px-3 text-[13px] border border-[#e5e5e5] rounded-lg bg-white text-[#1a1a1a] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-shadow" />
+                                <input type="text" value={tableSearchInput} onChange={(e) => setTableSearchInput(e.target.value)} placeholder="Contact ou société…" className="w-full h-9 px-3 text-[13px] border border-[#e5e5e5] rounded-lg bg-white text-[#1a1a1a] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[rgba(255,158,27,0.28)] focus:border-[var(--elan-amber-deep)] transition-shadow" />
                             </div>
                             {/* Statut */}
                             <div className="space-y-1">
                                 <label className="text-[11px] font-[500] text-slate-400 uppercase tracking-wide block">Statut</label>
-                                <select value={tableFilterResult} onChange={(e) => setTableFilterResult(e.target.value)} className="w-full h-9 px-3 text-[13px] border border-[#e5e5e5] rounded-lg bg-white text-[#1a1a1a] focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-shadow cursor-pointer">
+                                <select value={tableFilterResult} onChange={(e) => setTableFilterResult(e.target.value)} className="w-full h-9 px-3 text-[13px] border border-[#e5e5e5] rounded-lg bg-white text-[#1a1a1a] focus:outline-none focus:ring-2 focus:ring-[rgba(255,158,27,0.28)] focus:border-[var(--elan-amber-deep)] transition-shadow cursor-pointer">
                                     <option value="">Tous</option>
                                     <option value="NONE">Jamais contacté</option>
                                     {Object.entries(statusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
@@ -2141,7 +2141,7 @@ export default function SDRActionPage() {
                             {/* Priorité */}
                             <div className="space-y-1">
                                 <label className="text-[11px] font-[500] text-slate-400 uppercase tracking-wide block">Priorité</label>
-                                <select value={tableFilterPriority} onChange={(e) => setTableFilterPriority(e.target.value)} className="w-full h-9 px-3 text-[13px] border border-[#e5e5e5] rounded-lg bg-white text-[#1a1a1a] focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-shadow cursor-pointer">
+                                <select value={tableFilterPriority} onChange={(e) => setTableFilterPriority(e.target.value)} className="w-full h-9 px-3 text-[13px] border border-[#e5e5e5] rounded-lg bg-white text-[#1a1a1a] focus:outline-none focus:ring-2 focus:ring-[rgba(255,158,27,0.28)] focus:border-[var(--elan-amber-deep)] transition-shadow cursor-pointer">
                                     <option value="">Toutes</option>
                                     {Object.entries(PRIORITY_LABELS).map(([value, { label }]) => <option key={value} value={value}>{label}</option>)}
                                 </select>
@@ -2149,7 +2149,7 @@ export default function SDRActionPage() {
                             {/* Canal */}
                             <div className="space-y-1">
                                 <label className="text-[11px] font-[500] text-slate-400 uppercase tracking-wide block">Canal</label>
-                                <select value={tableFilterChannel} onChange={(e) => setTableFilterChannel(e.target.value)} className="w-full h-9 px-3 text-[13px] border border-[#e5e5e5] rounded-lg bg-white text-[#1a1a1a] focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-shadow cursor-pointer">
+                                <select value={tableFilterChannel} onChange={(e) => setTableFilterChannel(e.target.value)} className="w-full h-9 px-3 text-[13px] border border-[#e5e5e5] rounded-lg bg-white text-[#1a1a1a] focus:outline-none focus:ring-2 focus:ring-[rgba(255,158,27,0.28)] focus:border-[var(--elan-amber-deep)] transition-shadow cursor-pointer">
                                     <option value="">Tous</option>
                                     {(Object.entries(CHANNEL_LABELS) as [Channel, string][]).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
                                 </select>
@@ -2157,7 +2157,7 @@ export default function SDRActionPage() {
                             {/* Type */}
                             <div className="space-y-1">
                                 <label className="text-[11px] font-[500] text-slate-400 uppercase tracking-wide block">Type</label>
-                                <select value={tableFilterType} onChange={(e) => setTableFilterType(e.target.value)} className="w-full h-9 px-3 text-[13px] border border-[#e5e5e5] rounded-lg bg-white text-[#1a1a1a] focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-shadow cursor-pointer">
+                                <select value={tableFilterType} onChange={(e) => setTableFilterType(e.target.value)} className="w-full h-9 px-3 text-[13px] border border-[#e5e5e5] rounded-lg bg-white text-[#1a1a1a] focus:outline-none focus:ring-2 focus:ring-[rgba(255,158,27,0.28)] focus:border-[var(--elan-amber-deep)] transition-shadow cursor-pointer">
                                     <option value="">Tous</option>
                                     <option value="contact">Contact</option>
                                     <option value="company">Société</option>
@@ -2169,14 +2169,14 @@ export default function SDRActionPage() {
                         <div className="mt-3 pt-3 border-t border-[#e5e5e5] flex items-center justify-between">
                             <span className="text-[12px] text-slate-500">
                                 {tableSearchApi ? (
-                                    <><span className="font-[500] text-violet-600">{queueItems.length}</span> résultat{queueItems.length !== 1 ? "s" : ""} pour «&nbsp;{tableSearchApi}&nbsp;»</>
+                                    <><span className="font-[500] text-[var(--elan-petrol)]">{queueItems.length}</span> résultat{queueItems.length !== 1 ? "s" : ""} pour «&nbsp;{tableSearchApi}&nbsp;»</>
                                 ) : hasTableFiltersActive ? (
-                                    <><span className="font-[500] text-violet-600">{filteredQueueItems.length}</span> sur {queueItems.length}</>
+                                    <><span className="font-[500] text-[var(--elan-petrol)]">{filteredQueueItems.length}</span> sur {queueItems.length}</>
                                 ) : (
                                     <><span className="font-[500] text-[#1a1a1a]">{queueItems.length}</span> dans la file</>
                                 )}
                             </span>
-                            <Button variant="ghost" size="sm" onClick={() => refreshQueue()} className="text-slate-400 hover:text-violet-600 gap-1.5 text-[12px] h-7">
+                            <Button variant="ghost" size="sm" onClick={() => refreshQueue()} className="text-slate-400 hover:text-[var(--elan-petrol)] gap-1.5 text-[12px] h-7">
                                 <RefreshCw className="w-3 h-3" />
                                 Actualiser
                             </Button>
@@ -2186,8 +2186,8 @@ export default function SDRActionPage() {
 
                 {/* Bulk delete bar */}
                 {tableSelectedIds.size > 0 && (
-                    <div className="flex items-center justify-between gap-4 px-4 py-3 rounded-xl bg-indigo-50 border border-indigo-200 mb-4">
-                        <span className="text-sm font-medium text-indigo-800">
+                    <div className="flex items-center justify-between gap-4 px-4 py-3 rounded-xl bg-[rgba(255,158,27,0.1)] border border-[rgba(224,124,0,0.22)] mb-4">
+                        <span className="text-sm font-medium text-[var(--elan-petrol)]">
                             {tableSelectedIds.size} élément(s) sélectionné(s)
                         </span>
                         <div className="flex items-center gap-2">
@@ -2383,7 +2383,7 @@ export default function SDRActionPage() {
                                 placeholder="Ex: Mail à envoyer après validation du devis..."
                                 rows={3}
                                 maxLength={500}
-                                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[rgba(255,158,27,0.35)]"
                             />
                         </div>
                         <div className="flex flex-wrap gap-2 justify-end pt-2">
@@ -2393,7 +2393,7 @@ export default function SDRActionPage() {
                             <Button
                                 variant="outline"
                                 onClick={handleMailToSendChoiceOpenComposer}
-                                className="gap-2 border-blue-200 text-blue-700 bg-blue-50 hover:bg-blue-100"
+                                className="gap-2 border-[rgba(12,59,56,0.18)] text-[var(--elan-petrol)] bg-[rgba(12,59,56,0.08)] hover:bg-[rgba(12,59,56,0.12)]"
                             >
                                 <Send className="w-4 h-4" />
                                 Envoyer un email
@@ -2639,13 +2639,13 @@ export default function SDRActionPage() {
                                             </div>
                                         </div>
                                         {currentAction.company?.id && (
-                                            <Button variant="ghost" size="sm" onClick={() => setDrawerCompanyId(currentAction.company!.id)} className="shrink-0 h-7 w-7 p-0 text-slate-400 hover:text-violet-600 hover:bg-violet-50 rounded-lg" title="Modifier l'entreprise">
+                                            <Button variant="ghost" size="sm" onClick={() => setDrawerCompanyId(currentAction.company!.id)} className="shrink-0 h-7 w-7 p-0 text-slate-400 hover:text-[var(--elan-petrol)] hover:bg-[rgba(255,158,27,0.1)] rounded-lg" title="Modifier l'entreprise">
                                                 <PenLine className="w-3.5 h-3.5" />
                                             </Button>
                                         )}
                                     </div>
                                     {currentAction.company?.website && (
-                                        <a href={`https://${currentAction.company.website}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-2 text-[12px] text-violet-600 hover:text-violet-700 font-[400] transition-colors">
+                                        <a href={`https://${currentAction.company.website}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-2 text-[12px] text-[var(--elan-petrol)] hover:text-[#114b46] font-[400] transition-colors">
                                             <Globe className="w-3 h-3" />
                                             {currentAction.company.website}
                                             <ExternalLink className="w-2.5 h-2.5 opacity-60" />
@@ -2663,15 +2663,15 @@ export default function SDRActionPage() {
                                 <div className="flex items-start gap-3 mb-4">
                                     {/* Contact initials avatar */}
                                     <div className="relative flex-shrink-0">
-                                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-violet-600 to-violet-700 flex items-center justify-center shadow-md shadow-violet-500/25">
+                                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#0c3b38] to-[#114b46] flex items-center justify-center shadow-md shadow-[rgba(12,59,56,0.18)]">
                                             <span className="text-[16px] font-[500] text-white tracking-wide">
                                                 {getInitials(currentAction.contact.firstName, currentAction.contact.lastName)}
                                             </span>
                                         </div>
                                         {/* Channel indicator dot */}
                                         <div className={cn("absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full flex items-center justify-center border-2 border-white",
-                                            currentAction.channel === 'CALL' ? "bg-violet-500" :
-                                            currentAction.channel === 'EMAIL' ? "bg-blue-500" : "bg-sky-500"
+                                            currentAction.channel === 'CALL' ? "bg-[var(--elan-amber)]" :
+                                            currentAction.channel === 'EMAIL' ? "bg-[#25745f]" : "bg-sky-500"
                                         )}>
                                             {currentAction.channel === 'CALL' ? <Phone className="w-2 h-2 text-white" /> :
                                              currentAction.channel === 'EMAIL' ? <Mail className="w-2 h-2 text-white" /> :
@@ -2687,7 +2687,7 @@ export default function SDRActionPage() {
                                         )}
                                     </div>
                                     {currentAction.contact.id && (
-                                        <Button variant="ghost" size="sm" onClick={() => setDrawerContactId(currentAction.contact!.id)} className="shrink-0 h-7 w-7 p-0 text-slate-400 hover:text-violet-600 hover:bg-violet-50 rounded-lg" title="Modifier le contact">
+                                        <Button variant="ghost" size="sm" onClick={() => setDrawerContactId(currentAction.contact!.id)} className="shrink-0 h-7 w-7 p-0 text-slate-400 hover:text-[var(--elan-petrol)] hover:bg-[rgba(255,158,27,0.1)] rounded-lg" title="Modifier le contact">
                                             <PenLine className="w-3.5 h-3.5" />
                                         </Button>
                                     )}
@@ -2706,7 +2706,7 @@ export default function SDRActionPage() {
                                                     lastAction: currentAction.lastAction,
                                                     lastActionBy: currentAction.lastActionBy ?? null,
                                                 })}
-                                                className="flex items-center justify-center gap-2.5 h-12 w-full text-[14px] font-[500] text-white bg-gradient-to-r from-violet-600 to-violet-700 hover:from-violet-500 hover:to-violet-600 rounded-xl transition-all shadow-md shadow-violet-500/25 active:scale-[0.98]"
+                                                className="flex items-center justify-center gap-2.5 h-12 w-full text-[14px] font-[500] text-white bg-gradient-to-r from-[#0c3b38] to-[#114b46] hover:from-[#114b46] hover:to-[#25745f] rounded-xl transition-all shadow-md shadow-[rgba(12,59,56,0.18)] active:scale-[0.98]"
                                             >
                                                 <Phone className="w-4 h-4" />
                                                 <span className="font-mono tracking-wide">{phone}</span>
@@ -2752,7 +2752,7 @@ export default function SDRActionPage() {
                                                         <AlertCircle className="w-4 h-4 flex-shrink-0" />
                                                         Aucun numéro de téléphone valide
                                                     </div>
-                                                    <Button variant="outline" size="sm" onClick={() => setDrawerContactId(currentAction.contact!.id)} className="w-full gap-2 border-[#e5e5e5] text-slate-600 hover:border-violet-200 hover:text-violet-600">
+                                                    <Button variant="outline" size="sm" onClick={() => setDrawerContactId(currentAction.contact!.id)} className="w-full gap-2 border-[#e5e5e5] text-slate-600 hover:border-[rgba(224,124,0,0.22)] hover:text-[var(--elan-petrol)]">
                                                         <PenLine className="w-3.5 h-3.5" />
                                                         Ajouter un numéro
                                                     </Button>
@@ -2782,7 +2782,7 @@ export default function SDRActionPage() {
                                                     onChange={setRdvDate}
                                                     placeholder="Choisir date et heure du RDV…"
                                                     min={new Date().toISOString().slice(0, 16)}
-                                                    triggerClassName="border-indigo-200 focus:ring-indigo-400/40 focus:border-indigo-400"
+                                                    triggerClassName="border-[rgba(224,124,0,0.22)] focus:ring-[rgba(255,158,27,0.35)] focus:border-[var(--elan-amber-deep)]"
                                                 />
                                             </div>
                                             <Button
@@ -2809,19 +2809,19 @@ export default function SDRActionPage() {
                                         <span className="text-[11px] font-[500] uppercase tracking-wide text-slate-500 bg-[#f5f5f5] border border-[#e5e5e5] px-2 py-0.5 rounded-md mt-1 inline-block">Entreprise</span>
                                     </div>
                                     {currentAction.company.id && (
-                                        <Button variant="ghost" size="sm" onClick={() => setDrawerCompanyId(currentAction.company!.id)} className="shrink-0 h-7 w-7 p-0 text-slate-400 hover:text-violet-600 hover:bg-violet-50 rounded-lg" title="Modifier l'entreprise">
+                                        <Button variant="ghost" size="sm" onClick={() => setDrawerCompanyId(currentAction.company!.id)} className="shrink-0 h-7 w-7 p-0 text-slate-400 hover:text-[var(--elan-petrol)] hover:bg-[rgba(255,158,27,0.1)] rounded-lg" title="Modifier l'entreprise">
                                             <PenLine className="w-3.5 h-3.5" />
                                         </Button>
                                     )}
                                 </div>
                                 <div className="space-y-2">
                                     {currentAction.company.phone ? (
-                                        <a href={`tel:${currentAction.company.phone}`} onClick={(e) => handlePhoneCallAttempt(e, currentAction.company.phone!, { lastAction: currentAction.lastAction, lastActionBy: currentAction.lastActionBy ?? null })} className="flex items-center justify-center gap-2 h-11 w-full text-[14px] font-[500] text-white bg-gradient-to-r from-violet-600 to-violet-700 hover:from-violet-500 hover:to-violet-600 rounded-xl transition-all shadow-md shadow-violet-500/25 active:scale-[0.98]">
+                                        <a href={`tel:${currentAction.company.phone}`} onClick={(e) => handlePhoneCallAttempt(e, currentAction.company.phone!, { lastAction: currentAction.lastAction, lastActionBy: currentAction.lastActionBy ?? null })} className="flex items-center justify-center gap-2 h-11 w-full text-[14px] font-[500] text-white bg-gradient-to-r from-[#0c3b38] to-[#114b46] hover:from-[#114b46] hover:to-[#25745f] rounded-xl transition-all shadow-md shadow-[rgba(12,59,56,0.18)] active:scale-[0.98]">
                                             <Phone className="w-4 h-4" />
                                             {currentAction.company.phone}
                                         </a>
                                     ) : (
-                                        <Button variant="outline" size="sm" onClick={() => setDrawerCompanyId(currentAction.company!.id)} className="w-full gap-2 border-[#e5e5e5] text-slate-600 hover:border-violet-200 hover:text-violet-600">
+                                        <Button variant="outline" size="sm" onClick={() => setDrawerCompanyId(currentAction.company!.id)} className="w-full gap-2 border-[#e5e5e5] text-slate-600 hover:border-[rgba(224,124,0,0.22)] hover:text-[var(--elan-petrol)]">
                                             <PenLine className="w-3.5 h-3.5" />
                                             Ajouter un numéro
                                         </Button>
@@ -2873,7 +2873,7 @@ export default function SDRActionPage() {
                         <div className="px-5 py-4 border-b border-[#e5e5e5] bg-gradient-to-r from-[#f5f5f5] to-white">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-600 to-violet-700 flex items-center justify-center shadow-md shadow-violet-500/25">
+                                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#0c3b38] to-[#114b46] flex items-center justify-center shadow-md shadow-[rgba(12,59,56,0.18)]">
                                         <Sparkles className="w-4 h-4 text-white" />
                                     </div>
                                     <div>
@@ -2882,7 +2882,7 @@ export default function SDRActionPage() {
                                     </div>
                                 </div>
                                 {currentAction?.scriptDefaultTab && (
-                                    <span className="text-[11px] font-[500] uppercase tracking-wide text-violet-600 bg-violet-50 border border-violet-200 px-2 py-1 rounded-lg">
+                                    <span className="text-[11px] font-[500] uppercase tracking-wide text-[var(--elan-petrol)] bg-[rgba(255,158,27,0.1)] border border-[rgba(224,124,0,0.22)] px-2 py-1 rounded-lg">
                                         {SCRIPT_TABS.find((t) => t.id === currentAction.scriptDefaultTab)?.label ?? "Script"}
                                     </span>
                                 )}
@@ -2938,7 +2938,7 @@ export default function SDRActionPage() {
                 <div className="px-5 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-600 to-violet-700 flex items-center justify-center shadow-md shadow-violet-500/25">
+                            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#0c3b38] to-[#114b46] flex items-center justify-center shadow-md shadow-[rgba(12,59,56,0.18)]">
                                 <CheckCircle2 className="w-4.5 h-4.5 text-white" />
                             </div>
                             <div>
@@ -3023,7 +3023,7 @@ export default function SDRActionPage() {
                                         "flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[12px] font-[500] border transition-all",
                                         linkedAlloCall
                                             ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
-                                            : "bg-violet-50 text-violet-600 border-violet-200 hover:bg-violet-100"
+                                            : "bg-[rgba(255,158,27,0.1)] text-[var(--elan-petrol)] border-[rgba(224,124,0,0.22)] hover:bg-[rgba(255,158,27,0.16)]"
                                     )}
                                 >
                                     <PhoneCall className="w-3 h-3" />
@@ -3040,7 +3040,7 @@ export default function SDRActionPage() {
                         placeholder="Note sur l'échange..."
                         rows={3}
                         maxLength={500}
-                        className="w-full px-3 py-2.5 text-[14px] border border-[#e5e5e5] rounded-xl bg-[#f5f5f5]/30 text-[#1a1a1a] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 focus:bg-white resize-none transition-colors leading-relaxed"
+                        className="w-full px-3 py-2.5 text-[14px] border border-[#e5e5e5] rounded-xl bg-[#f5f5f5]/30 text-[#1a1a1a] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[rgba(255,158,27,0.28)] focus:border-[var(--elan-amber-deep)] focus:bg-white resize-none transition-colors leading-relaxed"
                     />
                     {/* Linked call preview */}
                     {linkedAlloCall && (
@@ -3116,8 +3116,8 @@ export default function SDRActionPage() {
 
             {/* Meeting category (Exploratoire / Besoin) — only for MEETING_BOOKED */}
             {selectedResult === "MEETING_BOOKED" && (
-                <div className="rounded-2xl border border-indigo-200 bg-gradient-to-r from-indigo-50/60 to-blue-50/40 shadow-sm overflow-hidden">
-                    <div className="px-5 py-3 border-b border-indigo-100">
+                <div className="rounded-2xl border border-[rgba(224,124,0,0.22)] bg-gradient-to-r from-[rgba(255,158,27,0.1)] to-[rgba(12,59,56,0.06)] shadow-sm overflow-hidden">
+                    <div className="px-5 py-3 border-b border-[rgba(224,124,0,0.16)]">
                         <h3 className="text-sm font-bold text-slate-900">Catégorie du RDV</h3>
                         <p className="text-xs text-slate-500 mt-0.5">Optionnel — sinon détecté automatiquement depuis la note</p>
                     </div>
@@ -3132,14 +3132,14 @@ export default function SDRActionPage() {
                                     meetingCat === value
                                         ? value === "BESOIN"
                                             ? "border-emerald-400 bg-emerald-50 shadow-sm"
-                                            : "border-blue-400 bg-blue-50 shadow-sm"
+                                            : "border-[rgba(12,59,56,0.22)] bg-[rgba(12,59,56,0.08)] shadow-sm"
                                         : "border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm"
                                 )}
                             >
                                 <span className={cn(
                                     "text-sm font-semibold",
                                     meetingCat === value
-                                        ? value === "BESOIN" ? "text-emerald-700" : "text-blue-700"
+                                        ? value === "BESOIN" ? "text-emerald-700" : "text-[var(--elan-petrol)]"
                                         : "text-slate-700"
                                 )}>
                                     {label}
@@ -3215,7 +3215,7 @@ export default function SDRActionPage() {
                                 size="sm"
                                 onClick={openEmailModalForCard}
                                 disabled={isSubmitting}
-                                className="gap-1.5 border-blue-200 text-blue-700 bg-blue-50 hover:bg-blue-100 h-9 px-3 text-[13px]"
+                                className="gap-1.5 border-[rgba(12,59,56,0.18)] text-[var(--elan-petrol)] bg-[rgba(12,59,56,0.08)] hover:bg-[rgba(12,59,56,0.12)] h-9 px-3 text-[13px]"
                             >
                                 <Send className="w-3.5 h-3.5" />
                                 Envoyer un email
@@ -3227,7 +3227,7 @@ export default function SDRActionPage() {
                             onClick={handleSubmit}
                             disabled={!selectedResult || isSubmitting || (getRequiresNote(selectedResult) && !note.trim())}
                             isLoading={isSubmitting}
-                            className="gap-2 px-6 h-9 text-[14px] font-[500] shadow-md shadow-violet-500/20 bg-gradient-to-r from-violet-600 to-violet-700 hover:from-violet-500 hover:to-violet-600 border-0"
+                            className="gap-2 px-6 h-9 text-[14px] font-[500] shadow-md shadow-[rgba(12,59,56,0.18)] bg-gradient-to-r from-[#0c3b38] to-[#114b46] hover:from-[#114b46] hover:to-[#25745f] border-0"
                         >
                             {isSubmitting ? "Enregistrement…" : selectedResult === "ENVOIE_MAIL" ? "Enregistrer" : "Valider & Suivant"}
                             {!isSubmitting && <ChevronRight className="w-4 h-4" />}

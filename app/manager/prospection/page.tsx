@@ -86,10 +86,10 @@ const RESULT_CFG: Record<string, {
     BAD_CONTACT: { label: "Mauvais contact", icon: PhoneOff, text: "text-red-600", bg: "bg-red-50", border: "border-red-200", dot: "bg-red-400" },
     INTERESTED: { label: "Intéressé", icon: ThumbsUp, text: "text-emerald-700", bg: "bg-emerald-50", border: "border-emerald-200", dot: "bg-emerald-500" },
     CALLBACK_REQUESTED: { label: "Rappel demandé", icon: RotateCw, text: "text-amber-700", bg: "bg-amber-50", border: "border-amber-200", dot: "bg-amber-500" },
-    MEETING_BOOKED: { label: "RDV planifié", icon: CalendarPlus, text: "text-indigo-700", bg: "bg-indigo-50", border: "border-indigo-200", dot: "bg-indigo-500" },
+    MEETING_BOOKED: { label: "RDV planifié", icon: CalendarPlus, text: "text-[var(--elan-petrol)]", bg: "bg-[rgba(255,158,27,0.1)]", border: "border-[rgba(224,124,0,0.22)]", dot: "bg-[var(--elan-amber)]" },
     MEETING_CANCELLED: { label: "RDV annulé", icon: CalendarX, text: "text-red-600", bg: "bg-red-50", border: "border-red-200", dot: "bg-red-400" },
     DISQUALIFIED: { label: "Disqualifié", icon: Ban, text: "text-slate-500", bg: "bg-slate-100", border: "border-slate-200", dot: "bg-slate-300" },
-    ENVOIE_MAIL: { label: "Mail à envoyer", icon: Send, text: "text-blue-700", bg: "bg-blue-50", border: "border-blue-200", dot: "bg-blue-400" },
+    ENVOIE_MAIL: { label: "Mail à envoyer", icon: Send, text: "text-[var(--elan-petrol)]", bg: "bg-[rgba(12,59,56,0.08)]", border: "border-[rgba(12,59,56,0.18)]", dot: "bg-[#25745f]" },
     MAIL_ENVOYE: { label: "Mail envoyé", icon: Send, text: "text-emerald-700", bg: "bg-emerald-50", border: "border-emerald-200", dot: "bg-emerald-500" },
     CONNECTION_SENT: { label: "Connexion envoyée", icon: Linkedin, text: "text-sky-700", bg: "bg-sky-50", border: "border-sky-200", dot: "bg-sky-400" },
     MESSAGE_SENT: { label: "Message envoyé", icon: Linkedin, text: "text-sky-700", bg: "bg-sky-50", border: "border-sky-200", dot: "bg-sky-400" },
@@ -226,7 +226,7 @@ function getLastActionStory(row: ActionRecord): ActionStory {
             case "INTERESTED":
                 return { label: "Conversation positive", icon: ThumbsUp, text: "text-emerald-700", bg: "bg-emerald-50", border: "border-emerald-200" };
             case "MEETING_BOOKED":
-                return { label: "RDV décroché au tél.", icon: CalendarPlus, text: "text-indigo-700", bg: "bg-indigo-50", border: "border-indigo-200" };
+                return { label: "RDV décroché au tél.", icon: CalendarPlus, text: "text-[var(--elan-petrol)]", bg: "bg-[rgba(255,158,27,0.1)]", border: "border-[rgba(224,124,0,0.22)]" };
             case "MEETING_CANCELLED":
                 return { label: "RDV annulé", icon: CalendarX, text: "text-red-600", bg: "bg-red-50", border: "border-red-200" };
             case "NOT_INTERESTED":
@@ -239,7 +239,7 @@ function getLastActionStory(row: ActionRecord): ActionStory {
     if (ch === "EMAIL") {
         switch (r) {
             case "ENVOIE_MAIL":
-                return { label: "Mail à envoyer", icon: Send, text: "text-blue-700", bg: "bg-blue-50", border: "border-blue-200" };
+                return { label: "Mail à envoyer", icon: Send, text: "text-[var(--elan-petrol)]", bg: "bg-[rgba(12,59,56,0.08)]", border: "border-[rgba(12,59,56,0.18)]" };
             case "MAIL_ENVOYE":
                 return { label: "Mail envoyé", icon: Mail, text: "text-sky-700", bg: "bg-sky-50", border: "border-sky-200" };
             case "REPLIED":
@@ -251,7 +251,7 @@ function getLastActionStory(row: ActionRecord): ActionStory {
             case "INTERESTED":
                 return { label: "Intérêt manifesté (mail)", icon: ThumbsUp, text: "text-emerald-700", bg: "bg-emerald-50", border: "border-emerald-200" };
             case "MEETING_BOOKED":
-                return { label: "RDV pris par mail", icon: CalendarPlus, text: "text-indigo-700", bg: "bg-indigo-50", border: "border-indigo-200" };
+                return { label: "RDV pris par mail", icon: CalendarPlus, text: "text-[var(--elan-petrol)]", bg: "bg-[rgba(255,158,27,0.1)]", border: "border-[rgba(224,124,0,0.22)]" };
             case "BAD_CONTACT":
                 return { label: "Mail invalide", icon: PhoneOff, text: "text-red-700", bg: "bg-red-50", border: "border-red-200" };
         }
@@ -272,7 +272,7 @@ function getLastActionStory(row: ActionRecord): ActionStory {
             case "INTERESTED":
                 return { label: "Intérêt LinkedIn", icon: ThumbsUp, text: "text-emerald-700", bg: "bg-emerald-50", border: "border-emerald-200" };
             case "MEETING_BOOKED":
-                return { label: "RDV pris via LinkedIn", icon: CalendarPlus, text: "text-indigo-700", bg: "bg-indigo-50", border: "border-indigo-200" };
+                return { label: "RDV pris via LinkedIn", icon: CalendarPlus, text: "text-[var(--elan-petrol)]", bg: "bg-[rgba(255,158,27,0.1)]", border: "border-[rgba(224,124,0,0.22)]" };
         }
     }
 
@@ -362,8 +362,8 @@ function Th({
                 type="button"
                 onClick={() => onSort(sortKey)}
                 className={cn(
-                    "flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-400 rounded",
-                    active ? "text-indigo-600" : "text-slate-400 hover:text-slate-700"
+                    "flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[rgba(255,158,27,0.45)] rounded",
+                    active ? "text-[var(--elan-petrol)]" : "text-slate-400 hover:text-slate-700"
                 )}
             >
                 {label}
@@ -418,7 +418,7 @@ function ColToggle({
                 className={cn(
                     "h-9 px-3 flex items-center gap-1.5 rounded-xl border text-xs font-semibold transition-all",
                     open
-                        ? "bg-indigo-50 border-indigo-300 text-indigo-700"
+                        ? "bg-[rgba(255,158,27,0.1)] border-[rgba(224,124,0,0.24)] text-[var(--elan-petrol)]"
                         : "bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50"
                 )}
             >
@@ -436,7 +436,7 @@ function ColToggle({
                             <span className={cn(
                                 "w-4 h-4 rounded border-2 flex items-center justify-center transition-colors shrink-0",
                                 visible.has(col.key)
-                                    ? "bg-indigo-600 border-indigo-600"
+                                    ? "bg-[var(--elan-amber)] border-[var(--elan-amber)]"
                                     : "bg-white border-slate-300"
                             )}>
                                 {visible.has(col.key) && (
@@ -496,7 +496,7 @@ function DensityToggle({ value, onChange }: { value: Density; onChange: (d: Dens
                             onClick={() => { onChange(opt.value); setOpen(false); }}
                             className={cn(
                                 "w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-colors",
-                                value === opt.value ? "bg-indigo-50 text-indigo-700" : "text-slate-600 hover:bg-slate-50"
+                                value === opt.value ? "bg-[rgba(255,158,27,0.1)] text-[var(--elan-petrol)]" : "text-slate-600 hover:bg-slate-50"
                             )}
                         >
                             {opt.label}
@@ -538,7 +538,7 @@ function ResultFilterBar({
                         aria-pressed={isActive}
                         className={cn(
                             "flex items-center gap-1.5 pl-2.5 pr-2 py-1.5 rounded-xl border text-[11px] font-bold transition-all duration-150",
-                            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(255,158,27,0.45)]",
                             isActive
                                 ? cn(c.bg, c.text, c.border, "shadow-sm")
                                 : "bg-white border-slate-200 text-slate-500 hover:border-slate-300 hover:bg-slate-50"
@@ -1017,8 +1017,8 @@ export default function ManagerProspectionPage() {
                 {/* Page header */}
                 <div className="flex items-start justify-between gap-4 pt-2 flex-wrap">
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-100 to-indigo-200 flex items-center justify-center shadow-sm">
-                            <ChannelIcon className="w-6 h-6 text-indigo-700" aria-hidden />
+                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[rgba(12,59,56,0.1)] to-[rgba(37,116,95,0.18)] flex items-center justify-center shadow-sm">
+                            <ChannelIcon className="w-6 h-6 text-[var(--elan-petrol)]" aria-hidden />
                         </div>
                         <div>
                             <h1 className="text-2xl font-black text-slate-900 tracking-tight">
@@ -1034,7 +1034,7 @@ export default function ManagerProspectionPage() {
                             type="button"
                             onClick={() => setBulkCallSyncOpen(true)}
                             aria-label="Synchroniser les appels Allo pour toutes les missions"
-                            className="h-10 px-4 flex items-center gap-2 rounded-xl border border-violet-200 bg-violet-50 text-violet-900 text-sm font-bold hover:bg-violet-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 shrink-0"
+                            className="h-10 px-4 flex items-center gap-2 rounded-xl border border-[rgba(224,124,0,0.22)] bg-[rgba(255,158,27,0.1)] text-[var(--elan-petrol)] text-sm font-bold hover:bg-[rgba(255,158,27,0.16)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(255,158,27,0.45)] shrink-0"
                         >
                             <Mic className="w-4 h-4 shrink-0" aria-hidden />
                             Sync Allo (toutes les missions)
@@ -1059,7 +1059,7 @@ export default function ManagerProspectionPage() {
                                 onClick={() => setChannel(tab.value)}
                                 className={cn(
                                     "flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-150",
-                                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(255,158,27,0.45)]",
                                     active
                                         ? "bg-white text-slate-900 shadow-sm ring-1 ring-slate-900/5"
                                         : "text-slate-500 hover:text-slate-800"
@@ -1090,7 +1090,7 @@ export default function ManagerProspectionPage() {
                                     value={pickerMissionSearch}
                                     onChange={e => setPickerMissionSearch(e.target.value)}
                                     placeholder="Nom de mission ou client…"
-                                    className="w-full h-9 pl-10 pr-3 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-400"
+                                    className="w-full h-9 pl-10 pr-3 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[rgba(255,158,27,0.28)] focus:border-[var(--elan-amber-deep)]"
                                 />
                             </div>
                         </div>
@@ -1102,7 +1102,7 @@ export default function ManagerProspectionPage() {
                                 id="picker-client"
                                 value={pickerClientId}
                                 onChange={e => setPickerClientId(e.target.value)}
-                                className="w-full h-9 px-3 text-sm font-semibold bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:outline-none focus:border-indigo-400 cursor-pointer"
+                                className="w-full h-9 px-3 text-sm font-semibold bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:outline-none focus:border-[var(--elan-amber-deep)] cursor-pointer"
                             >
                                 <option value="">Tous les clients</option>
                                 {clientPickerOptions.map(([id, name]) => (
@@ -1118,7 +1118,7 @@ export default function ManagerProspectionPage() {
                                 id="picker-sdr"
                                 value={pickerSdrId}
                                 onChange={e => setPickerSdrId(e.target.value)}
-                                className="w-full h-9 px-3 text-sm font-semibold bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:outline-none focus:border-indigo-400 cursor-pointer"
+                                className="w-full h-9 px-3 text-sm font-semibold bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:outline-none focus:border-[var(--elan-amber-deep)] cursor-pointer"
                             >
                                 <option value="">Tous les SDR</option>
                                 {sdrOptions.map(s => (
@@ -1151,7 +1151,7 @@ export default function ManagerProspectionPage() {
                 {/* Mission grid */}
                 {missionsLoading ? (
                     <div className="flex flex-col items-center justify-center py-24 gap-3">
-                        <Loader2 className="w-8 h-8 text-indigo-400 animate-spin" />
+                        <Loader2 className="w-8 h-8 text-[var(--elan-amber)] animate-spin" />
                         <p className="text-sm font-medium text-slate-500">Chargement des missions…</p>
                     </div>
                 ) : missionsForChannel.length === 0 ? (
@@ -1172,7 +1172,7 @@ export default function ManagerProspectionPage() {
                                 setPickerClientId("");
                                 setPickerSdrId("");
                             }}
-                            className="mt-1 px-4 py-2 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-bold hover:bg-indigo-100 transition-colors"
+                            className="mt-1 px-4 py-2 rounded-xl bg-[rgba(255,158,27,0.1)] border border-[rgba(224,124,0,0.22)] text-[var(--elan-petrol)] text-xs font-bold hover:bg-[rgba(255,158,27,0.16)] transition-colors"
                         >
                             Réinitialiser les filtres
                         </button>
@@ -1191,12 +1191,12 @@ export default function ManagerProspectionPage() {
                                     style={{ animationDelay: `${i * 40}ms` }}
                                     className={cn(
                                         "group text-left relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6",
-                                        "hover:border-indigo-300 hover:shadow-xl hover:shadow-indigo-500/8",
-                                        "transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+                                        "hover:border-[rgba(12,59,56,0.22)] hover:shadow-xl hover:shadow-[rgba(12,59,56,0.08)]",
+                                        "transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(255,158,27,0.45)]"
                                     )}
                                 >
                                     {/* decorative blob */}
-                                    <div className="absolute -top-6 -right-6 w-24 h-24 rounded-full bg-indigo-50 group-hover:bg-indigo-100 transition-colors duration-300" aria-hidden />
+                                    <div className="absolute -top-6 -right-6 w-24 h-24 rounded-full bg-[rgba(255,158,27,0.08)] group-hover:bg-[rgba(255,158,27,0.14)] transition-colors duration-300" aria-hidden />
 
                                     <div className="flex items-start justify-between mb-5 relative">
                                         <div className="flex items-center gap-2">
@@ -1204,11 +1204,11 @@ export default function ManagerProspectionPage() {
                                                 channelList.map((ch) => {
                                                     const Icon = CHANNEL_ICONS[ch] ?? Phone;
                                                     const badgeStyles: Record<string, string> = {
-                                                        CALL: "bg-blue-100 text-blue-600",
+                                                        CALL: "bg-[rgba(12,59,56,0.1)] text-[var(--elan-petrol)]",
                                                         EMAIL: "bg-amber-100 text-amber-600",
                                                         LINKEDIN: "bg-sky-100 text-sky-600",
                                                     };
-                                                    const style = badgeStyles[ch] ?? "bg-indigo-100 text-indigo-600";
+                                                    const style = badgeStyles[ch] ?? "bg-[rgba(255,158,27,0.12)] text-[var(--elan-petrol)]";
                                                     return (
                                                         <div
                                                             key={ch}
@@ -1222,18 +1222,18 @@ export default function ManagerProspectionPage() {
                                                     );
                                                 })
                                             ) : (
-                                                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-100 to-violet-100 flex items-center justify-center shadow-sm group-hover:-translate-y-0.5 transition-transform">
-                                                    <ChannelIconCard className="w-5 h-5 text-indigo-600" aria-hidden />
+                                                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[rgba(12,59,56,0.1)] to-[rgba(255,158,27,0.14)] flex items-center justify-center shadow-sm group-hover:-translate-y-0.5 transition-transform">
+                                                    <ChannelIconCard className="w-5 h-5 text-[var(--elan-petrol)]" aria-hidden />
                                                 </div>
                                             )}
                                         </div>
-                                        <div className="w-7 h-7 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center group-hover:bg-indigo-50 group-hover:border-indigo-200 transition-colors">
-                                            <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-500 transition-colors" aria-hidden />
+                                        <div className="w-7 h-7 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center group-hover:bg-[rgba(255,158,27,0.1)] group-hover:border-[rgba(224,124,0,0.22)] transition-colors">
+                                            <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-[var(--elan-amber-deep)] transition-colors" aria-hidden />
                                         </div>
                                     </div>
 
                                     <div className="relative">
-                                        <p className="text-base font-black text-slate-900 group-hover:text-indigo-700 transition-colors leading-snug">
+                                        <p className="text-base font-black text-slate-900 group-hover:text-[var(--elan-petrol)] transition-colors leading-snug">
                                             {mission.name}
                                         </p>
                                         <p className="text-xs font-semibold text-slate-400 mt-1.5 flex items-center gap-1">
@@ -1246,7 +1246,7 @@ export default function ManagerProspectionPage() {
                                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
                                             Ouvrir le tableau de bord
                                         </span>
-                                        <Activity className="w-3.5 h-3.5 text-slate-300 group-hover:text-indigo-400 transition-colors" aria-hidden />
+                                        <Activity className="w-3.5 h-3.5 text-slate-300 group-hover:text-[var(--elan-amber)] transition-colors" aria-hidden />
                                     </div>
                                 </button>
                             );
@@ -1298,7 +1298,7 @@ export default function ManagerProspectionPage() {
                                 setNewCount(0);
                             }}
                             aria-label="Retour aux missions"
-                            className="w-9 h-9 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+                            className="w-9 h-9 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(255,158,27,0.45)]"
                         >
                             <ArrowLeft className="w-4 h-4 text-slate-600" aria-hidden />
                         </button>
@@ -1314,7 +1314,7 @@ export default function ManagerProspectionPage() {
                             <button
                                 type="button"
                                 onClick={() => { setNewCount(0); setPage(1); }}
-                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-indigo-600 text-white text-xs font-bold shadow hover:bg-indigo-700 transition-colors animate-bounce"
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--elan-petrol)] text-white text-xs font-bold shadow hover:bg-[#114b46] transition-colors animate-bounce"
                             >
                                 <Zap className="w-3 h-3" aria-hidden />
                                 +{newCount} nouvelles
@@ -1361,7 +1361,7 @@ export default function ManagerProspectionPage() {
                                 type="button"
                                 onClick={() => setCallSyncModalOpen(true)}
                                 aria-label="Synchroniser les appels Allo"
-                                className="h-9 px-3 flex items-center gap-1.5 rounded-xl border border-violet-200 bg-violet-50 text-violet-800 text-xs font-bold hover:bg-violet-100 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
+                                className="h-9 px-3 flex items-center gap-1.5 rounded-xl border border-[rgba(224,124,0,0.22)] bg-[rgba(255,158,27,0.1)] text-[var(--elan-petrol)] text-xs font-bold hover:bg-[rgba(255,158,27,0.16)] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(255,158,27,0.45)]"
                             >
                                 <Mic className="w-3.5 h-3.5" aria-hidden />
                                 Sync appels
@@ -1395,7 +1395,7 @@ export default function ManagerProspectionPage() {
                                 onClick={() => { setChannel(tab.value); setSelectedMission(null); }}
                                 className={cn(
                                     "flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all",
-                                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400",
+                                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(255,158,27,0.45)]",
                                     active ? "bg-white text-slate-900 shadow-sm ring-1 ring-slate-900/5" : "text-slate-500 hover:text-slate-800"
                                 )}
                             >
@@ -1420,10 +1420,10 @@ export default function ManagerProspectionPage() {
             {/* ── Stat cards ────────────────────────────────────────────── */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
                 <StatCard label="Actions totales" value={sc.total} icon={BarChart3} text="text-slate-600" bg="bg-slate-100" border="border-slate-200" sparkData={hourlySparkData} sparkColor="#64748b" />
-                <StatCard label="RDV planifiés" value={sc.rdv} icon={CalendarPlus} text="text-indigo-600" bg="bg-indigo-50" border="border-indigo-200" sparkData={hourlySparkData.map(() => Math.floor(Math.random() * 3))} sparkColor="#6366f1" />
+                <StatCard label="RDV planifiés" value={sc.rdv} icon={CalendarPlus} text="text-[var(--elan-petrol)]" bg="bg-[rgba(255,158,27,0.1)]" border="border-[rgba(224,124,0,0.22)]" sparkData={hourlySparkData.map(() => Math.floor(Math.random() * 3))} sparkColor="#e07c00" />
                 <StatCard label="Intéressés" value={sc.interested} icon={ThumbsUp} text="text-emerald-600" bg="bg-emerald-50" border="border-emerald-200" sparkData={hourlySparkData.map(v => Math.round(v * 0.4))} sparkColor="#10b981" />
                 <StatCard label="Rappels demandés" value={sc.callbacks} icon={Clock} text="text-amber-600" bg="bg-amber-50" border="border-amber-200" sparkData={hourlySparkData.map(v => Math.round(v * 0.2))} sparkColor="#f59e0b" />
-                <StatCard label="Taux conv. RDV" value={`${sc.rate}%`} icon={TrendingUp} text="text-violet-600" bg="bg-violet-50" border="border-violet-200" />
+                <StatCard label="Taux conv. RDV" value={`${sc.rate}%`} icon={TrendingUp} text="text-[var(--elan-petrol)]" bg="bg-[rgba(12,59,56,0.08)]" border="border-[rgba(12,59,56,0.18)]" />
             </div>
 
             {/* ── Filter & search bar ───────────────────────────────────── */}
@@ -1438,7 +1438,7 @@ export default function ManagerProspectionPage() {
                             placeholder='Rechercher…  ( / )'
                             value={search}
                             onChange={e => { setSearch(e.target.value); setPage(1); }}
-                            className="w-full h-9 pl-10 pr-8 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-400 transition-all placeholder:text-slate-400"
+                            className="w-full h-9 pl-10 pr-8 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[rgba(255,158,27,0.28)] focus:border-[var(--elan-amber-deep)] transition-all placeholder:text-slate-400"
                             aria-label="Rechercher un contact ou une société"
                         />
                         {search && (
@@ -1460,7 +1460,7 @@ export default function ManagerProspectionPage() {
                         value={sdrFilter}
                         onChange={e => { setSdrFilter(e.target.value); setPage(1); }}
                         aria-label="Filtrer par utilisateur (auteur de l'action)"
-                        className="h-9 px-3 text-sm font-semibold bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:outline-none focus:border-indigo-400 min-w-[160px] cursor-pointer"
+                        className="h-9 px-3 text-sm font-semibold bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:outline-none focus:border-[var(--elan-amber-deep)] min-w-[160px] cursor-pointer"
                     >
                         <option value="">Tous les utilisateurs</option>
                         {sdrOptions.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
@@ -1475,7 +1475,7 @@ export default function ManagerProspectionPage() {
                             setPage(1);
                         }}
                         aria-label="Filtrer par canal de l'action"
-                        className="h-9 px-3 text-sm font-semibold bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:outline-none focus:border-indigo-400 min-w-[140px] cursor-pointer"
+                        className="h-9 px-3 text-sm font-semibold bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:outline-none focus:border-[var(--elan-amber-deep)] min-w-[140px] cursor-pointer"
                     >
                         <option value="">Tous canaux</option>
                         <option value="CALL">Appels</option>
@@ -1493,7 +1493,7 @@ export default function ManagerProspectionPage() {
                             value={dateFrom}
                             onChange={e => { setDateFrom(e.target.value); setPage(1); }}
                             aria-label="Date de début (création de l'action)"
-                            className="h-9 px-2 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:outline-none focus:border-indigo-400 cursor-pointer"
+                            className="h-9 px-2 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:outline-none focus:border-[var(--elan-amber-deep)] cursor-pointer"
                         />
                         <span className="text-xs text-slate-400 font-medium">→</span>
                         <input
@@ -1501,7 +1501,7 @@ export default function ManagerProspectionPage() {
                             value={dateTo}
                             onChange={e => { setDateTo(e.target.value); setPage(1); }}
                             aria-label="Date de fin (création de l'action)"
-                            className="h-9 px-2 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:outline-none focus:border-indigo-400 cursor-pointer"
+                            className="h-9 px-2 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:outline-none focus:border-[var(--elan-amber-deep)] cursor-pointer"
                         />
                     </div>
 
@@ -1564,7 +1564,7 @@ export default function ManagerProspectionPage() {
                         {hasFilters && ` sur ${actions.length}`}
                     </p>
                     {selectedIds.size > 0 && (
-                        <span className="px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 text-[11px] font-bold">
+                        <span className="px-2 py-0.5 rounded-full bg-[rgba(255,158,27,0.1)] text-[var(--elan-petrol)] text-[11px] font-bold">
                             {selectedIds.size} sélectionné{selectedIds.size > 1 ? "s" : ""}
                         </span>
                     )}
@@ -1573,7 +1573,7 @@ export default function ManagerProspectionPage() {
 
             {/* ── Bulk action bar ───────────────────────────────────────── */}
             {selectedIds.size > 0 && (
-                <div className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-200 animate-in slide-in-from-bottom-2 duration-200">
+                <div className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-[var(--elan-petrol)] text-white shadow-lg shadow-[rgba(12,59,56,0.18)] animate-in slide-in-from-bottom-2 duration-200">
                     <span className="text-sm font-bold">{selectedIds.size} action{selectedIds.size > 1 ? "s" : ""} sélectionnée{selectedIds.size > 1 ? "s" : ""}</span>
                     <div className="flex-1" />
                     <button
@@ -1600,7 +1600,7 @@ export default function ManagerProspectionPage() {
             <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
                 {loadingData && actions.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-24 gap-3">
-                        <Loader2 className="w-8 h-8 text-indigo-400 animate-spin" />
+                        <Loader2 className="w-8 h-8 text-[var(--elan-amber)] animate-spin" />
                         <p className="text-sm font-medium text-slate-500">Chargement des données…</p>
                     </div>
                 ) : processed.length === 0 ? (
@@ -1618,7 +1618,7 @@ export default function ManagerProspectionPage() {
                                 setDateFrom("");
                                 setDateTo("");
                             }}
-                            className="mt-1 px-4 py-2 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-bold hover:bg-indigo-100 transition-colors"
+                            className="mt-1 px-4 py-2 rounded-xl bg-[rgba(255,158,27,0.1)] border border-[rgba(224,124,0,0.22)] text-[var(--elan-petrol)] text-xs font-bold hover:bg-[rgba(255,158,27,0.16)] transition-colors"
                         >
                             Réinitialiser les filtres
                         </button>
@@ -1635,7 +1635,7 @@ export default function ManagerProspectionPage() {
                                             checked={allPageSelected}
                                             onChange={togglePageSelect}
                                             aria-label="Sélectionner toute la page"
-                                            className="w-4 h-4 rounded border-slate-300 text-indigo-600 accent-indigo-600 cursor-pointer"
+                                            className="w-4 h-4 rounded border-slate-300 text-[var(--elan-petrol)] accent-[var(--elan-amber)] cursor-pointer"
                                         />
                                     </th>
                                     {visibleCols.has("date") && (
@@ -1679,7 +1679,7 @@ export default function ManagerProspectionPage() {
                                             className={cn(
                                                 "group cursor-pointer transition-colors duration-100",
                                                 isSelected
-                                                    ? "bg-indigo-50/70 hover:bg-indigo-50"
+                                                    ? "bg-[rgba(255,158,27,0.08)] hover:bg-[rgba(255,158,27,0.12)]"
                                                     : "hover:bg-slate-50/70"
                                             )}
                                             aria-selected={isSelected}
@@ -1695,7 +1695,7 @@ export default function ManagerProspectionPage() {
                                                     checked={isSelected}
                                                     onChange={() => toggleRow(row.id)}
                                                     aria-label={`Sélectionner ${name}`}
-                                                    className="w-4 h-4 rounded border-slate-300 text-indigo-600 accent-indigo-600 cursor-pointer"
+                                                    className="w-4 h-4 rounded border-slate-300 text-[var(--elan-petrol)] accent-[var(--elan-amber)] cursor-pointer"
                                                 />
                                             </td>
 
@@ -1816,9 +1816,9 @@ export default function ManagerProspectionPage() {
                                                     type="button"
                                                     onClick={() => setDrawerAction(row)}
                                                     aria-label={`Ouvrir les détails de ${name}`}
-                                                    className="rounded p-1 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-400"
+                                                    className="rounded p-1 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[rgba(255,158,27,0.45)]"
                                                 >
-                                                    <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-indigo-400 transition-colors" aria-hidden />
+                                                    <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-[var(--elan-amber)] transition-colors" aria-hidden />
                                                 </button>
                                             </td>
                                         </tr>
@@ -1872,7 +1872,7 @@ export default function ManagerProspectionPage() {
                                         className={cn(
                                             "h-8 w-8 flex items-center justify-center rounded-lg text-xs font-bold transition-colors",
                                             page === p
-                                                ? "bg-indigo-600 text-white shadow-sm"
+                                                ? "bg-[var(--elan-petrol)] text-white shadow-sm"
                                                 : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
                                         )}
                                     >

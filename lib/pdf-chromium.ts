@@ -1,14 +1,15 @@
 /**
  * Chromium path helper for PDF generation on Vercel.
- * Uses @sparticuz/chromium-min to fetch from hosted chromium-pack.tar.
+ * Prefer a prebuilt hosted chromium-pack.tar so deploys do not rebuild Chromium assets.
  */
 let cachedExecutablePath: string | null = null;
 let downloadPromise: Promise<string> | null = null;
 
 const CHROMIUM_PACK_URL =
-    process.env.VERCEL_URL
+    process.env.CHROMIUM_PACK_URL ||
+    (process.env.VERCEL_URL
         ? `https://${process.env.VERCEL_URL}/chromium-pack.tar`
-        : "https://github.com/gabenunez/puppeteer-on-vercel/raw/refs/heads/main/example/chromium-dont-use-in-prod.tar";
+        : "https://github.com/gabenunez/puppeteer-on-vercel/raw/refs/heads/main/example/chromium-dont-use-in-prod.tar");
 
 export async function getChromiumExecutablePath(): Promise<string> {
     if (cachedExecutablePath) return cachedExecutablePath;
