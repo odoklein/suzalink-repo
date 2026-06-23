@@ -80,7 +80,7 @@ export default function ClientPortalDatabasePage() {
     });
 
     return (
-        <div className="min-h-full bg-gradient-to-br from-[#F8F9FC] via-[#F4F6F9] to-[#ECEEF4] p-4 md:p-6 space-y-5">
+        <div className="min-h-full bg-gradient-to-br from-[var(--elan-paper)] via-[var(--elan-paper)] to-[var(--elan-paper-2)] p-4 md:p-6 space-y-5">
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4" style={{ animation: "dbFadeUp 0.35s ease both" }}>
                 <div className="flex items-center gap-3">
@@ -88,19 +88,19 @@ export default function ClientPortalDatabasePage() {
                         <Building2 className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                        <h1 className="text-xl font-bold text-[#12122A] tracking-tight">Base de données</h1>
-                        <p className="text-xs text-[#6B7194] mt-0.5">Entreprises et contacts travaillés dans vos campagnes</p>
+                        <h1 className="text-xl font-bold text-[var(--elan-ink)] tracking-tight">Base de données</h1>
+                        <p className="text-xs text-[var(--elan-slate)] mt-0.5">Entreprises et contacts travaillés dans vos campagnes</p>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-2 p-1 bg-white border border-[#E8EBF0] rounded-xl shadow-sm self-start md:self-auto">
+                <div className="flex items-center gap-2 p-1 bg-[var(--elan-surface)] border border-[var(--elan-line)] rounded-xl shadow-sm self-start md:self-auto">
                     <button
                         type="button"
                         onClick={() => setViewMode("cards")}
                         className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                             viewMode === "cards"
-                                ? "bg-[#12122A] text-white shadow-sm"
-                                : "text-[#6B7194] hover:text-[#12122A]"
+                                ? "bg-[var(--elan-petrol)] text-[var(--elan-surface)] shadow-sm"
+                                : "text-[var(--elan-slate)] hover:text-[var(--elan-ink)]"
                         }`}
                     >
                         Cartes
@@ -110,8 +110,8 @@ export default function ClientPortalDatabasePage() {
                         onClick={() => setViewMode("table")}
                         className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                             viewMode === "table"
-                                ? "bg-[#12122A] text-white shadow-sm"
-                                : "text-[#6B7194] hover:text-[#12122A]"
+                                ? "bg-[var(--elan-petrol)] text-[var(--elan-surface)] shadow-sm"
+                                : "text-[var(--elan-slate)] hover:text-[var(--elan-ink)]"
                         }`}
                     >
                         Tableau
@@ -120,19 +120,19 @@ export default function ClientPortalDatabasePage() {
             </div>
 
             <div className="relative max-w-sm" style={{ animation: "dbFadeUp 0.35s ease both", animationDelay: "40ms" }}>
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A0A3BD]" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#899892]" />
                 <input
                     type="search"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     placeholder="Rechercher (entreprise, secteur, contact...)"
-                    className="w-full h-10 pl-9 pr-8 rounded-xl border border-[#E8EBF0] bg-white text-sm text-[#12122A] placeholder:text-[#A0A3BD] focus:outline-none focus:ring-2 focus:ring-emerald-400/30 focus:border-emerald-400/40 shadow-sm"
+                    className="w-full h-10 pl-9 pr-8 rounded-xl border border-[var(--elan-line)] bg-[var(--elan-surface)] text-sm text-[var(--elan-ink)] placeholder:text-[#899892] focus:outline-none focus:ring-2 focus:ring-emerald-400/30 focus:border-emerald-400/40 shadow-sm"
                 />
                 {search && (
                     <button
                         type="button"
                         onClick={() => setSearch("")}
-                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#A0A3BD] hover:text-[#6B7194]"
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#899892] hover:text-[var(--elan-slate)]"
                     >
                         <X className="w-3.5 h-3.5" />
                     </button>
@@ -143,25 +143,25 @@ export default function ClientPortalDatabasePage() {
                 <div className="flex items-center justify-center py-20">
                     <div className="flex flex-col items-center gap-3">
                         <Loader2 className="w-7 h-7 animate-spin text-emerald-500" />
-                        <span className="text-sm text-[#6B7194]">Chargement de la base de données…</span>
+                        <span className="text-sm text-[var(--elan-slate)]">Chargement de la base de données…</span>
                     </div>
                 </div>
             ) : filteredCompanies.length === 0 ? (
-                <div className="bg-white border-2 border-dashed border-[#E8EBF0] rounded-2xl py-16 px-6 text-center" style={{ animation: "dbFadeUp 0.35s ease both" }}>
-                    <div className="mx-auto mb-4 w-14 h-14 rounded-2xl bg-[#F4F5FA] flex items-center justify-center">
-                        <Building2 className="w-6 h-6 text-[#A0A3BD]" />
+                <div className="bg-[var(--elan-surface)] border-2 border-dashed border-[var(--elan-line)] rounded-2xl py-16 px-6 text-center" style={{ animation: "dbFadeUp 0.35s ease both" }}>
+                    <div className="mx-auto mb-4 w-14 h-14 rounded-2xl bg-[var(--elan-paper)] flex items-center justify-center">
+                        <Building2 className="w-6 h-6 text-[#899892]" />
                     </div>
-                    <p className="text-sm font-semibold text-[#12122A]">Aucune entreprise trouvée</p>
-                    <p className="mt-1 text-xs text-[#6B7194]">
+                    <p className="text-sm font-semibold text-[var(--elan-ink)]">Aucune entreprise trouvée</p>
+                    <p className="mt-1 text-xs text-[var(--elan-slate)]">
                         Ajustez votre recherche ou réessayez plus tard.
                     </p>
                 </div>
             ) : viewMode === "table" ? (
-                <div className="bg-white rounded-2xl border border-[#E8EBF0] overflow-hidden shadow-sm" style={{ animation: "dbFadeUp 0.35s ease both", animationDelay: "60ms" }}>
+                <div className="bg-[var(--elan-surface)] rounded-2xl border border-[var(--elan-line)] overflow-hidden shadow-sm" style={{ animation: "dbFadeUp 0.35s ease both", animationDelay: "60ms" }}>
                     <div className="overflow-x-auto">
                         <table className="min-w-full text-sm">
-                            <thead className="bg-[#FAFAFA] border-b border-[#F0F1F7]">
-                                <tr className="text-[11px] font-bold text-[#A0A3BD] uppercase tracking-wider">
+                            <thead className="bg-[var(--elan-paper)] border-b border-[var(--elan-line)]">
+                                <tr className="text-[11px] font-bold text-[#899892] uppercase tracking-wider">
                                     <th className="px-4 py-3 text-left">Entreprise</th>
                                     <th className="px-4 py-3 text-left">Secteur</th>
                                     <th className="px-4 py-3 text-left">Taille</th>
@@ -171,7 +171,7 @@ export default function ClientPortalDatabasePage() {
                                     <th className="px-4 py-3 text-left">Contacts</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-[#F5F6FA]">
+                            <tbody className="divide-y divide-[var(--elan-line)]">
                                 {filteredCompanies.map((company) => (
                                     <tr key={company.id} className="hover:bg-emerald-50/30 transition-colors">
                                         <td className="px-4 py-3 align-top">
@@ -179,21 +179,21 @@ export default function ClientPortalDatabasePage() {
                                                 <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
                                                     <Building2 className="w-4 h-4" />
                                                 </div>
-                                                <p className="font-semibold text-[#12122A] truncate">
+                                                <p className="font-semibold text-[var(--elan-ink)] truncate">
                                                     {company.name}
                                                 </p>
                                             </div>
                                         </td>
-                                        <td className="px-4 py-3 align-top text-sm text-[#6B7194]">
+                                        <td className="px-4 py-3 align-top text-sm text-[var(--elan-slate)]">
                                             {company.industry || <span className="text-[#C4C6D4]">—</span>}
                                         </td>
-                                        <td className="px-4 py-3 align-top text-sm text-[#6B7194]">
+                                        <td className="px-4 py-3 align-top text-sm text-[var(--elan-slate)]">
                                             {company.size || <span className="text-[#C4C6D4]">—</span>}
                                         </td>
-                                        <td className="px-4 py-3 align-top text-sm text-[#6B7194]">
+                                        <td className="px-4 py-3 align-top text-sm text-[var(--elan-slate)]">
                                             {company.country || <span className="text-[#C4C6D4]">—</span>}
                                         </td>
-                                        <td className="px-4 py-3 align-top text-sm text-[#6B7194]">
+                                        <td className="px-4 py-3 align-top text-sm text-[var(--elan-slate)]">
                                             {company.phone ? (
                                                 <a href={`tel:${company.phone}`} className="inline-flex items-center gap-1.5 hover:text-emerald-600 transition-colors">
                                                     <Phone className="w-3 h-3" />
@@ -203,7 +203,7 @@ export default function ClientPortalDatabasePage() {
                                                 <span className="text-[#C4C6D4]">—</span>
                                             )}
                                         </td>
-                                        <td className="px-4 py-3 align-top text-sm text-[#6B7194]">
+                                        <td className="px-4 py-3 align-top text-sm text-[var(--elan-slate)]">
                                             {company.website ? (
                                                 <a
                                                     href={company.website}
@@ -218,7 +218,7 @@ export default function ClientPortalDatabasePage() {
                                                 <span className="text-[#C4C6D4]">—</span>
                                             )}
                                         </td>
-                                        <td className="px-4 py-3 align-top text-[#6B7194]">
+                                        <td className="px-4 py-3 align-top text-[var(--elan-slate)]">
                                             <div className="flex flex-col gap-1">
                                                 <span className="inline-flex items-center gap-1 text-xs text-slate-600">
                                                     <Users className="w-3.5 h-3.5 text-emerald-500" />
@@ -275,7 +275,7 @@ export default function ClientPortalDatabasePage() {
                     {filteredCompanies.map((company, idx) => (
                         <div
                             key={company.id}
-                            className="bg-white rounded-2xl border border-[#E8EBF0] p-4 flex flex-col gap-3 hover:border-emerald-300/60 hover:shadow-lg hover:shadow-emerald-100/40 transition-all duration-200"
+                            className="bg-[var(--elan-surface)] rounded-2xl border border-[var(--elan-line)] p-4 flex flex-col gap-3 hover:border-emerald-300/60 hover:shadow-lg hover:shadow-emerald-100/40 transition-all duration-200"
                             style={{ animation: "dbFadeUp 0.3s ease both", animationDelay: `${60 + idx * 25}ms` }}
                         >
                             <div className="flex items-start gap-3">
@@ -344,7 +344,7 @@ export default function ClientPortalDatabasePage() {
                                         return (
                                             <div
                                                 key={ct.id}
-                                                className="rounded-lg border border-slate-100 bg-white px-2.5 py-2 text-xs flex flex-col gap-0.5"
+                                                className="rounded-lg border border-slate-100 bg-[var(--elan-surface)] px-2.5 py-2 text-xs flex flex-col gap-0.5"
                                             >
                                                 <div className="flex items-center justify-between gap-2">
                                                     <p className="font-semibold text-slate-900 truncate">

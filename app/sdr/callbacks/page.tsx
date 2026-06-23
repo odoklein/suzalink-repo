@@ -710,7 +710,7 @@ export default function SDRCallbacksPage() {
                 <div className="relative">
                     <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                         <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/10">
+                            <div className="w-12 h-12 rounded-2xl bg-[var(--elan-surface)]/10 backdrop-blur-sm flex items-center justify-center border border-white/10">
                                 <BellRing className="w-6 h-6 text-white" />
                             </div>
                             <div>
@@ -721,15 +721,15 @@ export default function SDRCallbacksPage() {
 
                         <div className="flex items-center gap-3 flex-wrap">
                             {/* View Toggle */}
-                            <div className="flex rounded-xl border border-white/10 p-1 bg-white/5 backdrop-blur-sm">
+                            <div className="flex rounded-xl border border-white/10 p-1 bg-[var(--elan-surface)]/5 backdrop-blur-sm">
                                 <button
                                     type="button"
                                     onClick={() => setViewMode("card")}
                                     className={cn(
                                         "px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2",
                                         viewMode === "card"
-                                            ? "bg-white text-slate-900 shadow-lg"
-                                            : "text-white/70 hover:text-white hover:bg-white/10"
+                                            ? "bg-[var(--elan-surface)] text-slate-900 shadow-lg"
+                                            : "text-white/70 hover:text-white hover:bg-[var(--elan-surface)]/10"
                                     )}
                                 >
                                     <LayoutGrid className="w-4 h-4" />
@@ -741,8 +741,8 @@ export default function SDRCallbacksPage() {
                                     className={cn(
                                         "px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2",
                                         viewMode === "table"
-                                            ? "bg-white text-slate-900 shadow-lg"
-                                            : "text-white/70 hover:text-white hover:bg-white/10"
+                                            ? "bg-[var(--elan-surface)] text-slate-900 shadow-lg"
+                                            : "text-white/70 hover:text-white hover:bg-[var(--elan-surface)]/10"
                                     )}
                                 >
                                     <LayoutList className="w-4 h-4" />
@@ -753,7 +753,7 @@ export default function SDRCallbacksPage() {
                             <Button
                                 type="button"
                                 onClick={() => setShowStatsModal(true)}
-                                className="rounded-xl border border-white/20 bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm gap-2 px-4 py-2 h-auto font-medium"
+                                className="rounded-xl border border-white/20 bg-[var(--elan-surface)]/10 hover:bg-[var(--elan-surface)]/20 text-white backdrop-blur-sm gap-2 px-4 py-2 h-auto font-medium"
                             >
                                 <BarChart2 className="w-4 h-4" />
                                 Stats
@@ -761,7 +761,7 @@ export default function SDRCallbacksPage() {
 
                             {/* Stats */}
                             <div className="flex items-center gap-3">
-                                <div className="px-3 py-2 rounded-xl bg-white/10 border border-white/10 backdrop-blur-sm">
+                                <div className="px-3 py-2 rounded-xl bg-[var(--elan-surface)]/10 border border-white/10 backdrop-blur-sm">
                                     <div className="flex items-center gap-2">
                                         <Clock className="w-4 h-4 text-amber-400" />
                                         <span className="text-sm font-semibold text-white">{callbacks.length}</span>
@@ -793,7 +793,7 @@ export default function SDRCallbacksPage() {
             </div>
 
             {/* Filters & Sort - no overflow-hidden so Select dropdowns can extend outside */}
-            <div className="relative z-20 bg-white/80 backdrop-blur-xl rounded-2xl border border-slate-200/60 shadow-sm">
+            <div className="relative z-20 bg-[var(--elan-surface)]/80 backdrop-blur-xl rounded-2xl border border-slate-200/60 shadow-sm">
                 <div className="px-5 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50/80 to-white">
                     <div className="flex flex-wrap items-center justify-between gap-4">
                         <div className="flex items-center gap-3">
@@ -817,7 +817,7 @@ export default function SDRCallbacksPage() {
                                 type="date"
                                 value={dateFrom}
                                 onChange={(e) => setDateFrom(e.target.value)}
-                                className="w-full h-10 px-3 text-sm border border-slate-200 rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-400 transition-shadow"
+                                className="w-full h-10 px-3 text-sm border border-slate-200 rounded-xl bg-[var(--elan-surface)] text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-400 transition-shadow"
                             />
                         </div>
                         {/* Date To */}
@@ -827,7 +827,7 @@ export default function SDRCallbacksPage() {
                                 type="date"
                                 value={dateTo}
                                 onChange={(e) => setDateTo(e.target.value)}
-                                className="w-full h-10 px-3 text-sm border border-slate-200 rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-400 transition-shadow"
+                                className="w-full h-10 px-3 text-sm border border-slate-200 rounded-xl bg-[var(--elan-surface)] text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-400 transition-shadow"
                             />
                         </div>
                         {/* Mission */}
@@ -880,7 +880,7 @@ export default function SDRCallbacksPage() {
                             <select
                                 value={sortKey}
                                 onChange={(e) => setSortKey(e.target.value as SortKey)}
-                                className="w-full h-10 px-3 text-sm border border-slate-200 rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-400 transition-shadow cursor-pointer"
+                                className="w-full h-10 px-3 text-sm border border-slate-200 rounded-xl bg-[var(--elan-surface)] text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-400 transition-shadow cursor-pointer"
                             >
                                 <option value="urgency">Urgence</option>
                                 <option value="date">Date</option>
@@ -894,7 +894,7 @@ export default function SDRCallbacksPage() {
                             <button
                                 type="button"
                                 onClick={() => setSortDir(d => d === "asc" ? "desc" : "asc")}
-                                className="w-full h-10 px-3 text-sm border border-slate-200 rounded-xl bg-white text-slate-900 hover:bg-slate-50 flex items-center justify-center gap-2 transition-colors"
+                                className="w-full h-10 px-3 text-sm border border-slate-200 rounded-xl bg-[var(--elan-surface)] text-slate-900 hover:bg-slate-50 flex items-center justify-center gap-2 transition-colors"
                             >
                                 <ArrowUpDown className="w-4 h-4 text-slate-500" />
                                 {sortDir === "asc" ? "Croissant ↑" : "Décroissant ↓"}
@@ -926,7 +926,7 @@ export default function SDRCallbacksPage() {
                 />
             ) : callbacks.length === 0 ? (
                 <Card className="text-center py-16 border-dashed border-2 bg-slate-50/50">
-                    <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-slate-100">
+                    <div className="w-20 h-20 bg-[var(--elan-surface)] rounded-full flex items-center justify-center mx-auto mb-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-slate-100">
                         <CheckCircle2 className="w-10 h-10 text-emerald-500" />
                     </div>
                     <h3 className="text-xl font-bold text-slate-900">Tout est à jour !</h3>
@@ -941,7 +941,7 @@ export default function SDRCallbacksPage() {
                 </Card>
             ) : viewMode === "table" ? (
                 /* ========== TABLE VIEW ========== */
-                <div className="relative z-0 bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden">
+                <div className="relative z-0 bg-[var(--elan-surface)] rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden">
                     <DataTable
                         data={sortedCallbacks}
                         columns={tableColumns}
@@ -976,7 +976,7 @@ export default function SDRCallbacksPage() {
                             <div
                                 key={callback.id}
                                 className={cn(
-                                    "group relative bg-white rounded-2xl p-5 border shadow-[0_2px_8px_rgb(0,0,0,0.04)] hover:shadow-[0_12px_24px_rgb(0,0,0,0.08)] hover:border-indigo-200/60 transition-all duration-300 hover:-translate-y-0.5",
+                                    "group relative bg-[var(--elan-surface)] rounded-2xl p-5 border shadow-[0_2px_8px_rgb(0,0,0,0.04)] hover:shadow-[0_12px_24px_rgb(0,0,0,0.08)] hover:border-indigo-200/60 transition-all duration-300 hover:-translate-y-0.5",
                                     urgency.level === "overdue"
                                         ? "border-red-200/80 bg-gradient-to-r from-red-50/20 to-white"
                                         : urgency.level === "due_now"
@@ -1212,7 +1212,7 @@ export default function SDRCallbacksPage() {
                                 placeholder="Ex: RDV confirmé jeudi 14h, Intéressé par la démo..."
                                 rows={3}
                                 maxLength={500}
-                                className="w-full px-4 py-3 text-sm border border-slate-200 rounded-xl bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+                                className="w-full px-4 py-3 text-sm border border-slate-200 rounded-xl bg-[var(--elan-surface)] text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
                             />
                             <p className="text-xs text-slate-400 mt-1 text-right">{outcomeNote.length}/500</p>
                         </div>

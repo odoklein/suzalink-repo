@@ -167,11 +167,11 @@ export default function ClientPortalReportingPage() {
     if (isLoading) return <ReportingSkeleton />;
 
     return (
-        <div className="min-h-full bg-gradient-to-br from-[#F8F9FC] via-[#F4F6F9] to-[#ECEEF4] p-4 md:p-6 space-y-8">
+        <div className="min-h-full bg-gradient-to-br from-[var(--elan-paper)] via-[var(--elan-paper)] to-[var(--elan-paper-2)] p-4 md:p-6 space-y-8">
             {/* Header */}
             <div className="animate-fade-up">
-                <h1 className="text-2xl font-bold text-[#12122A] tracking-tight">Rapports</h1>
-                <p className="text-sm text-[#6B7194] mt-1">Suivez l&apos;evolution de vos missions</p>
+                <h1 className="text-2xl font-bold text-[var(--elan-ink)] tracking-tight">Rapports</h1>
+                <p className="text-sm text-[var(--elan-slate)] mt-1">Suivez l&apos;evolution de vos missions</p>
             </div>
 
             {/* Sessions & Comptes Rendus — same view as manager (read-only) */}
@@ -180,18 +180,18 @@ export default function ClientPortalReportingPage() {
                     <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#0c3b38] to-[#114b46] flex items-center justify-center shadow-sm shadow-[rgba(12,59,56,0.2)]">
                         <FileText className="w-4 h-4 text-[#f4f0e8]" />
                     </div>
-                    <h2 className="text-sm font-bold text-[#12122A] uppercase tracking-wider">
+                    <h2 className="text-sm font-bold text-[var(--elan-ink)] uppercase tracking-wider">
                         Sessions & Comptes Rendus
                     </h2>
                 </div>
                 {isLoadingSessions ? (
-                    <div className="flex items-center justify-center py-12 rounded-2xl border border-[#E8EBF0] bg-white">
+                    <div className="flex items-center justify-center py-12 rounded-2xl border border-[var(--elan-line)] bg-[var(--elan-surface)]">
                         <Loader2 className="w-8 h-8 animate-spin text-[#ff9e1b]" />
                     </div>
                 ) : sessions.length === 0 ? (
-                    <div className="text-center py-12 rounded-2xl border border-[#E8EBF0] bg-white">
-                        <Mic className="w-12 h-12 text-[#A0A3BD] mx-auto mb-3" />
-                        <p className="text-sm text-[#6B7194]">Aucune session pour le moment. Elles apparaîtront ici lorsque votre équipe en ajoutera.</p>
+                    <div className="text-center py-12 rounded-2xl border border-[var(--elan-line)] bg-[var(--elan-surface)]">
+                        <Mic className="w-12 h-12 text-[#899892] mx-auto mb-3" />
+                        <p className="text-sm text-[var(--elan-slate)]">Aucune session pour le moment. Elles apparaîtront ici lorsque votre équipe en ajoutera.</p>
                     </div>
                 ) : (
                     <div className="space-y-3">
@@ -203,23 +203,23 @@ export default function ClientPortalReportingPage() {
                             return (
                                 <div
                                     key={session.id}
-                                    className="premium-card overflow-hidden border border-[#E8EBF0] hover:border-indigo-200/60 transition-all duration-200"
+                                    className="premium-card overflow-hidden border border-[var(--elan-line)] hover:border-indigo-200/60 transition-all duration-200"
                                 >
                                     <button
                                         type="button"
                                         onClick={() => setExpandedSessionId(isExpanded ? null : session.id)}
-                                        className="w-full px-5 py-4 flex items-center justify-between hover:bg-[#F8F7FF]/50 transition-colors text-left"
+                                        className="w-full px-5 py-4 flex items-center justify-between hover:bg-[var(--elan-paper)]/50 transition-colors text-left"
                                     >
                                         <div className="flex items-center gap-4">
                                             <Badge className={cn("text-xs border shrink-0", typeColor)}>
                                                 {session.type}
                                             </Badge>
                                             <div>
-                                                <p className="font-semibold text-[#12122A] text-sm">
+                                                <p className="font-semibold text-[var(--elan-ink)] text-sm">
                                                     Session du {new Date(session.date).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
                                                 </p>
                                                 {session.crMarkdown && (
-                                                    <p className="text-xs text-[#6B7194] mt-0.5 line-clamp-1">
+                                                    <p className="text-xs text-[var(--elan-slate)] mt-0.5 line-clamp-1">
                                                         {session.crMarkdown.split("\n").find((l) => l && !l.startsWith("#"))?.slice(0, 100)}
                                                     </p>
                                                 )}
@@ -232,7 +232,7 @@ export default function ClientPortalReportingPage() {
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     onClick={(e) => e.stopPropagation()}
-                                                    className="flex items-center gap-1 text-xs text-[#6C3AFF] hover:underline font-medium"
+                                                    className="flex items-center gap-1 text-xs text-[var(--elan-amber-deep)] hover:underline font-medium"
                                                 >
                                                     <Mic className="w-3.5 h-3.5" /> Enregistrement
                                                 </a>
@@ -242,18 +242,18 @@ export default function ClientPortalReportingPage() {
                                                     {openTasks.length} tâche{openTasks.length > 1 ? "s" : ""}
                                                 </Badge>
                                             )}
-                                            {isExpanded ? <ChevronUp className="w-4 h-4 text-[#6B7194]" /> : <ChevronDown className="w-4 h-4 text-[#6B7194]" />}
+                                            {isExpanded ? <ChevronUp className="w-4 h-4 text-[var(--elan-slate)]" /> : <ChevronDown className="w-4 h-4 text-[var(--elan-slate)]" />}
                                         </div>
                                     </button>
                                     {isExpanded && (
-                                        <div className="border-t border-[#E8EBF0]">
-                                            <div className="flex gap-0 border-b border-[#E8EBF0]">
+                                        <div className="border-t border-[var(--elan-line)]">
+                                            <div className="flex gap-0 border-b border-[var(--elan-line)]">
                                                 <button
                                                     type="button"
                                                     onClick={() => setShowCRTab("cr")}
                                                     className={cn(
                                                         "px-5 py-3 text-sm font-semibold border-b-2 transition-colors",
-                                                        showCRTab === "cr" ? "border-[#6C3AFF] text-[#6C3AFF]" : "border-transparent text-[#6B7194] hover:text-[#12122A]"
+                                                        showCRTab === "cr" ? "border-[var(--elan-amber-deep)] text-[var(--elan-amber-deep)]" : "border-transparent text-[var(--elan-slate)] hover:text-[var(--elan-ink)]"
                                                     )}
                                                 >
                                                     Compte rendu
@@ -263,7 +263,7 @@ export default function ClientPortalReportingPage() {
                                                     onClick={() => setShowCRTab("email")}
                                                     className={cn(
                                                         "px-5 py-3 text-sm font-semibold border-b-2 transition-colors",
-                                                        showCRTab === "email" ? "border-[#6C3AFF] text-[#6C3AFF]" : "border-transparent text-[#6B7194] hover:text-[#12122A]"
+                                                        showCRTab === "email" ? "border-[var(--elan-amber-deep)] text-[var(--elan-amber-deep)]" : "border-transparent text-[var(--elan-slate)] hover:text-[var(--elan-ink)]"
                                                     )}
                                                 >
                                                     Mail de synthèse
@@ -273,25 +273,25 @@ export default function ClientPortalReportingPage() {
                                                 {showCRTab === "cr" &&
                                                     (session.crMarkdown ? (
                                                         <div className="prose prose-sm prose-slate max-w-none">
-                                                            <pre className="whitespace-pre-wrap text-sm text-[#12122A] font-sans leading-relaxed">
+                                                            <pre className="whitespace-pre-wrap text-sm text-[var(--elan-ink)] font-sans leading-relaxed">
                                                                 {session.crMarkdown}
                                                             </pre>
                                                         </div>
                                                     ) : (
-                                                        <p className="text-sm text-[#6B7194] italic">Pas de CR disponible.</p>
+                                                        <p className="text-sm text-[var(--elan-slate)] italic">Pas de CR disponible.</p>
                                                     ))}
                                                 {showCRTab === "email" &&
                                                     (session.summaryEmail ? (
                                                         <div className="space-y-3">
-                                                            <div className="bg-[#F8F9FC] border border-[#E8EBF0] rounded-xl p-4">
-                                                                <pre className="whitespace-pre-wrap text-sm text-[#12122A] font-sans leading-relaxed">
+                                                            <div className="bg-[var(--elan-paper)] border border-[var(--elan-line)] rounded-xl p-4">
+                                                                <pre className="whitespace-pre-wrap text-sm text-[var(--elan-ink)] font-sans leading-relaxed">
                                                                     {session.summaryEmail}
                                                                 </pre>
                                                             </div>
                                                             <Button
                                                                 variant="outline"
                                                                 size="sm"
-                                                                className="gap-2 rounded-xl border-[#E8EBF0] hover:border-[#7C5CFC]/30 hover:text-[#7C5CFC]"
+                                                                className="gap-2 rounded-xl border-[var(--elan-line)] hover:border-[rgba(255,158,27,0.3)] hover:text-[var(--elan-petrol)]"
                                                                 onClick={() => {
                                                                     navigator.clipboard.writeText(session.summaryEmail!);
                                                                     toast.success("Copié", "Mail copié dans le presse-papier");
@@ -302,11 +302,11 @@ export default function ClientPortalReportingPage() {
                                                             </Button>
                                                         </div>
                                                     ) : (
-                                                        <p className="text-sm text-[#6B7194] italic">Pas de mail de synthèse disponible.</p>
+                                                        <p className="text-sm text-[var(--elan-slate)] italic">Pas de mail de synthèse disponible.</p>
                                                     ))}
                                                 {session.tasks.length > 0 && (
-                                                    <div className="mt-5 pt-5 border-t border-[#E8EBF0]">
-                                                        <h4 className="text-xs font-bold text-[#6B7194] uppercase tracking-wider mb-3">Tâches d&apos;équipe</h4>
+                                                    <div className="mt-5 pt-5 border-t border-[var(--elan-line)]">
+                                                        <h4 className="text-xs font-bold text-[var(--elan-slate)] uppercase tracking-wider mb-3">Tâches d&apos;équipe</h4>
                                                         <div className="space-y-2">
                                                             {session.tasks.map((task) => {
                                                                 const roleBadge = ROLE_BADGE[task.assigneeRole || "ALWAYS"] ?? ROLE_BADGE.ALWAYS;
@@ -316,10 +316,10 @@ export default function ClientPortalReportingPage() {
                                                                         <div
                                                                             className={cn(
                                                                                 "w-4 h-4 rounded-full border-2 shrink-0",
-                                                                                task.doneAt ? "bg-emerald-500 border-emerald-500" : "border-[#A0A3BD]"
+                                                                                task.doneAt ? "bg-emerald-500 border-emerald-500" : "border-[#899892]"
                                                                             )}
                                                                         />
-                                                                        <span className={cn("text-sm flex-1", task.doneAt ? "line-through text-[#6B7194]" : "text-[#12122A]")}>
+                                                                        <span className={cn("text-sm flex-1", task.doneAt ? "line-through text-[var(--elan-slate)]" : "text-[var(--elan-ink)]")}>
                                                                             {task.label}
                                                                         </span>
                                                                         <span
@@ -331,7 +331,7 @@ export default function ClientPortalReportingPage() {
                                                                         <span className="text-[10px] font-medium" style={{ color: priorityInfo.color }}>
                                                                             {priorityInfo.label}
                                                                         </span>
-                                                                        {task.assignee && <span className="text-xs text-[#6B7194]">— {task.assignee}</span>}
+                                                                        {task.assignee && <span className="text-xs text-[var(--elan-slate)]">— {task.assignee}</span>}
                                                                     </div>
                                                                 );
                                                             })}
@@ -357,7 +357,7 @@ export default function ClientPortalReportingPage() {
                         style={{ background: "#0C3B38" }}
                     >
                         <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-lg bg-white/15 flex items-center justify-center">
+                            <div className="w-9 h-9 rounded-lg bg-[var(--elan-surface)]/15 flex items-center justify-center">
                                 <TrendingUp className="w-4.5 h-4.5 text-white" />
                             </div>
                             <div>
@@ -390,14 +390,14 @@ export default function ClientPortalReportingPage() {
                                 >
                                     <span className={cn(
                                         "text-sm font-semibold w-24 flex-shrink-0",
-                                        isCurrent ? "text-[#0c3b38]" : "text-[#12122A]"
+                                        isCurrent ? "text-[#0c3b38]" : "text-[var(--elan-ink)]"
                                     )}>
                                         {MONTH_NAMES[entry.month]} {entry.year}
                                     </span>
                                     <div className="flex-1">
                                         <ProgressBar value={entry.meetingsBooked} max={maxMeetings} height="sm" />
                                     </div>
-                                    <span className="text-sm font-bold text-[#12122A] tabular-nums w-16 text-right">
+                                    <span className="text-sm font-bold text-[var(--elan-ink)] tabular-nums w-16 text-right">
                                         <AnimatedNumber value={entry.meetingsBooked} /> RDV
                                     </span>
                                     {isCurrent && (
@@ -419,7 +419,7 @@ export default function ClientPortalReportingPage() {
                         <div className="w-8 h-8 rounded-lg bg-[#FF9E1B] flex items-center justify-center shadow-sm">
                             <BarChart3 className="w-4 h-4 text-[#15201E]" />
                         </div>
-                        <h2 className="text-sm font-bold text-[#12122A] uppercase tracking-wider">
+                        <h2 className="text-sm font-bold text-[var(--elan-ink)] uppercase tracking-wider">
                             Rapports mensuels
                         </h2>
                     </div>
@@ -442,12 +442,12 @@ export default function ClientPortalReportingPage() {
                                             ? "bg-gradient-to-r from-emerald-400 to-teal-400"
                                             : isCurrent
                                             ? "bg-gradient-to-r from-amber-400 to-orange-400"
-                                            : "bg-gradient-to-r from-[#6C3AFF] to-[#A78BFA]"
+                                            : "bg-gradient-to-r from-[#ff9e1b] to-[#e07c00]"
                                     )} />
 
                                     <div className="p-6">
                                         <div className="flex items-center justify-between mb-4">
-                                            <h3 className="text-lg font-bold text-[#12122A]">
+                                            <h3 className="text-lg font-bold text-[var(--elan-ink)]">
                                                 {MONTH_NAMES[entry.month]} {entry.year}
                                             </h3>
                                             {isCurrent ? (
@@ -466,14 +466,14 @@ export default function ClientPortalReportingPage() {
                                                 <span className="text-4xl font-black gradient-text tabular-nums">
                                                     {entry.meetingsBooked}
                                                 </span>
-                                                <span className="text-sm text-[#6B7194] mb-1.5 font-medium">
+                                                <span className="text-sm text-[var(--elan-slate)] mb-1.5 font-medium">
                                                     RDV {!isCurrent && entry.objective > 0 && `(${pct}%)`}
                                                 </span>
                                             </div>
                                             {entry.objective > 0 && (
                                                 <ProgressBar value={entry.meetingsBooked} max={entry.objective} height="sm" />
                                             )}
-                                            <div className="flex items-center gap-3 text-sm text-[#6B7194]">
+                                            <div className="flex items-center gap-3 text-sm text-[var(--elan-slate)]">
                                                 <span className="flex items-center gap-1">
                                                     <span className="w-1.5 h-1.5 rounded-full bg-blue-400 inline-block" />
                                                     {entry.callsMade} appels
@@ -485,11 +485,11 @@ export default function ClientPortalReportingPage() {
                                             </div>
                                         </div>
 
-                                        <div className="flex items-center gap-2 pt-4 border-t border-[#E8EBF0]">
+                                        <div className="flex items-center gap-2 pt-4 border-t border-[var(--elan-line)]">
                                             <Button
                                                 variant="outline"
                                                 size="sm"
-                                                className="gap-1.5 rounded-xl text-xs flex-1 hover:border-[#7C5CFC]/30 hover:text-[#7C5CFC] transition-all"
+                                                className="gap-1.5 rounded-xl text-xs flex-1 hover:border-[rgba(255,158,27,0.3)] hover:text-[var(--elan-petrol)] transition-all"
                                                 onClick={() => handlePdf(entry)}
                                                 disabled={generatingPdf === key}
                                             >
@@ -503,7 +503,7 @@ export default function ClientPortalReportingPage() {
                                             <Button
                                                 variant="outline"
                                                 size="sm"
-                                                className="gap-1.5 rounded-xl text-xs flex-1 hover:border-[#7C5CFC]/30 hover:text-[#7C5CFC] transition-all"
+                                                className="gap-1.5 rounded-xl text-xs flex-1 hover:border-[rgba(255,158,27,0.3)] hover:text-[var(--elan-petrol)] transition-all"
                                                 onClick={() => handleShare(entry)}
                                                 disabled={sharingMonth === key}
                                             >
@@ -525,12 +525,12 @@ export default function ClientPortalReportingPage() {
 
             {/* Empty state */}
             {data.length === 0 && !isLoading && (
-                <div className="text-center py-16 bg-white rounded-2xl border border-[#E8EBF0] shadow-sm">
-                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#F4F6F9] to-[#E8EBF0] flex items-center justify-center mx-auto mb-4">
-                        <Calendar className="w-7 h-7 text-[#A0A3BD]" />
+                <div className="text-center py-16 bg-[var(--elan-surface)] rounded-2xl border border-[var(--elan-line)] shadow-sm">
+                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[var(--elan-paper)] to-[var(--elan-paper-2)] flex items-center justify-center mx-auto mb-4">
+                        <Calendar className="w-7 h-7 text-[#899892]" />
                     </div>
-                    <h3 className="text-lg font-semibold text-[#12122A] mb-1">Aucun rapport disponible</h3>
-                    <p className="text-sm text-[#6B7194] max-w-sm mx-auto">
+                    <h3 className="text-lg font-semibold text-[var(--elan-ink)] mb-1">Aucun rapport disponible</h3>
+                    <p className="text-sm text-[var(--elan-slate)] max-w-sm mx-auto">
                         Les rapports mensuels apparaitront ici une fois votre mission lancee.
                     </p>
                 </div>

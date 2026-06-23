@@ -125,7 +125,7 @@ function MiniBar({ counts, total, statusOrder, resultMeta }: {
     resultMeta: Record<string, { label: string; color: string; bg: string; border: string }>;
 }) {
     return (
-        <div className="flex h-2 rounded-full overflow-hidden w-full bg-[#EEF0F8]">
+        <div className="flex h-2 rounded-full overflow-hidden w-full bg-[var(--elan-paper-3)]">
             {statusOrder.map((k) => {
                 const pct = total ? ((counts[k] || 0) / total) * 100 : 0;
                 return pct > 0 ? (
@@ -153,10 +153,10 @@ function CallCard({ call, resultMeta, index }: {
 
     return (
         <div
-            className="group relative bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-200"
+            className="group relative bg-[var(--elan-surface)] rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-200"
             style={{
                 borderLeft: `3px solid ${meta.color}`,
-                border: `1px solid #E8EBF0`,
+                border: `1px solid rgba(21,32,30,0.13)`,
                 borderLeftWidth: 3,
                 borderLeftColor: meta.color,
                 animation: `dashFadeUp 0.3s ease both ${delay}`,
@@ -176,15 +176,15 @@ function CallCard({ call, resultMeta, index }: {
                 <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2 flex-wrap">
                         <div className="min-w-0">
-                            <p className="text-sm font-bold text-[#12122A]">{name}</p>
-                            <div className="flex items-center gap-1 text-xs text-[#8B8DAF] mt-0.5">
+                            <p className="text-sm font-bold text-[var(--elan-ink)]">{name}</p>
+                            <div className="flex items-center gap-1 text-xs text-[#7f8e89] mt-0.5">
                                 <Briefcase className="w-3 h-3 flex-shrink-0" />
                                 <span className="truncate">{call.contact?.title ?? "—"} · {co}</span>
                             </div>
                         </div>
                         <div className="flex items-center gap-2 flex-shrink-0">
                             <ResultBadge result={call.result} resultMeta={resultMeta} />
-                            <span className="text-[10px] text-[#B0B3C8] tabular-nums font-medium">
+                            <span className="text-[10px] text-[#899892] tabular-nums font-medium">
                                 {fmtTime(call.createdAt)}
                             </span>
                         </div>
@@ -192,7 +192,7 @@ function CallCard({ call, resultMeta, index }: {
 
                     <div className="flex items-center gap-3 mt-2 flex-wrap">
                         {dur && (
-                            <span className="flex items-center gap-1 text-[11px] text-[#8B8DAF]">
+                            <span className="flex items-center gap-1 text-[11px] text-[#7f8e89]">
                                 <Clock className="w-3 h-3" />{dur}
                             </span>
                         )}
@@ -200,7 +200,7 @@ function CallCard({ call, resultMeta, index }: {
                             <button
                                 type="button"
                                 onClick={() => setNoteOpen((o) => !o)}
-                                className="flex items-center gap-1 text-[11px] text-[#7C5CFC] hover:text-violet-700 font-semibold transition-colors"
+                                className="flex items-center gap-1 text-[11px] text-[var(--elan-petrol)] hover:text-violet-700 font-semibold transition-colors"
                             >
                                 <ChevronDown className={cn("w-3 h-3 transition-transform duration-200", noteOpen && "rotate-180")} />
                                 Note de l&apos;agent
@@ -212,14 +212,14 @@ function CallCard({ call, resultMeta, index }: {
 
             {/* Contact links strip */}
             {(call.contact?.email || call.contact?.phone) && (
-                <div className="flex flex-wrap gap-x-5 gap-y-1 px-3.5 py-2 bg-[#F8F7FF] border-t border-[#EEF0F8]">
+                <div className="flex flex-wrap gap-x-5 gap-y-1 px-3.5 py-2 bg-[var(--elan-paper)] border-t border-[#EEF0F8]">
                     {call.contact?.email && (
-                        <a href={`mailto:${call.contact.email}`} className="flex items-center gap-1.5 text-[11px] text-[#8B8DAF] hover:text-[#7C5CFC] transition-colors">
+                        <a href={`mailto:${call.contact.email}`} className="flex items-center gap-1.5 text-[11px] text-[#7f8e89] hover:text-[var(--elan-petrol)] transition-colors">
                             <Mail className="w-3 h-3" />{call.contact.email}
                         </a>
                     )}
                     {call.contact?.phone && (
-                        <a href={`tel:${call.contact.phone}`} className="flex items-center gap-1.5 text-[11px] text-[#8B8DAF] hover:text-[#7C5CFC] transition-colors">
+                        <a href={`tel:${call.contact.phone}`} className="flex items-center gap-1.5 text-[11px] text-[#7f8e89] hover:text-[var(--elan-petrol)] transition-colors">
                             <Phone className="w-3 h-3" />{call.contact.phone}
                         </a>
                     )}
@@ -284,8 +284,8 @@ function DayBlock({ dateKey: dk, calls, statusOrder, resultMeta, defaultOpen = f
     const month = d.toLocaleDateString("fr-FR", { month: "short" });
 
     return (
-        <div className="rounded-xl border border-[#E8EBF0] overflow-hidden bg-white">
-            <div className="flex items-center gap-2 px-4 py-3 hover:bg-[#F8F7FF] transition-colors">
+        <div className="rounded-xl border border-[var(--elan-line)] overflow-hidden bg-[var(--elan-surface)]">
+            <div className="flex items-center gap-2 px-4 py-3 hover:bg-[var(--elan-paper)] transition-colors">
                 <button
                     type="button"
                     onClick={() => setOpen((o) => !o)}
@@ -301,7 +301,7 @@ function DayBlock({ dateKey: dk, calls, statusOrder, resultMeta, defaultOpen = f
 
                     <div className="flex-1 min-w-0 space-y-1.5">
                         <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-sm font-bold text-[#12122A]">
+                            <span className="text-sm font-bold text-[var(--elan-ink)]">
                                 {calls.length} appel{calls.length > 1 ? "s" : ""}
                             </span>
                             {meetings > 0 && (
@@ -333,7 +333,7 @@ function DayBlock({ dateKey: dk, calls, statusOrder, resultMeta, defaultOpen = f
                 <button
                     type="button"
                     onClick={() => setOpen((o) => !o)}
-                    className="flex-shrink-0 p-1 rounded-lg text-[#B0B3C8] hover:bg-white/80 hover:text-[#7C5CFC] transition-colors"
+                    className="flex-shrink-0 p-1 rounded-lg text-[#899892] hover:bg-[var(--elan-surface)]/80 hover:text-[var(--elan-petrol)] transition-colors"
                     aria-expanded={open}
                     aria-label={open ? "Replier le jour" : "Déplier le jour"}
                 >
@@ -344,8 +344,8 @@ function DayBlock({ dateKey: dk, calls, statusOrder, resultMeta, defaultOpen = f
             {open && (
                 <>
                     {chipCodes.length > 0 && (
-                        <div className="border-t border-[#EEF0F8] bg-white px-4 py-2.5">
-                            <p className="text-[9px] font-bold uppercase tracking-wider text-[#A0A3BD] mb-2">
+                        <div className="border-t border-[#EEF0F8] bg-[var(--elan-surface)] px-4 py-2.5">
+                            <p className="text-[9px] font-bold uppercase tracking-wider text-[#899892] mb-2">
                                 Filtrer par résultat
                             </p>
                             <div className="flex flex-wrap gap-1.5">
@@ -355,8 +355,8 @@ function DayBlock({ dateKey: dk, calls, statusOrder, resultMeta, defaultOpen = f
                                     className={cn(
                                         "inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold border transition-all",
                                         resultFilter === null
-                                            ? "bg-[#7C5CFC] text-white border-[#7C5CFC] shadow-sm shadow-violet-500/20"
-                                            : "bg-[#F4F5FA] text-[#8B8DAF] border-[#E8EBF0] hover:border-[#7C5CFC]/35"
+                                            ? "bg-[var(--elan-amber)] text-[var(--elan-ink)] border-[var(--elan-amber-deep)] shadow-sm shadow-[rgba(255,158,27,0.2)]"
+                                            : "bg-[var(--elan-paper)] text-[#7f8e89] border-[var(--elan-line)] hover:border-[rgba(255,158,27,0.35)]"
                                     )}
                                 >
                                     Tous ({calls.length})
@@ -393,9 +393,9 @@ function DayBlock({ dateKey: dk, calls, statusOrder, resultMeta, defaultOpen = f
                             </div>
                         </div>
                     )}
-                    <div className="border-t border-[#EEF0F8] bg-[#F8F7FF]/60 px-4 py-3 space-y-2">
+                    <div className="border-t border-[#EEF0F8] bg-[var(--elan-paper)]/60 px-4 py-3 space-y-2">
                         {displayedCalls.length === 0 ? (
-                            <p className="text-center text-xs font-medium text-[#8B8DAF] py-6">
+                            <p className="text-center text-xs font-medium text-[#7f8e89] py-6">
                                 Aucun appel pour ce résultat sur ce jour.
                             </p>
                         ) : (
@@ -446,16 +446,16 @@ function MissionSection({ missionName, calls, defaultOpen, statusOrder, resultMe
             style={{ animation: `dashFadeUp 0.4s ease both ${index * 80}ms` }}
         >
             {/* Mission header – mirrors BreakdownCharts header */}
-            <div className="flex flex-wrap items-center justify-between gap-3 px-5 pt-4 pb-4 border-b border-[#E8EBF0]">
+            <div className="flex flex-wrap items-center justify-between gap-3 px-5 pt-4 pb-4 border-b border-[var(--elan-line)]">
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                     <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#0c3b38] to-[#114b46] flex items-center justify-center shadow-sm shadow-[rgba(12,59,56,0.2)] flex-shrink-0">
                         <Target className="w-4.5 h-4.5 text-[#f4f0e8]" style={{ width: 18, height: 18 }} />
                     </div>
                     <div className="min-w-0">
-                        <h3 className="text-sm font-semibold text-[#12122A] uppercase tracking-wider truncate">
+                        <h3 className="text-sm font-semibold text-[var(--elan-ink)] uppercase tracking-wider truncate">
                             {missionName}
                         </h3>
-                        <p className="text-[11px] text-[#8B8DAF] mt-0.5 truncate">
+                        <p className="text-[11px] text-[#7f8e89] mt-0.5 truncate">
                             {campaigns.join(" · ")}
                         </p>
                     </div>
@@ -472,7 +472,7 @@ function MissionSection({ missionName, calls, defaultOpen, statusOrder, resultMe
                             )}
                         >
                             <p className={cn("text-sm font-black leading-none", text)}>{value}</p>
-                            <p className="text-[9px] uppercase tracking-wider text-[#A0A3BD] mt-0.5">{label}</p>
+                            <p className="text-[9px] uppercase tracking-wider text-[#899892] mt-0.5">{label}</p>
                         </div>
                     ))}
                     <button
@@ -481,8 +481,8 @@ function MissionSection({ missionName, calls, defaultOpen, statusOrder, resultMe
                         className={cn(
                             "w-8 h-8 rounded-lg border flex items-center justify-center transition-all duration-200",
                             open
-                                ? "bg-[#7C5CFC] border-[#7C5CFC] text-white shadow-sm shadow-violet-500/25"
-                                : "bg-[#F4F5FA] border-[#E8EBF0] text-[#8B8DAF] hover:border-[#7C5CFC]/40"
+                                ? "bg-[var(--elan-amber)] border-[var(--elan-amber-deep)] text-[var(--elan-ink)] shadow-sm shadow-[rgba(255,158,27,0.24)]"
+                                : "bg-[var(--elan-paper)] border-[var(--elan-line)] text-[#7f8e89] hover:border-[rgba(255,158,27,0.4)]"
                         )}
                     >
                         <ChevronDown className={cn("w-4 h-4 transition-transform duration-200", open && "rotate-180")} />
@@ -513,24 +513,24 @@ function MissionSection({ missionName, calls, defaultOpen, statusOrder, resultMe
 function SkeletonMission() {
     return (
         <div className="premium-card overflow-hidden animate-pulse">
-            <div className="flex items-center gap-3 px-5 py-4 border-b border-[#E8EBF0]">
-                <div className="w-9 h-9 rounded-xl bg-[#E8EBF0]" />
+            <div className="flex items-center gap-3 px-5 py-4 border-b border-[var(--elan-line)]">
+                <div className="w-9 h-9 rounded-xl bg-[var(--elan-line)]" />
                 <div className="flex-1 space-y-1.5">
-                    <div className="h-3 w-40 rounded-full bg-[#E8EBF0]" />
-                    <div className="h-2.5 w-24 rounded-full bg-[#EEF0F8]" />
+                    <div className="h-3 w-40 rounded-full bg-[var(--elan-line)]" />
+                    <div className="h-2.5 w-24 rounded-full bg-[var(--elan-paper-3)]" />
                 </div>
                 <div className="flex gap-2">
-                    {[1, 2, 3, 4].map((i) => <div key={i} className="w-14 h-10 rounded-lg bg-[#EEF0F8]" />)}
+                    {[1, 2, 3, 4].map((i) => <div key={i} className="w-14 h-10 rounded-lg bg-[var(--elan-paper-3)]" />)}
                 </div>
             </div>
             <div className="px-5 py-4 space-y-2.5">
                 {[1, 2].map((i) => (
-                    <div key={i} className="rounded-xl border border-[#E8EBF0] p-3 space-y-2">
+                    <div key={i} className="rounded-xl border border-[var(--elan-line)] p-3 space-y-2">
                         <div className="flex gap-3">
-                            <div className="w-[52px] h-16 rounded-xl bg-[#E8EBF0]" />
+                            <div className="w-[52px] h-16 rounded-xl bg-[var(--elan-line)]" />
                             <div className="flex-1 space-y-2 pt-1">
-                                <div className="h-3 w-24 rounded-full bg-[#E8EBF0]" />
-                                <div className="h-2 w-full rounded-full bg-[#EEF0F8]" />
+                                <div className="h-3 w-24 rounded-full bg-[var(--elan-line)]" />
+                                <div className="h-2 w-full rounded-full bg-[var(--elan-paper-3)]" />
                             </div>
                         </div>
                     </div>
@@ -651,7 +651,7 @@ export default function ClientPortalActivitePage() {
 
     return (
         <div
-            className="min-h-full bg-gradient-to-br from-[#F8F9FC] via-[#F4F6F9] to-[#ECEEF4] p-4 md:p-6 space-y-5"
+            className="min-h-full bg-gradient-to-br from-[var(--elan-paper)] via-[var(--elan-paper)] to-[var(--elan-paper-2)] p-4 md:p-6 space-y-5"
             style={{ fontFamily: "'DM Sans', system-ui, sans-serif" }}
         >
             {/* ── Header ── mirrors BreakdownCharts header ── */}
@@ -659,16 +659,16 @@ export default function ClientPortalActivitePage() {
                 className="premium-card overflow-hidden"
                 style={{ animation: "dashFadeUp 0.4s ease both" }}
             >
-                <div className="flex flex-wrap items-center justify-between gap-3 px-6 pt-5 pb-4 border-b border-[#E8EBF0]">
+                <div className="flex flex-wrap items-center justify-between gap-3 px-6 pt-5 pb-4 border-b border-[var(--elan-line)]">
                     <div className="flex items-center gap-2.5">
                         <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#0c3b38] to-[#114b46] flex items-center justify-center shadow-sm shadow-[rgba(12,59,56,0.2)]">
                             <PhoneCall className="w-4 h-4 text-[#f4f0e8]" />
                         </div>
                         <div>
-                            <h1 className="text-sm font-semibold text-[#12122A] uppercase tracking-wider">
+                            <h1 className="text-sm font-semibold text-[var(--elan-ink)] uppercase tracking-wider">
                                 Activité de prospection
                             </h1>
-                            <p className="text-[11px] text-[#8B8DAF] mt-0.5">
+                            <p className="text-[11px] text-[#7f8e89] mt-0.5">
                                 Jours travaillés, contacts appelés et résultats par mission
                             </p>
                         </div>
@@ -676,7 +676,7 @@ export default function ClientPortalActivitePage() {
 
                     <div className="flex items-center gap-2 flex-wrap">
                         {/* Period selector – same as BreakdownCharts */}
-                        <div className="flex items-center rounded-xl bg-[#F4F5FA] border border-[#E8EBF0] p-0.5 gap-0.5">
+                        <div className="flex items-center rounded-xl bg-[var(--elan-paper)] border border-[var(--elan-line)] p-0.5 gap-0.5">
                             {PERIODS.map(({ key, label }) => (
                                 <button
                                     key={key}
@@ -684,8 +684,8 @@ export default function ClientPortalActivitePage() {
                                     className={cn(
                                         "text-[11px] font-semibold px-3 py-1.5 rounded-lg transition-all duration-150 whitespace-nowrap",
                                         dateRange === key
-                                            ? "bg-white text-[#7C5CFC] shadow-sm"
-                                            : "text-[#8B8DAF] hover:text-[#4B4D7A]"
+                                            ? "bg-[var(--elan-surface)] text-[var(--elan-petrol)] shadow-sm"
+                                            : "text-[#7f8e89] hover:text-[#4B4D7A]"
                                     )}
                                 >
                                     {label}
@@ -696,7 +696,7 @@ export default function ClientPortalActivitePage() {
                             type="button"
                             onClick={() => fetchCalls()}
                             disabled={isLoading}
-                            className="w-8 h-8 rounded-lg border border-[#E8EBF0] bg-[#F4F5FA] flex items-center justify-center text-[#8B8DAF] hover:text-[#7C5CFC] hover:border-[#7C5CFC]/40 transition-all disabled:opacity-50"
+                            className="w-8 h-8 rounded-lg border border-[var(--elan-line)] bg-[var(--elan-paper)] flex items-center justify-center text-[#7f8e89] hover:text-[var(--elan-petrol)] hover:border-[rgba(255,158,27,0.4)] transition-all disabled:opacity-50"
                         >
                             <RefreshCw className={cn("w-3.5 h-3.5", isLoading && "animate-spin")} />
                         </button>
@@ -755,12 +755,12 @@ export default function ClientPortalActivitePage() {
                                 {icon}
                                 <span className="text-[10.5px] uppercase tracking-wide">{label}</span>
                             </div>
-                            <div className="text-[26px] font-black text-[#12122A] leading-none">
+                            <div className="text-[26px] font-black text-[var(--elan-ink)] leading-none">
                                 {isLoading
-                                    ? <span className="inline-block w-10 h-6 rounded bg-white/60 animate-pulse" />
+                                    ? <span className="inline-block w-10 h-6 rounded bg-[var(--elan-surface)]/60 animate-pulse" />
                                     : value}
                             </div>
-                            <p className="text-[10.5px] text-[#A0A3BD]">{sub}</p>
+                            <p className="text-[10.5px] text-[#899892]">{sub}</p>
                         </div>
                     ))}
                 </div>
@@ -772,28 +772,28 @@ export default function ClientPortalActivitePage() {
                 style={{ animation: "dashFadeUp 0.4s ease both 300ms" }}
             >
                 <div className="relative flex-1 min-w-[200px] max-w-md">
-                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A0A3BD]" />
+                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#899892]" />
                     <input
                         type="search"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         placeholder="Rechercher un contact, une entreprise, une mission…"
-                        className="w-full h-10 pl-10 pr-9 rounded-xl border border-[#E8EBF0] bg-white text-sm text-[#12122A] focus:outline-none focus:ring-2 focus:ring-[#7C5CFC]/30 focus:border-[#7C5CFC]/50 shadow-sm placeholder:text-[#A0A3BD]"
+                        className="w-full h-10 pl-10 pr-9 rounded-xl border border-[var(--elan-line)] bg-[var(--elan-surface)] text-sm text-[var(--elan-ink)] focus:outline-none focus:ring-2 focus:ring-[rgba(255,158,27,0.22)] focus:border-[var(--elan-amber-deep)]/50 shadow-sm placeholder:text-[#899892]"
                     />
                     {search && (
                         <button
                             type="button"
                             onClick={() => setSearch("")}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A0A3BD] hover:text-[#7C5CFC] transition-colors"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#899892] hover:text-[var(--elan-petrol)] transition-colors"
                         >
                             <X className="w-4 h-4" />
                         </button>
                     )}
                 </div>
                 {!isLoading && (
-                    <p className="text-[12px] font-semibold text-[#8B8DAF]">
+                    <p className="text-[12px] font-semibold text-[#7f8e89]">
                         {normalizedFiltered.length} appel{normalizedFiltered.length > 1 ? "s" : ""}
-                        {search && <span className="text-[#7C5CFC]"> · filtrés</span>}
+                        {search && <span className="text-[var(--elan-petrol)]"> · filtrés</span>}
                     </p>
                 )}
             </div>
@@ -809,11 +809,11 @@ export default function ClientPortalActivitePage() {
                     className="premium-card flex flex-col items-center justify-center py-20 px-6 text-center"
                     style={{ animation: "dashFadeUp 0.4s ease both 200ms" }}
                 >
-                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#F4F5FA] to-[#E8EBF0] flex items-center justify-center mb-4">
-                        <PhoneCall className="w-6 h-6 text-[#C0C3D8]" />
+                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[var(--elan-paper)] to-[var(--elan-paper-2)] flex items-center justify-center mb-4">
+                        <PhoneCall className="w-6 h-6 text-[#b8c2bd]" />
                     </div>
-                    <p className="text-sm font-semibold text-[#8B8DAF]">Aucune activité trouvée</p>
-                    <p className="text-xs text-[#A0A3BD] mt-1">Ajustez la période ou la recherche.</p>
+                    <p className="text-sm font-semibold text-[#7f8e89]">Aucune activité trouvée</p>
+                    <p className="text-xs text-[#899892] mt-1">Ajustez la période ou la recherche.</p>
                 </div>
             ) : (
                 <div className="space-y-4">

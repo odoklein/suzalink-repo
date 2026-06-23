@@ -335,7 +335,7 @@ export default function SDRDashboardPage() {
             <div className="flex items-center justify-center py-32 bg-[#ECE5D8] min-h-screen">
                 <div className="flex flex-col items-center gap-4">
                     <Loader2 className="w-8 h-8 text-[#E07C00] animate-spin" />
-                    <p className="text-[13px] text-[#8B8BA7] font-medium">Chargement du dashboard...</p>
+                    <p className="text-[13px] text-[var(--elan-slate)] font-medium">Chargement du dashboard...</p>
                 </div>
             </div>
         );
@@ -349,10 +349,10 @@ export default function SDRDashboardPage() {
             {/* Page Header */}
             <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
                 <div>
-                    <h1 className="text-[22px] font-bold text-[#12122A] tracking-tight">
+                    <h1 className="text-[22px] font-bold text-[var(--elan-ink)] tracking-tight">
                         {getGreeting()}, {session?.user?.name?.split(" ")[0] ?? "vous"} ! 👋
                     </h1>
-                    <p className="text-[13px] text-[#8B8BA7] mt-0.5">Voici votre journée en un coup d'œil</p>
+                    <p className="text-[13px] text-[var(--elan-slate)] mt-0.5">Voici votre journée en un coup d'œil</p>
                 </div>
             </div>
 
@@ -370,7 +370,7 @@ export default function SDRDashboardPage() {
                                 <div className="w-8 h-8 rounded-lg bg-[#FF9E1B]/20 flex items-center justify-center">
                                     <Phone className="w-4 h-4 text-[#FF9E1B]" />
                                 </div>
-                                <span className="text-[#8B8BA7] text-[13px] font-medium">Appels aujourd'hui</span>
+                                <span className="text-[var(--elan-slate)] text-[13px] font-medium">Appels aujourd'hui</span>
                             </div>
                             {dailyProgressPct >= 100 && (
                                 <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#10B981]/15 text-[#10B981] text-[11px] font-semibold">
@@ -418,30 +418,30 @@ export default function SDRDashboardPage() {
 
                 {/* Supporting KPIs */}
                 <div className="flex-[1.2] flex flex-col gap-3">
-                    <div className="flex-1 bg-white rounded-xl border border-[#E8EBF0] p-4 flex items-center justify-between hover:border-[#C5C8D4] transition-colors duration-150">
+                    <div className="flex-1 bg-[var(--elan-surface)] rounded-xl border border-[var(--elan-line)] p-4 flex items-center justify-between hover:border-[var(--elan-line-strong)] transition-colors duration-150">
                         <div>
-                            <div className="text-[11px] text-[#8B8BA7] font-medium mb-0.5">RDV Pris</div>
-                            <div className="text-[28px] font-bold text-[#12122A] leading-none">{stats?.meetingsBooked ?? 0}</div>
+                            <div className="text-[11px] text-[var(--elan-slate)] font-medium mb-0.5">RDV Pris</div>
+                            <div className="text-[28px] font-bold text-[var(--elan-ink)] leading-none">{stats?.meetingsBooked ?? 0}</div>
                         </div>
                         <div className="w-10 h-10 rounded-xl bg-[#F0FDF4] flex items-center justify-center">
                             <Calendar className="w-5 h-5 text-[#10B981]" />
                         </div>
                     </div>
 
-                    <div className="flex-1 bg-white rounded-xl border border-[#E8EBF0] p-4 flex items-center justify-between hover:border-[#C5C8D4] transition-colors duration-150">
+                    <div className="flex-1 bg-[var(--elan-surface)] rounded-xl border border-[var(--elan-line)] p-4 flex items-center justify-between hover:border-[var(--elan-line-strong)] transition-colors duration-150">
                         <div>
-                            <div className="text-[11px] text-[#8B8BA7] font-medium mb-0.5">Contacts Chauds</div>
-                            <div className="text-[28px] font-bold text-[#12122A] leading-none">{stats?.opportunitiesGenerated ?? 0}</div>
+                            <div className="text-[11px] text-[var(--elan-slate)] font-medium mb-0.5">Contacts Chauds</div>
+                            <div className="text-[28px] font-bold text-[var(--elan-ink)] leading-none">{stats?.opportunitiesGenerated ?? 0}</div>
                         </div>
                         <div className="w-10 h-10 rounded-xl bg-[#DBE4DF] flex items-center justify-center">
                             <Briefcase className="w-5 h-5 text-[#0C3B38]" />
                         </div>
                     </div>
 
-                    <div className="flex-1 bg-white rounded-xl border border-[#E8EBF0] p-4 flex items-center justify-between hover:border-[#C5C8D4] transition-colors duration-150">
+                    <div className="flex-1 bg-[var(--elan-surface)] rounded-xl border border-[var(--elan-line)] p-4 flex items-center justify-between hover:border-[var(--elan-line-strong)] transition-colors duration-150">
                         <div>
-                            <div className="text-[11px] text-[#8B8BA7] font-medium mb-0.5">Rappels Planifiés</div>
-                            <div className="text-[28px] font-bold text-[#12122A] leading-none">{stats?.callbacksPending ?? 0}</div>
+                            <div className="text-[11px] text-[var(--elan-slate)] font-medium mb-0.5">Rappels Planifiés</div>
+                            <div className="text-[28px] font-bold text-[var(--elan-ink)] leading-none">{stats?.callbacksPending ?? 0}</div>
                         </div>
                         <div className="w-10 h-10 rounded-xl bg-[#FFF7ED] flex items-center justify-center">
                             <Clock className="w-5 h-5 text-[#F59E0B]" />
@@ -456,16 +456,16 @@ export default function SDRDashboardPage() {
                 <div className="flex-[3] flex flex-col gap-4">
                     {/* Active Mission */}
                     {activeMission ? (
-                        <div className="bg-white rounded-xl border border-[#E8EBF0] overflow-hidden flex flex-col shadow-sm">
+                        <div className="bg-[var(--elan-surface)] rounded-xl border border-[var(--elan-line)] overflow-hidden flex flex-col shadow-sm">
                             <div className="bg-[#0C3B38] p-5 text-[#F4F0E8] flex justify-between items-center relative overflow-hidden">
-                                <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+                                <div className="absolute -top-10 -right-10 w-40 h-40 bg-[var(--elan-surface)]/10 rounded-full blur-2xl pointer-events-none" />
                                 <div className="absolute top-1/2 left-1/4 w-20 h-20 bg-black/5 rounded-full blur-xl pointer-events-none" />
 
                                 <div className="relative z-10 flex items-center gap-2">
                                     <Target className="w-5 h-5" />
                                     <span className="font-semibold text-[15px]">Mission Active</span>
                                 </div>
-                                <div className="relative z-10 flex items-center gap-1.5 px-3 py-1 bg-white/20 rounded-full text-[11px] font-medium border border-white/30 backdrop-blur-md shadow-sm">
+                                <div className="relative z-10 flex items-center gap-1.5 px-3 py-1 bg-[var(--elan-surface)]/20 rounded-full text-[11px] font-medium border border-white/30 backdrop-blur-md shadow-sm">
                                     <ChannelIcon className="w-3.5 h-3.5" />
                                     {activeMission.channel === "CALL" ? "Appel" : activeMission.channel === "EMAIL" ? "Email" : "LinkedIn"}
                                 </div>
@@ -473,8 +473,8 @@ export default function SDRDashboardPage() {
 
                             <div className="p-6 flex flex-col gap-5">
                                 <div>
-                                    <h3 className="text-[20px] font-bold text-[#12122A] tracking-tight">{activeMission.name}</h3>
-                                    <p className="text-[14px] text-[#8B8BA7] flex items-center gap-1.5 mt-1">
+                                    <h3 className="text-[20px] font-bold text-[var(--elan-ink)] tracking-tight">{activeMission.name}</h3>
+                                    <p className="text-[14px] text-[var(--elan-slate)] flex items-center gap-1.5 mt-1">
                                         <Building2 className="w-3.5 h-3.5" />
                                         {activeMission.client.name}
                                     </p>
@@ -483,10 +483,10 @@ export default function SDRDashboardPage() {
                                 {/* Progress Indicator */}
                                 <div className="space-y-2">
                                     <div className="flex items-center justify-between">
-                                        <span className="text-[12px] font-medium text-[#5A5A7A]">Progression de la mission</span>
+                                        <span className="text-[12px] font-medium text-[var(--elan-slate)]">Progression de la mission</span>
                                         <span className="text-[12px] font-bold text-[#E07C00]">{activeMission.progress || 0}%</span>
                                     </div>
-                                    <div className="h-2.5 bg-[#F4F6F9] rounded-full overflow-hidden shadow-inner">
+                                    <div className="h-2.5 bg-[var(--elan-paper)] rounded-full overflow-hidden shadow-inner">
                                         <div
                                             className="h-full bg-gradient-to-r from-[#FF9E1B] to-[#E07C00] rounded-full transition-all duration-700 ease-out"
                                             style={{ width: `${activeMission.progress || 0}%` }}
@@ -497,22 +497,22 @@ export default function SDRDashboardPage() {
                                 {/* Key Mission Stats */}
                                 <div className="flex items-center gap-8 py-1">
                                     <div className="flex items-center gap-2.5">
-                                        <div className="w-8 h-8 rounded-full bg-[#F4F6F9] flex items-center justify-center">
-                                            <Users className="w-4 h-4 text-[#8B8BA7]" />
+                                        <div className="w-8 h-8 rounded-full bg-[var(--elan-paper)] flex items-center justify-center">
+                                            <Users className="w-4 h-4 text-[var(--elan-slate)]" />
                                         </div>
                                         <div>
-                                            <p className="text-[14px] font-semibold text-[#12122A]">{activeMission.contactsRemaining || 0}</p>
-                                            <p className="text-[11px] text-[#8B8BA7]">Contacts rest</p>
+                                            <p className="text-[14px] font-semibold text-[var(--elan-ink)]">{activeMission.contactsRemaining || 0}</p>
+                                            <p className="text-[11px] text-[var(--elan-slate)]">Contacts rest</p>
                                         </div>
                                     </div>
-                                    <div className="w-px h-8 bg-[#E8EBF0]" />
+                                    <div className="w-px h-8 bg-[var(--elan-line)]" />
                                     <div className="flex items-center gap-2.5">
-                                        <div className="w-8 h-8 rounded-full bg-[#F4F6F9] flex items-center justify-center">
-                                            <Target className="w-4 h-4 text-[#8B8BA7]" />
+                                        <div className="w-8 h-8 rounded-full bg-[var(--elan-paper)] flex items-center justify-center">
+                                            <Target className="w-4 h-4 text-[var(--elan-slate)]" />
                                         </div>
                                         <div>
-                                            <p className="text-[14px] font-semibold text-[#12122A]">{activeMission._count?.campaigns || 0}</p>
-                                            <p className="text-[11px] text-[#8B8BA7]">Campagnes</p>
+                                            <p className="text-[14px] font-semibold text-[var(--elan-ink)]">{activeMission._count?.campaigns || 0}</p>
+                                            <p className="text-[11px] text-[var(--elan-slate)]">Campagnes</p>
                                         </div>
                                     </div>
                                 </div>
@@ -527,28 +527,28 @@ export default function SDRDashboardPage() {
                             </div>
                         </div>
                     ) : (
-                        <div className="bg-white rounded-xl border border-dashed border-[#C5C8D4] p-10 flex flex-col items-center justify-center text-center">
-                            <Target className="w-12 h-12 text-[#E8EBF0] mb-4" />
-                            <h3 className="text-[16px] font-bold text-[#12122A]">Aucune mission assignée</h3>
-                            <p className="text-[13px] text-[#8B8BA7] mt-1.5 max-w-[280px]">
+                        <div className="bg-[var(--elan-surface)] rounded-xl border border-dashed border-[var(--elan-line-strong)] p-10 flex flex-col items-center justify-center text-center">
+                            <Target className="w-12 h-12 text-[var(--elan-line-strong)] mb-4" />
+                            <h3 className="text-[16px] font-bold text-[var(--elan-ink)]">Aucune mission assignée</h3>
+                            <p className="text-[13px] text-[var(--elan-slate)] mt-1.5 max-w-[280px]">
                                 Vous n'avez pas de mission principale assignée. Contactez votre manager.
                             </p>
                         </div>
                     )}
 
                     {/* My actions list */}
-                    <div className="bg-white rounded-xl border border-[#E8EBF0] flex flex-col flex-1 min-h-[320px]">
-                        <div className="p-5 border-b border-[#E8EBF0] flex items-center justify-between">
-                            <h3 className="text-[14px] font-semibold text-[#12122A] flex items-center gap-2">
-                                <Activity className="w-4 h-4 text-[#7C5CFC]" />
+                    <div className="bg-[var(--elan-surface)] rounded-xl border border-[var(--elan-line)] flex flex-col flex-1 min-h-[320px]">
+                        <div className="p-5 border-b border-[var(--elan-line)] flex items-center justify-between">
+                            <h3 className="text-[14px] font-semibold text-[var(--elan-ink)] flex items-center gap-2">
+                                <Activity className="w-4 h-4 text-[var(--elan-petrol)]" />
                                 Historique des actions
                             </h3>
-                            <div className="flex rounded-md border border-[#E8EBF0] p-0.5 bg-[#F4F6F9]">
+                            <div className="flex rounded-md border border-[var(--elan-line)] p-0.5 bg-[var(--elan-paper)]">
                                 <button
                                     onClick={() => setActionsPeriod("today")}
                                     className={cn(
                                         "px-2.5 py-1 text-[11px] font-medium rounded transition-colors",
-                                        actionsPeriod === "today" ? "bg-white text-[#12122A] shadow-sm" : "text-[#5A5A7A] hover:text-[#12122A]"
+                                        actionsPeriod === "today" ? "bg-[var(--elan-surface)] text-[var(--elan-ink)] shadow-sm" : "text-[var(--elan-slate)] hover:text-[var(--elan-ink)]"
                                     )}
                                 >
                                     Aujourd'hui
@@ -557,7 +557,7 @@ export default function SDRDashboardPage() {
                                     onClick={() => setActionsPeriod("all")}
                                     className={cn(
                                         "px-2.5 py-1 text-[11px] font-medium rounded transition-colors",
-                                        actionsPeriod === "all" ? "bg-white text-[#12122A] shadow-sm" : "text-[#5A5A7A] hover:text-[#12122A]"
+                                        actionsPeriod === "all" ? "bg-[var(--elan-surface)] text-[var(--elan-ink)] shadow-sm" : "text-[var(--elan-slate)] hover:text-[var(--elan-ink)]"
                                     )}
                                 >
                                     Tout
@@ -568,10 +568,10 @@ export default function SDRDashboardPage() {
                         <div className="flex-1 overflow-y-auto p-3">
                             {actionsLoading ? (
                                 <div className="flex items-center justify-center py-10">
-                                    <Loader2 className="w-6 h-6 text-[#7C5CFC] animate-spin" />
+                                    <Loader2 className="w-6 h-6 text-[var(--elan-petrol)] animate-spin" />
                                 </div>
                             ) : myActions.length === 0 ? (
-                                <p className="text-[13px] text-[#8B8BA7] text-center py-10">
+                                <p className="text-[13px] text-[var(--elan-slate)] text-center py-10">
                                     {actionsPeriod === "today" ? "Aucune action aujourd'hui." : "Aucune action enregistrée."}
                                 </p>
                             ) : (
@@ -585,28 +585,28 @@ export default function SDRDashboardPage() {
                                                     onClick={() => hasFiche && openFicheForAction(item)}
                                                     className={cn(
                                                         "w-full flex items-center gap-3 p-2.5 rounded-xl text-left border border-transparent transition-all group",
-                                                        hasFiche ? "hover:bg-[#F9FAFB] hover:border-[#E8EBF0] cursor-pointer" : "cursor-default"
+                                                        hasFiche ? "hover:bg-[var(--elan-paper)] hover:border-[var(--elan-line)] cursor-pointer" : "cursor-default"
                                                     )}
                                                 >
-                                                    <div className="w-9 h-9 rounded-full bg-[#F4F6F9] border border-[#E8EBF0] flex items-center justify-center flex-shrink-0 group-hover:bg-white group-hover:shadow-sm transition-all">
+                                                    <div className="w-9 h-9 rounded-full bg-[var(--elan-paper)] border border-[var(--elan-line)] flex items-center justify-center flex-shrink-0 group-hover:bg-[var(--elan-surface)] group-hover:shadow-sm transition-all">
                                                         {item.contactId ? (
-                                                            <User className="w-4 h-4 text-[#8B8BA7]" />
+                                                            <User className="w-4 h-4 text-[var(--elan-slate)]" />
                                                         ) : (
-                                                            <Building2 className="w-4 h-4 text-[#8B8BA7]" />
+                                                            <Building2 className="w-4 h-4 text-[var(--elan-slate)]" />
                                                         )}
                                                     </div>
                                                     <div className="flex-1 min-w-0">
-                                                        <p className="text-[13px] font-semibold text-[#12122A] truncate">{name}</p>
-                                                        <p className="text-[11px] text-[#8B8BA7] truncate mt-0.5">
+                                                        <p className="text-[13px] font-semibold text-[var(--elan-ink)] truncate">{name}</p>
+                                                        <p className="text-[11px] text-[var(--elan-slate)] truncate mt-0.5">
                                                             {item.resultLabel} {item.campaignName && <span className="opacity-70">• {item.campaignName}</span>}
                                                         </p>
                                                     </div>
                                                     <div className="flex items-center gap-2 flex-shrink-0">
-                                                        <span className="text-[10px] font-medium text-[#5A5A7A] bg-[#F4F6F9] px-2 py-1 rounded-md">
+                                                        <span className="text-[10px] font-medium text-[var(--elan-slate)] bg-[var(--elan-paper)] px-2 py-1 rounded-md">
                                                             {new Date(item.createdAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
                                                         </span>
                                                         {hasFiche && (
-                                                            <ChevronRight className="w-4 h-4 text-[#C5C8D4] group-hover:text-[#7C5CFC] transition-colors" />
+                                                            <ChevronRight className="w-4 h-4 text-[#b8c2bd] group-hover:text-[var(--elan-petrol)] transition-colors" />
                                                         )}
                                                     </div>
                                                 </button>
@@ -623,9 +623,9 @@ export default function SDRDashboardPage() {
                 <div className="flex-[2] flex flex-col gap-4">
                     {/* Weekly Progress */}
                     {stats && (
-                        <div className="bg-white rounded-xl border border-[#E8EBF0] p-5">
+                        <div className="bg-[var(--elan-surface)] rounded-xl border border-[var(--elan-line)] p-5">
                             <div className="flex justify-between items-center mb-4">
-                                <h3 className="text-[14px] font-semibold text-[#12122A]">Progression vs. semaine dernière</h3>
+                                <h3 className="text-[14px] font-semibold text-[var(--elan-ink)]">Progression vs. semaine dernière</h3>
                                 <div className={cn(
                                     "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold",
                                     (stats.weeklyProgress ?? 0) >= 0 ? "bg-[#F0FDF4] text-[#10B981]" : "bg-[#FEF3C7] text-[#B45309]"
@@ -635,7 +635,7 @@ export default function SDRDashboardPage() {
                                 </div>
                             </div>
 
-                            <div className="h-2 bg-[#F4F6F9] rounded-full overflow-hidden mb-3">
+                            <div className="h-2 bg-[var(--elan-paper)] rounded-full overflow-hidden mb-3">
                                 <div
                                     className={cn(
                                         "h-full rounded-full transition-all duration-700 ease-out",
@@ -645,7 +645,7 @@ export default function SDRDashboardPage() {
                                 />
                             </div>
 
-                            <p className="text-[12px] text-[#5A5A7A] leading-relaxed">
+                            <p className="text-[12px] text-[var(--elan-slate)] leading-relaxed">
                                 {(stats.weeklyProgress ?? 0) > 0
                                     ? "Vous avez fait plus d'actions cette semaine que la précédente. Continuez sur cette belle lancée !"
                                     : (stats.weeklyProgress ?? 0) === 0
@@ -672,10 +672,10 @@ export default function SDRDashboardPage() {
 
                     {/* Other Missions */}
                     {missions.length > 1 && (
-                        <div className="bg-white rounded-xl border border-[#E8EBF0] p-5 mb-10 xl:mb-0">
+                        <div className="bg-[var(--elan-surface)] rounded-xl border border-[var(--elan-line)] p-5 mb-10 xl:mb-0">
                             <div className="flex justify-between items-center mb-4">
-                                <h3 className="text-[14px] font-semibold text-[#12122A]">Passer à une autre mission</h3>
-                                <span className="text-[11px] font-semibold text-[#8B8BA7] bg-[#F4F6F9] px-2.5 py-1 rounded-full uppercase tracking-wide">
+                                <h3 className="text-[14px] font-semibold text-[var(--elan-ink)]">Passer à une autre mission</h3>
+                                <span className="text-[11px] font-semibold text-[var(--elan-slate)] bg-[var(--elan-paper)] px-2.5 py-1 rounded-full uppercase tracking-wide">
                                     {missions.length} Missions
                                 </span>
                             </div>
@@ -693,16 +693,16 @@ export default function SDRDashboardPage() {
                                                     localStorage.setItem("sdr_selected_mission", mission.id);
                                                     window.dispatchEvent(new CustomEvent("sdr_mission_changed", { detail: mission.id }));
                                                 }}
-                                                className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-[#F4F6F9] transition-all border border-transparent hover:border-[#E8EBF0] text-left group"
+                                                className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-[var(--elan-paper)] transition-all border border-transparent hover:border-[var(--elan-line)] text-left group"
                                             >
-                                                <div className="w-9 h-9 rounded-full bg-white border border-[#E8EBF0] shadow-sm flex items-center justify-center flex-shrink-0">
-                                                    <Icon className="w-4 h-4 text-[#8B8BA7] group-hover:text-[#7C5CFC] transition-colors" />
+                                                <div className="w-9 h-9 rounded-full bg-[var(--elan-surface)] border border-[var(--elan-line)] shadow-sm flex items-center justify-center flex-shrink-0">
+                                                    <Icon className="w-4 h-4 text-[var(--elan-slate)] group-hover:text-[var(--elan-petrol)] transition-colors" />
                                                 </div>
                                                 <div className="flex-1 min-w-0">
-                                                    <p className="text-[13px] font-bold text-[#12122A] truncate group-hover:text-[#7C5CFC] transition-colors">{mission.name}</p>
-                                                    <p className="text-[11px] text-[#8B8BA7] truncate mt-0.5">{mission.client.name}</p>
+                                                    <p className="text-[13px] font-bold text-[var(--elan-ink)] truncate group-hover:text-[var(--elan-petrol)] transition-colors">{mission.name}</p>
+                                                    <p className="text-[11px] text-[var(--elan-slate)] truncate mt-0.5">{mission.client.name}</p>
                                                 </div>
-                                                <ChevronRight className="w-4 h-4 text-[#C5C8D4] group-hover:text-[#7C5CFC] transition-colors flex-shrink-0" />
+                                                <ChevronRight className="w-4 h-4 text-[#b8c2bd] group-hover:text-[var(--elan-petrol)] transition-colors flex-shrink-0" />
                                             </button>
                                         );
                                     })}
@@ -723,7 +723,7 @@ export default function SDRDashboardPage() {
                     title="Chargement..."
                 >
                     <div className="flex items-center justify-center py-12">
-                        <Loader2 className="w-8 h-8 text-[#7C5CFC] animate-spin" />
+                        <Loader2 className="w-8 h-8 text-[var(--elan-petrol)] animate-spin" />
                     </div>
                 </Drawer>
             )}

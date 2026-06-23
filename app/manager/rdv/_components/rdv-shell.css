@@ -1,16 +1,16 @@
 @import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..800;1,9..40,300..800&family=Inter:wght@300;400;500;600;700&display=swap");
 
 :root {
-  --bg: #f8f9fb;
-  --surface: #ffffff;
-  --surface2: #f1f3f7;
-  --border: rgba(0, 0, 0, 0.06);
-  --border2: rgba(0, 0, 0, 0.1);
-  --ink: #111827;
-  --ink2: #4b5563;
-  --ink3: #9ca3af;
-  --accent: #4f46e5;
-  --accentLight: rgba(79, 70, 229, 0.08);
+  --bg: var(--elan-paper-2);
+  --surface: var(--elan-surface);
+  --surface2: var(--elan-paper);
+  --border: var(--elan-line);
+  --border2: var(--elan-line-strong);
+  --ink: var(--elan-ink);
+  --ink2: var(--elan-ink-soft);
+  --ink3: #899892;
+  --accent: var(--elan-amber);
+  --accentLight: rgba(255, 158, 27, 0.12);
   --green: #059669;
   --greenLight: rgba(5, 150, 105, 0.08);
   --emerald: #059669;
@@ -204,7 +204,7 @@
 
 .rdv-btn-primary:hover {
   filter: brightness(1.08);
-  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25);
+  box-shadow: 0 2px 8px rgba(255, 158, 27, 0.25);
 }
 
 .rdv-btn-ghost {
@@ -270,7 +270,7 @@
 
 .rdv-metric-card.active {
   border-color: var(--accent);
-  box-shadow: 0 0 0 2px var(--accentLight), 0 4px 16px rgba(79, 70, 229, 0.1);
+  box-shadow: 0 0 0 2px var(--accentLight), 0 4px 16px rgba(255, 158, 27, 0.18);
 }
 
 .rdv-panel {
@@ -368,9 +368,9 @@
   bottom: 32px;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 252, 246, 0.85);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(21, 32, 30, 0.13);
   box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.15), 0 0 0 1px var(--border);
 }

@@ -79,7 +79,7 @@ function CopyButton({ text }: { text: string }) {
         <button
             type="button"
             onClick={handleCopy}
-            className="flex items-center gap-1 text-[11px] font-semibold text-[#8B8BA7] hover:text-[#7C5CFC] transition-colors"
+            className="flex items-center gap-1 text-[11px] font-semibold text-[var(--elan-slate)] hover:text-[var(--elan-petrol)] transition-colors"
         >
             {copied ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
             {copied ? "Copié !" : "Copier"}
@@ -197,69 +197,69 @@ export default function ClientSalesPlaybookPage() {
     }, [missionDetail]);
 
     return (
-        <div className="min-h-full bg-gradient-to-br from-[#F8F9FC] via-[#F4F6F9] to-[#ECEEF4] p-4 md:p-6 space-y-5">
+        <div className="min-h-full bg-gradient-to-br from-[var(--elan-paper)] via-[var(--elan-paper)] to-[var(--elan-paper-2)] p-4 md:p-6 space-y-5">
             {/* Header */}
             <div className="flex items-center gap-3" style={{ animation: "playbookFadeUp 0.35s ease both" }}>
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-md shadow-indigo-200">
                     <BookOpen className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                    <h1 className="text-xl font-bold text-[#12122A] tracking-tight">Sales Playbook</h1>
-                    <p className="text-xs text-[#6B7194] mt-0.5">Stratégies, listes ciblées et scripts de prospection</p>
+                    <h1 className="text-xl font-bold text-[var(--elan-ink)] tracking-tight">Sales Playbook</h1>
+                    <p className="text-xs text-[var(--elan-slate)] mt-0.5">Stratégies, listes ciblées et scripts de prospection</p>
                 </div>
             </div>
 
             {loadingMissions ? (
                 <div className="flex items-center justify-center py-20">
-                    <Loader2 className="w-7 h-7 animate-spin text-[#7C5CFC]" />
+                    <Loader2 className="w-7 h-7 animate-spin text-[var(--elan-petrol)]" />
                 </div>
             ) : missions.length === 0 ? (
-                <div className="bg-white border-2 border-dashed border-[#E8EBF0] rounded-2xl py-16 px-6 text-center">
-                    <div className="w-14 h-14 rounded-2xl bg-[#F4F5FA] flex items-center justify-center mx-auto mb-4">
-                        <BookOpen className="w-6 h-6 text-[#A0A3BD]" />
+                <div className="bg-[var(--elan-surface)] border-2 border-dashed border-[var(--elan-line)] rounded-2xl py-16 px-6 text-center">
+                    <div className="w-14 h-14 rounded-2xl bg-[var(--elan-paper)] flex items-center justify-center mx-auto mb-4">
+                        <BookOpen className="w-6 h-6 text-[#899892]" />
                     </div>
-                    <p className="text-sm font-semibold text-[#12122A]">Aucune mission active</p>
-                    <p className="mt-1 text-xs text-[#6B7194]">Le playbook apparaîtra ici dès qu&apos;une mission sera active.</p>
+                    <p className="text-sm font-semibold text-[var(--elan-ink)]">Aucune mission active</p>
+                    <p className="mt-1 text-xs text-[var(--elan-slate)]">Le playbook apparaîtra ici dès qu&apos;une mission sera active.</p>
                 </div>
             ) : (
                 <>
                     {/* Mission selector */}
                     <div className="max-w-sm" style={{ animation: "playbookFadeUp 0.35s ease both", animationDelay: "40ms" }}>
-                        <label className="block text-xs font-bold text-[#6B7194] uppercase tracking-wider mb-1.5">Mission</label>
+                        <label className="block text-xs font-bold text-[var(--elan-slate)] uppercase tracking-wider mb-1.5">Mission</label>
                         <div className="relative">
                             <select
                                 value={selectedMissionId}
                                 onChange={(e) => setSelectedMissionId(e.target.value)}
-                                className="w-full h-10 px-3 pr-9 rounded-xl border border-[#E8EBF0] bg-white text-sm font-semibold text-[#12122A] focus:outline-none focus:ring-2 focus:ring-[#7C5CFC]/30 shadow-sm appearance-none"
+                                className="w-full h-10 px-3 pr-9 rounded-xl border border-[var(--elan-line)] bg-[var(--elan-surface)] text-sm font-semibold text-[var(--elan-ink)] focus:outline-none focus:ring-2 focus:ring-[rgba(255,158,27,0.22)] shadow-sm appearance-none"
                             >
                                 {missions.map((m) => (
                                     <option key={m.id} value={m.id}>{m.name}</option>
                                 ))}
                             </select>
-                            <ChevronDown className="w-4 h-4 text-[#A0A3BD] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <ChevronDown className="w-4 h-4 text-[#899892] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                         </div>
                     </div>
 
                     {/* Mission info card */}
                     {selectedMission && (
                         <section
-                            className="bg-white border border-[#E8EBF0] rounded-2xl p-5 shadow-sm"
+                            className="bg-[var(--elan-surface)] border border-[var(--elan-line)] rounded-2xl p-5 shadow-sm"
                             style={{ animation: "playbookFadeUp 0.35s ease both", animationDelay: "70ms" }}
                         >
                             <div className="flex items-center gap-2.5 mb-3">
                                 <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
                                     <Info className="w-4 h-4 text-blue-600" />
                                 </div>
-                                <h2 className="text-sm font-bold text-[#12122A] uppercase tracking-wider">Mission</h2>
+                                <h2 className="text-sm font-bold text-[var(--elan-ink)] uppercase tracking-wider">Mission</h2>
                             </div>
                             <div className="space-y-2">
                                 <div className="flex gap-3">
-                                    <span className="text-xs font-bold text-[#A0A3BD] uppercase tracking-wide w-20 shrink-0 pt-0.5">Nom</span>
+                                    <span className="text-xs font-bold text-[#899892] uppercase tracking-wide w-20 shrink-0 pt-0.5">Nom</span>
                                     <span className="text-sm text-[#3D3E5C]">{selectedMission.name}</span>
                                 </div>
                                 {selectedMission.objective && (
                                     <div className="flex gap-3">
-                                        <span className="text-xs font-bold text-[#A0A3BD] uppercase tracking-wide w-20 shrink-0 pt-0.5">Objectif</span>
+                                        <span className="text-xs font-bold text-[#899892] uppercase tracking-wide w-20 shrink-0 pt-0.5">Objectif</span>
                                         <span className="text-sm text-[#3D3E5C] whitespace-pre-wrap">{selectedMission.objective}</span>
                                     </div>
                                 )}
@@ -269,10 +269,10 @@ export default function ClientSalesPlaybookPage() {
 
                     {loadingDetail ? (
                         <div className="flex items-center justify-center py-12">
-                            <Loader2 className="w-6 h-6 animate-spin text-[#7C5CFC]" />
+                            <Loader2 className="w-6 h-6 animate-spin text-[var(--elan-petrol)]" />
                         </div>
                     ) : strategies.length === 0 ? (
-                        <div className="bg-white border border-[#E8EBF0] rounded-2xl p-6 text-sm text-[#6B7194] shadow-sm">
+                        <div className="bg-[var(--elan-surface)] border border-[var(--elan-line)] rounded-2xl p-6 text-sm text-[var(--elan-slate)] shadow-sm">
                             Aucune stratégie pour cette mission.
                         </div>
                     ) : (
@@ -303,7 +303,7 @@ export default function ClientSalesPlaybookPage() {
                                         {unlinkedLists.map((l) => (
                                             <span
                                                 key={l.id}
-                                                className="inline-flex items-center gap-1.5 text-xs font-medium text-amber-800 bg-white border border-amber-200 rounded-lg px-3 py-1.5"
+                                                className="inline-flex items-center gap-1.5 text-xs font-medium text-amber-800 bg-[var(--elan-surface)] border border-amber-200 rounded-lg px-3 py-1.5"
                                             >
                                                 <Users className="w-3.5 h-3.5" />
                                                 {l.name}
@@ -341,19 +341,19 @@ function StrategyCard({ strategy, animationDelay }: { strategy: StrategyDetail; 
 
     return (
         <section
-            className="bg-white border border-[#E8EBF0] rounded-2xl shadow-sm overflow-hidden"
+            className="bg-[var(--elan-surface)] border border-[var(--elan-line)] rounded-2xl shadow-sm overflow-hidden"
             style={{ animation: "playbookFadeUp 0.35s ease both", animationDelay }}
         >
             {/* Header */}
-            <div className="bg-gradient-to-r from-indigo-50 via-white to-white border-b border-[#E8EBF0] px-5 py-4">
+            <div className="bg-gradient-to-r from-[var(--elan-eucalyptus)] via-[var(--elan-surface)] to-[var(--elan-surface)] border-b border-[var(--elan-line)] px-5 py-4">
                 <div className="flex items-start justify-between gap-4 flex-wrap">
                     <div className="flex items-center gap-3 min-w-0">
                         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-md shadow-indigo-200">
                             <Target className="w-5 h-5 text-white" />
                         </div>
                         <div className="min-w-0">
-                            <h2 className="text-lg font-bold text-[#12122A] truncate">{strategy.name}</h2>
-                            <p className="text-xs text-[#6B7194] mt-0.5">
+                            <h2 className="text-lg font-bold text-[var(--elan-ink)] truncate">{strategy.name}</h2>
+                            <p className="text-xs text-[var(--elan-slate)] mt-0.5">
                                 Stratégie de prospection
                             </p>
                         </div>
@@ -374,13 +374,13 @@ function StrategyCard({ strategy, animationDelay }: { strategy: StrategyDetail; 
                 {/* Linked databases / lists */}
                 <div className="mt-4">
                     <div className="flex items-center gap-2 mb-2">
-                        <Link2 className="w-3.5 h-3.5 text-[#7C5CFC]" />
-                        <span className="text-[11px] font-bold text-[#6B7194] uppercase tracking-wider">
+                        <Link2 className="w-3.5 h-3.5 text-[var(--elan-petrol)]" />
+                        <span className="text-[11px] font-bold text-[var(--elan-slate)] uppercase tracking-wider">
                             Base{strategy.linkedLists.length > 1 ? "s" : ""} ciblée{strategy.linkedLists.length > 1 ? "s" : ""}
                         </span>
                     </div>
                     {strategy.linkedLists.length === 0 ? (
-                        <p className="text-xs text-[#A0A3BD] italic">Aucune liste assignée à cette stratégie</p>
+                        <p className="text-xs text-[#899892] italic">Aucune liste assignée à cette stratégie</p>
                     ) : (
                         <div className="flex flex-wrap gap-2">
                             {strategy.linkedLists.map((l) => (
@@ -414,7 +414,7 @@ function StrategyCard({ strategy, animationDelay }: { strategy: StrategyDetail; 
                         <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-700">Cible (ICP)</p>
                     </div>
                     <p className="text-sm text-[#3D3E5C] whitespace-pre-wrap leading-relaxed">
-                        {strategy.icp || <span className="text-[#A0A3BD] italic">Non renseigné</span>}
+                        {strategy.icp || <span className="text-[#899892] italic">Non renseigné</span>}
                     </p>
                 </div>
 
@@ -425,16 +425,16 @@ function StrategyCard({ strategy, animationDelay }: { strategy: StrategyDetail; 
                         <p className="text-[11px] font-bold uppercase tracking-wider text-blue-700">Pitch</p>
                     </div>
                     <p className="text-sm text-[#3D3E5C] whitespace-pre-wrap leading-relaxed">
-                        {strategy.pitch || <span className="text-[#A0A3BD] italic">Non renseigné</span>}
+                        {strategy.pitch || <span className="text-[#899892] italic">Non renseigné</span>}
                     </p>
                 </div>
 
                 {/* Script */}
                 {(scriptEntries.length > 0 || strategy.additionalShared) && (
-                    <div className="rounded-xl bg-[#F8F9FC] border border-[#E8EBF0] p-4">
+                    <div className="rounded-xl bg-[var(--elan-paper)] border border-[var(--elan-line)] p-4">
                         <div className="flex items-center gap-2 mb-3">
-                            <FileText className="w-4 h-4 text-[#7C5CFC]" />
-                            <p className="text-[11px] font-bold uppercase tracking-wider text-[#7C5CFC]">Script</p>
+                            <FileText className="w-4 h-4 text-[var(--elan-petrol)]" />
+                            <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--elan-petrol)]">Script</p>
                         </div>
                         <div className="space-y-3">
                             {scriptEntries.map((entry) => {
@@ -442,7 +442,7 @@ function StrategyCard({ strategy, animationDelay }: { strategy: StrategyDetail; 
                                 return (
                                     <div
                                         key={entry.key}
-                                        className={cn("rounded-lg border-l-4 p-3 bg-white", style.border)}
+                                        className={cn("rounded-lg border-l-4 p-3 bg-[var(--elan-surface)]", style.border)}
                                     >
                                         <div className="flex items-center justify-between mb-2">
                                             <p className={cn("text-[11px] font-bold uppercase tracking-wider", style.color)}>{style.label}</p>

@@ -119,13 +119,13 @@ function StatCard({ label, value, subValue, icon: Icon, color }: {
     };
     const c = colorMap[color] || colorMap.violet;
     return (
-        <div className={cn("relative overflow-hidden rounded-2xl border p-5 bg-white transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5", c.border)}>
+        <div className={cn("relative overflow-hidden rounded-2xl border p-5 bg-[var(--elan-surface)] transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5", c.border)}>
             <div className="flex items-start justify-between">
                 <div className="space-y-1.5">
-                    <p className="text-[12px] font-medium text-[#6B7194] tracking-wide">{label}</p>
+                    <p className="text-[12px] font-medium text-[var(--elan-slate)] tracking-wide">{label}</p>
                     <div className="flex items-baseline gap-2">
                         <p className={cn("text-2xl font-extrabold tracking-tight", c.value)}>{value}</p>
-                        {subValue && <span className="text-sm font-medium text-[#A0A3BD]">{subValue}</span>}
+                        {subValue && <span className="text-sm font-medium text-[#899892]">{subValue}</span>}
                     </div>
                 </div>
                 <div className={cn("rounded-xl p-2.5", c.icon)}>
@@ -250,7 +250,7 @@ export default function ClientPortalEmailPage() {
     const SortHeader = ({ col, label }: { col: string; label: string }) => (
         <button
             onClick={() => handleSort(col)}
-            className={cn("inline-flex items-center gap-1 text-left font-semibold text-[11px] uppercase tracking-wider", sortBy === col ? "text-[#7C5CFC]" : "text-[#6B7194] hover:text-[#12122A]")}
+            className={cn("inline-flex items-center gap-1 text-left font-semibold text-[11px] uppercase tracking-wider", sortBy === col ? "text-[var(--elan-petrol)]" : "text-[var(--elan-slate)] hover:text-[var(--elan-ink)]")}
         >
             {label}
             <ArrowUpDown className="w-3 h-3" />
@@ -258,27 +258,27 @@ export default function ClientPortalEmailPage() {
     );
 
     return (
-        <div className="min-h-full bg-gradient-to-br from-[#F8F9FC] via-[#F4F6F9] to-[#ECEEF4] p-4 md:p-6 space-y-6">
+        <div className="min-h-full bg-gradient-to-br from-[var(--elan-paper)] via-[var(--elan-paper)] to-[var(--elan-paper-2)] p-4 md:p-6 space-y-6">
 
             {/* Header */}
             <div className="flex items-start justify-between gap-4" style={{ animation: "dashFadeUp 0.4s ease both" }}>
                 <div>
-                    <h1 className="text-2xl md:text-[28px] font-bold text-[#12122A] tracking-tight leading-tight">
+                    <h1 className="text-2xl md:text-[28px] font-bold text-[var(--elan-ink)] tracking-tight leading-tight">
                         Mes <span className="gradient-text">emails envoyés</span>
                     </h1>
-                    <p className="text-sm text-[#6B7194] mt-1.5 max-w-xl">
+                    <p className="text-sm text-[var(--elan-slate)] mt-1.5 max-w-xl">
                         Retrouvez ici les emails envoyés en votre nom par l&apos;équipe, avec les statistiques d&apos;ouverture et de clics.
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
                     <button
                         onClick={handleExport}
-                        className="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-medium text-[#6B7194] bg-white border border-[#E8EBF0] rounded-xl hover:bg-[#F4F6F9] transition-all"
+                        className="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-medium text-[var(--elan-slate)] bg-[var(--elan-surface)] border border-[var(--elan-line)] rounded-xl hover:bg-[var(--elan-paper)] transition-all"
                     >
                         <Download className="w-4 h-4" />
                         Exporter
                     </button>
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#7C5CFC] to-[#A78BFA] flex items-center justify-center shadow-lg shadow-[#7C5CFC]/25 shrink-0">
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#ff9e1b] to-[#e07c00] flex items-center justify-center shadow-lg shadow-[rgba(255,158,27,0.24)] shrink-0">
                         <Mail className="w-6 h-6 text-white" />
                     </div>
                 </div>
@@ -298,13 +298,13 @@ export default function ClientPortalEmailPage() {
             <div className="premium-card p-4 space-y-3" style={{ animation: "dashFadeUp 0.4s ease both", animationDelay: "80ms" }}>
                 <div className="flex flex-wrap items-center gap-3">
                     <div className="relative flex-1 min-w-[200px] max-w-md">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A0A3BD]" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#899892]" />
                         <input
                             type="text"
                             placeholder="Rechercher par sujet, destinataire..."
                             value={debouncedSearch}
                             onChange={(e) => setDebouncedSearch(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2.5 text-sm bg-[#F8F9FC] border border-[#E8EBF0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#7C5CFC]/20 focus:border-[#7C5CFC] placeholder:text-[#A0A3BD] transition-all"
+                            className="w-full pl-10 pr-4 py-2.5 text-sm bg-[var(--elan-paper)] border border-[var(--elan-line)] rounded-xl focus:outline-none focus:ring-2 focus:ring-[rgba(255,158,27,0.22)] focus:border-[var(--elan-amber-deep)] placeholder:text-[#899892] transition-all"
                         />
                     </div>
 
@@ -313,22 +313,22 @@ export default function ClientPortalEmailPage() {
                             <select
                                 value={missionFilter}
                                 onChange={(e) => { setMissionFilter(e.target.value); setPagination((p) => ({ ...p, page: 1 })); }}
-                                className="appearance-none pl-4 pr-10 py-2.5 border border-[#E8EBF0] rounded-xl text-sm bg-[#F8F9FC] focus:outline-none focus:ring-2 focus:ring-[#7C5CFC]/20 min-w-[180px]"
+                                className="appearance-none pl-4 pr-10 py-2.5 border border-[var(--elan-line)] rounded-xl text-sm bg-[var(--elan-paper)] focus:outline-none focus:ring-2 focus:ring-[rgba(255,158,27,0.22)] min-w-[180px]"
                             >
                                 <option value="">Toutes les missions</option>
                                 {missions.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
                             </select>
-                            <Target className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A0A3BD] pointer-events-none" />
+                            <Target className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#899892] pointer-events-none" />
                         </div>
                     )}
 
                     <button
                         onClick={() => setShowFilters(!showFilters)}
-                        className={cn("inline-flex items-center gap-2 px-3.5 py-2.5 text-sm font-medium rounded-xl border transition-all", showFilters ? "bg-[#7C5CFC]/10 text-[#7C5CFC] border-[#7C5CFC]/30" : "bg-[#F8F9FC] text-[#6B7194] border-[#E8EBF0] hover:bg-[#F4F6F9]")}
+                        className={cn("inline-flex items-center gap-2 px-3.5 py-2.5 text-sm font-medium rounded-xl border transition-all", showFilters ? "bg-[var(--elan-amber)]/10 text-[var(--elan-petrol)] border-[rgba(255,158,27,0.3)]" : "bg-[var(--elan-paper)] text-[var(--elan-slate)] border-[var(--elan-line)] hover:bg-[var(--elan-paper)]")}
                     >
                         <Filter className="w-4 h-4" />
                         Filtres
-                        {hasActiveFilters && <span className="w-2 h-2 rounded-full bg-[#7C5CFC]" />}
+                        {hasActiveFilters && <span className="w-2 h-2 rounded-full bg-[var(--elan-amber)]" />}
                     </button>
 
                     {hasActiveFilters && (
@@ -339,10 +339,10 @@ export default function ClientPortalEmailPage() {
                 </div>
 
                 {showFilters && (
-                    <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-[#E8EBF0]">
+                    <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-[var(--elan-line)]">
                         <div>
-                            <label className="block text-[11px] font-medium text-[#A0A3BD] uppercase tracking-wider mb-1">Statut</label>
-                            <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPagination((p) => ({ ...p, page: 1 })); }} className="appearance-none px-3 py-2 border border-[#E8EBF0] rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#7C5CFC]/20 min-w-[140px]">
+                            <label className="block text-[11px] font-medium text-[#899892] uppercase tracking-wider mb-1">Statut</label>
+                            <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPagination((p) => ({ ...p, page: 1 })); }} className="appearance-none px-3 py-2 border border-[var(--elan-line)] rounded-lg text-sm bg-[var(--elan-surface)] focus:outline-none focus:ring-2 focus:ring-[rgba(255,158,27,0.22)] min-w-[140px]">
                                 <option value="">Tous</option>
                                 <option value="SENT">Envoyé</option>
                                 <option value="OPENED">Ouvert</option>
@@ -352,20 +352,20 @@ export default function ClientPortalEmailPage() {
                             </select>
                         </div>
                         <div>
-                            <label className="block text-[11px] font-medium text-[#A0A3BD] uppercase tracking-wider mb-1">Ouverture</label>
-                            <select value={hasOpenedFilter} onChange={(e) => { setHasOpenedFilter(e.target.value); setPagination((p) => ({ ...p, page: 1 })); }} className="appearance-none px-3 py-2 border border-[#E8EBF0] rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#7C5CFC]/20 min-w-[130px]">
+                            <label className="block text-[11px] font-medium text-[#899892] uppercase tracking-wider mb-1">Ouverture</label>
+                            <select value={hasOpenedFilter} onChange={(e) => { setHasOpenedFilter(e.target.value); setPagination((p) => ({ ...p, page: 1 })); }} className="appearance-none px-3 py-2 border border-[var(--elan-line)] rounded-lg text-sm bg-[var(--elan-surface)] focus:outline-none focus:ring-2 focus:ring-[rgba(255,158,27,0.22)] min-w-[130px]">
                                 <option value="">Tous</option>
                                 <option value="true">Ouverts</option>
                                 <option value="false">Non ouverts</option>
                             </select>
                         </div>
                         <div>
-                            <label className="block text-[11px] font-medium text-[#A0A3BD] uppercase tracking-wider mb-1">Du</label>
-                            <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setPagination((p) => ({ ...p, page: 1 })); }} className="px-3 py-2 border border-[#E8EBF0] rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#7C5CFC]/20" />
+                            <label className="block text-[11px] font-medium text-[#899892] uppercase tracking-wider mb-1">Du</label>
+                            <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setPagination((p) => ({ ...p, page: 1 })); }} className="px-3 py-2 border border-[var(--elan-line)] rounded-lg text-sm bg-[var(--elan-surface)] focus:outline-none focus:ring-2 focus:ring-[rgba(255,158,27,0.22)]" />
                         </div>
                         <div>
-                            <label className="block text-[11px] font-medium text-[#A0A3BD] uppercase tracking-wider mb-1">Au</label>
-                            <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setPagination((p) => ({ ...p, page: 1 })); }} className="px-3 py-2 border border-[#E8EBF0] rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#7C5CFC]/20" />
+                            <label className="block text-[11px] font-medium text-[#899892] uppercase tracking-wider mb-1">Au</label>
+                            <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setPagination((p) => ({ ...p, page: 1 })); }} className="px-3 py-2 border border-[var(--elan-line)] rounded-lg text-sm bg-[var(--elan-surface)] focus:outline-none focus:ring-2 focus:ring-[rgba(255,158,27,0.22)]" />
                         </div>
                     </div>
                 )}
@@ -373,47 +373,47 @@ export default function ClientPortalEmailPage() {
 
             {/* Table */}
             <div className="premium-card overflow-hidden" style={{ animation: "dashFadeUp 0.4s ease both", animationDelay: "120ms" }}>
-                <div className="flex items-center gap-2.5 px-6 pt-5 pb-4 border-b border-[#E8EBF0]">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#7C5CFC] to-[#A78BFA] flex items-center justify-center shadow-sm shadow-[#7C5CFC]/20">
+                <div className="flex items-center gap-2.5 px-6 pt-5 pb-4 border-b border-[var(--elan-line)]">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#ff9e1b] to-[#e07c00] flex items-center justify-center shadow-sm shadow-[rgba(255,158,27,0.2)]">
                         <Send className="w-4 h-4 text-white" />
                     </div>
                     <div>
-                        <h2 className="text-sm font-semibold text-[#12122A] uppercase tracking-wider">Emails envoyés</h2>
-                        <p className="text-[11px] text-[#6B7194] mt-0.5">{pagination.total} email{pagination.total > 1 ? "s" : ""} au total</p>
+                        <h2 className="text-sm font-semibold text-[var(--elan-ink)] uppercase tracking-wider">Emails envoyés</h2>
+                        <p className="text-[11px] text-[var(--elan-slate)] mt-0.5">{pagination.total} email{pagination.total > 1 ? "s" : ""} au total</p>
                     </div>
                 </div>
 
                 <div className="p-6">
                     {isLoading ? (
                         <div className="flex flex-col items-center justify-center py-16 gap-3">
-                            <Loader2 className="w-8 h-8 text-[#7C5CFC] animate-spin" />
-                            <p className="text-xs text-[#6B7194]">Chargement des emails…</p>
+                            <Loader2 className="w-8 h-8 text-[var(--elan-petrol)] animate-spin" />
+                            <p className="text-xs text-[var(--elan-slate)]">Chargement des emails…</p>
                         </div>
                     ) : emails.length === 0 ? (
                         <div className="text-center py-14">
-                            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#F4F6F9] to-[#E8EBF0] flex items-center justify-center mx-auto mb-4">
-                                <Send className="w-7 h-7 text-[#A0A3BD]" />
+                            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[var(--elan-paper)] to-[var(--elan-paper-2)] flex items-center justify-center mx-auto mb-4">
+                                <Send className="w-7 h-7 text-[#899892]" />
                             </div>
-                            <p className="text-sm font-semibold text-[#12122A]">
+                            <p className="text-sm font-semibold text-[var(--elan-ink)]">
                                 {hasActiveFilters ? "Aucun résultat" : "Aucun email envoyé"}
                             </p>
-                            <p className="text-xs text-[#6B7194] mt-1 max-w-[280px] mx-auto">
+                            <p className="text-xs text-[var(--elan-slate)] mt-1 max-w-[280px] mx-auto">
                                 {hasActiveFilters ? "Modifiez vos filtres." : "Les emails envoyés par l'équipe apparaîtront ici."}
                             </p>
                             {hasActiveFilters && (
-                                <button onClick={clearFilters} className="mt-4 inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-[#7C5CFC] bg-[#7C5CFC]/10 rounded-xl hover:bg-[#7C5CFC]/20 transition-all">
+                                <button onClick={clearFilters} className="mt-4 inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-[var(--elan-petrol)] bg-[var(--elan-amber)]/10 rounded-xl hover:bg-[var(--elan-amber)]/20 transition-all">
                                     <RotateCcw className="w-4 h-4" /> Réinitialiser
                                 </button>
                             )}
                         </div>
                     ) : (
                         <>
-                            <div className="overflow-x-auto -mx-2 sm:mx-0 rounded-xl border border-[#E8EBF0] overflow-hidden">
+                            <div className="overflow-x-auto -mx-2 sm:mx-0 rounded-xl border border-[var(--elan-line)] overflow-hidden">
                                 <table className="w-full">
                                     <thead>
-                                        <tr className="bg-gradient-to-r from-[#F8F9FC] to-[#F4F6F9]">
+                                        <tr className="bg-gradient-to-r from-[var(--elan-paper)] to-[var(--elan-paper-2)]">
                                             <th className="text-left py-3.5 px-4"><SortHeader col="subject" label="Destinataire / Objet" /></th>
-                                            <th className="text-left py-3.5 px-4"><span className="text-[11px] font-semibold text-[#6B7194] uppercase tracking-wider">Mission</span></th>
+                                            <th className="text-left py-3.5 px-4"><span className="text-[11px] font-semibold text-[var(--elan-slate)] uppercase tracking-wider">Mission</span></th>
                                             <th className="text-left py-3.5 px-4"><SortHeader col="status" label="Statut" /></th>
                                             <th className="text-left py-3.5 px-4"><SortHeader col="sentAt" label="Date" /></th>
                                             <th className="text-center py-3.5 px-4"><SortHeader col="openCount" label="Ouv." /></th>
@@ -425,63 +425,63 @@ export default function ClientPortalEmailPage() {
                                             <>
                                                 <tr
                                                     key={e.id}
-                                                    className={cn("border-b border-[#F0F1F5] last:border-0 transition-colors duration-150 cursor-pointer", idx % 2 === 0 ? "bg-white" : "bg-[#FAFBFC]/50", "hover:bg-[#7C5CFC]/5")}
+                                                    className={cn("border-b border-[var(--elan-line)] last:border-0 transition-colors duration-150 cursor-pointer", idx % 2 === 0 ? "bg-[var(--elan-surface)]" : "bg-[var(--elan-paper)]/50", "hover:bg-[var(--elan-amber)]/5")}
                                                     onClick={() => setExpandedId(expandedId === e.id ? null : e.id)}
                                                 >
                                                     <td className="py-3.5 px-4">
                                                         <div>
-                                                            <p className="text-sm font-semibold text-[#12122A] truncate max-w-[220px]">
+                                                            <p className="text-sm font-semibold text-[var(--elan-ink)] truncate max-w-[220px]">
                                                                 {e.contact ? [e.contact.firstName, e.contact.lastName].filter(Boolean).join(" ") || e.contact.email || e.toAddresses[0] : e.toAddresses[0] || "—"}
                                                             </p>
                                                             {e.contact?.company && (
-                                                                <p className="text-xs text-[#A0A3BD] truncate">{e.contact.company.name}</p>
+                                                                <p className="text-xs text-[#899892] truncate">{e.contact.company.name}</p>
                                                             )}
-                                                            <p className="text-xs text-[#6B7194] truncate max-w-[240px] mt-0.5">{e.subject || "—"}</p>
+                                                            <p className="text-xs text-[var(--elan-slate)] truncate max-w-[240px] mt-0.5">{e.subject || "—"}</p>
                                                         </div>
                                                     </td>
                                                     <td className="py-3.5 px-4">
                                                         {e.mission ? (
-                                                            <span className="inline-flex items-center gap-1.5 text-xs text-[#6B7194] bg-[#F4F6F9] px-2.5 py-1 rounded-lg border border-[#E8EBF0]">
-                                                                <Target className="w-3 h-3 text-[#A0A3BD]" />
+                                                            <span className="inline-flex items-center gap-1.5 text-xs text-[var(--elan-slate)] bg-[var(--elan-paper)] px-2.5 py-1 rounded-lg border border-[var(--elan-line)]">
+                                                                <Target className="w-3 h-3 text-[#899892]" />
                                                                 <span className="truncate max-w-[120px]">{e.mission.name}</span>
                                                             </span>
-                                                        ) : <span className="text-xs text-[#A0A3BD]">—</span>}
+                                                        ) : <span className="text-xs text-[#899892]">—</span>}
                                                     </td>
                                                     <td className="py-3.5 px-4">
                                                         <StatusBadge status={e.status} />
                                                     </td>
                                                     <td className="py-3.5 px-4 whitespace-nowrap">
-                                                        <span className="text-xs text-[#8B8DAF] font-medium">{formatDate(e.sentAt)}</span>
+                                                        <span className="text-xs text-[#7f8e89] font-medium">{formatDate(e.sentAt)}</span>
                                                     </td>
                                                     <td className="py-3.5 px-4 text-center">
                                                         {e.openCount > 0 ? (
                                                             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200" title={e.firstOpenedAt ? `Premier: ${formatDate(e.firstOpenedAt)}` : undefined}>
                                                                 <Eye className="w-3 h-3" />{e.openCount}
                                                             </span>
-                                                        ) : <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium bg-[#F4F6F9] text-[#A0A3BD] border border-[#E8EBF0]">—</span>}
+                                                        ) : <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium bg-[var(--elan-paper)] text-[#899892] border border-[var(--elan-line)]">—</span>}
                                                     </td>
                                                     <td className="py-3.5 px-4 text-center">
                                                         {e.clickCount > 0 ? (
                                                             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
                                                                 <MousePointer className="w-3 h-3" />{e.clickCount}
                                                             </span>
-                                                        ) : <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium bg-[#F4F6F9] text-[#A0A3BD] border border-[#E8EBF0]">—</span>}
+                                                        ) : <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium bg-[var(--elan-paper)] text-[#899892] border border-[var(--elan-line)]">—</span>}
                                                     </td>
                                                 </tr>
                                                 {expandedId === e.id && (
-                                                    <tr key={`${e.id}-expanded`} className="bg-[#F8F9FC]">
+                                                    <tr key={`${e.id}-expanded`} className="bg-[var(--elan-paper)]">
                                                         <td colSpan={6} className="px-8 py-4">
-                                                            <div className="bg-white border border-[#E8EBF0] rounded-xl p-4 max-w-2xl">
+                                                            <div className="bg-[var(--elan-surface)] border border-[var(--elan-line)] rounded-xl p-4 max-w-2xl">
                                                                 <div className="flex items-center gap-2 mb-3">
-                                                                    <Send className="w-4 h-4 text-[#7C5CFC]" />
-                                                                    <span className="text-sm font-semibold text-[#12122A]">Détails de l&apos;email</span>
+                                                                    <Send className="w-4 h-4 text-[var(--elan-petrol)]" />
+                                                                    <span className="text-sm font-semibold text-[var(--elan-ink)]">Détails de l&apos;email</span>
                                                                     {e.template && (
-                                                                        <span className="ml-2 text-xs text-[#7C5CFC] bg-[#7C5CFC]/10 px-2 py-0.5 rounded-full border border-[#7C5CFC]/20">
+                                                                        <span className="ml-2 text-xs text-[var(--elan-petrol)] bg-[var(--elan-amber)]/10 px-2 py-0.5 rounded-full border border-[rgba(12,59,56,0.2)]">
                                                                             {e.template.name}
                                                                         </span>
                                                                     )}
                                                                 </div>
-                                                                <div className="grid grid-cols-2 gap-3 text-xs text-[#6B7194]">
+                                                                <div className="grid grid-cols-2 gap-3 text-xs text-[var(--elan-slate)]">
                                                                     <div><strong>Objet :</strong> {e.subject || "Sans sujet"}</div>
                                                                     <div><strong>Envoyé le :</strong> {formatDate(e.sentAt)}</div>
                                                                     {e.sentBy && <div><strong>Envoyé par :</strong> {e.sentBy.name || "—"}</div>}
@@ -505,13 +505,13 @@ export default function ClientPortalEmailPage() {
                             {/* Pagination */}
                             <div className="flex items-center justify-between mt-4">
                                 <div className="flex items-center gap-3">
-                                    <span className="text-xs text-[#6B7194]">
+                                    <span className="text-xs text-[var(--elan-slate)]">
                                         {((pagination.page - 1) * pagination.limit) + 1}–{Math.min(pagination.page * pagination.limit, pagination.total)} sur {pagination.total}
                                     </span>
                                     <select
                                         value={pagination.limit}
                                         onChange={(e) => setPagination((p) => ({ ...p, limit: parseInt(e.target.value), page: 1 }))}
-                                        className="text-xs border border-[#E8EBF0] rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-[#7C5CFC]/20"
+                                        className="text-xs border border-[var(--elan-line)] rounded-lg px-2 py-1.5 bg-[var(--elan-surface)] focus:outline-none focus:ring-2 focus:ring-[rgba(255,158,27,0.22)]"
                                     >
                                         <option value="10">10 / page</option>
                                         <option value="25">25 / page</option>
@@ -520,7 +520,7 @@ export default function ClientPortalEmailPage() {
                                     </select>
                                 </div>
                                 <div className="flex items-center gap-1">
-                                    <button onClick={() => setPagination((p) => ({ ...p, page: Math.max(1, p.page - 1) }))} disabled={pagination.page <= 1} className="p-2 rounded-lg text-[#6B7194] hover:bg-[#F4F6F9] hover:text-[#12122A] disabled:opacity-40 disabled:cursor-not-allowed transition-all">
+                                    <button onClick={() => setPagination((p) => ({ ...p, page: Math.max(1, p.page - 1) }))} disabled={pagination.page <= 1} className="p-2 rounded-lg text-[var(--elan-slate)] hover:bg-[var(--elan-paper)] hover:text-[var(--elan-ink)] disabled:opacity-40 disabled:cursor-not-allowed transition-all">
                                         <ChevronLeft className="w-4 h-4" />
                                     </button>
                                     {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
@@ -528,12 +528,12 @@ export default function ClientPortalEmailPage() {
                                         const pageNum = start + i;
                                         if (pageNum > pagination.totalPages) return null;
                                         return (
-                                            <button key={pageNum} onClick={() => setPagination((p) => ({ ...p, page: pageNum }))} className={cn("w-9 h-9 rounded-lg text-xs font-medium transition-all", pageNum === pagination.page ? "bg-[#7C5CFC] text-white shadow-sm shadow-[#7C5CFC]/30" : "text-[#6B7194] hover:bg-[#F4F6F9]")}>
+                                            <button key={pageNum} onClick={() => setPagination((p) => ({ ...p, page: pageNum }))} className={cn("w-9 h-9 rounded-lg text-xs font-medium transition-all", pageNum === pagination.page ? "bg-[var(--elan-amber)] text-white shadow-sm shadow-[rgba(255,158,27,0.28)]" : "text-[var(--elan-slate)] hover:bg-[var(--elan-paper)]")}>
                                                 {pageNum}
                                             </button>
                                         );
                                     })}
-                                    <button onClick={() => setPagination((p) => ({ ...p, page: Math.min(p.totalPages, p.page + 1) }))} disabled={pagination.page >= pagination.totalPages} className="p-2 rounded-lg text-[#6B7194] hover:bg-[#F4F6F9] hover:text-[#12122A] disabled:opacity-40 disabled:cursor-not-allowed transition-all">
+                                    <button onClick={() => setPagination((p) => ({ ...p, page: Math.min(p.totalPages, p.page + 1) }))} disabled={pagination.page >= pagination.totalPages} className="p-2 rounded-lg text-[var(--elan-slate)] hover:bg-[var(--elan-paper)] hover:text-[var(--elan-ink)] disabled:opacity-40 disabled:cursor-not-allowed transition-all">
                                         <ChevronRight className="w-4 h-4" />
                                     </button>
                                 </div>

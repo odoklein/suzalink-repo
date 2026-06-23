@@ -121,7 +121,7 @@ export function Modal({
                 tabIndex={-1}
                 onPointerDown={handleModalPointerDown}
                 className={cn(
-                    "relative w-full bg-white border border-slate-200 shadow-xl rounded-2xl overflow-hidden flex flex-col text-slate-900",
+                    "relative w-full bg-[var(--elan-surface)] border border-[var(--elan-line)] shadow-xl rounded-2xl overflow-hidden flex flex-col text-[var(--elan-ink)]",
                     "transform transition-all duration-300 ease-out animate-scale-in max-h-[85vh]",
                     SIZES[size],
                     className
@@ -130,15 +130,15 @@ export function Modal({
             >
                 {/* Header */}
                 {(title || showCloseButton) && (
-                    <div className="flex-shrink-0 flex items-start justify-between px-6 py-5 border-b border-slate-200 bg-slate-50">
+                    <div className="flex-shrink-0 flex items-start justify-between px-6 py-5 border-b border-[var(--elan-line)] bg-[var(--elan-paper)]">
                         <div className="pr-8">
                             {title && (
-                                <h2 className="text-xl font-bold text-slate-900">
+                                <h2 className="text-xl font-bold text-[var(--elan-ink)]">
                                     {title}
                                 </h2>
                             )}
                             {description && (
-                                <p className="text-sm text-slate-600 mt-1.5 font-medium">
+                                <p className="text-sm text-[var(--elan-slate)] mt-1.5 font-medium">
                                     {description}
                                 </p>
                             )}
@@ -146,7 +146,7 @@ export function Modal({
                         {showCloseButton && (
                             <button
                                 onClick={onClose}
-                                className="absolute right-4 top-4 p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-200 rounded-full transition-all duration-200 z-10"
+                                className="absolute right-4 top-4 p-2 text-[var(--elan-slate)] hover:text-[var(--elan-ink)] hover:bg-[var(--elan-paper-3)] rounded-full transition-all duration-200 z-10"
                             >
                                 <X className="w-5 h-5" />
                             </button>
@@ -155,7 +155,7 @@ export function Modal({
                 )}
 
                 {/* Content - explicit bg and text so content is never white-on-white */}
-                <div className="p-6 md:p-8 overflow-y-auto custom-scrollbar flex-1 bg-white text-slate-900">{children}</div>
+                <div className="p-6 md:p-8 overflow-y-auto custom-scrollbar flex-1 bg-[var(--elan-surface)] text-[var(--elan-ink)]">{children}</div>
             </div>
         </div>
     );
@@ -174,7 +174,7 @@ export function ModalFooter({ children, className }: ModalFooterProps) {
     return (
         <div
             className={cn(
-                "flex items-center justify-end gap-3 pt-4 mt-4 border-t border-slate-100",
+                "flex items-center justify-end gap-3 pt-4 mt-4 border-t border-[var(--elan-line)]",
                 className
             )}
         >
@@ -213,17 +213,17 @@ export function ConfirmModal({
     const buttonVariants = {
         danger: "bg-red-600 hover:bg-red-700 text-white",
         warning: "bg-amber-600 hover:bg-amber-700 text-white",
-        default: "bg-indigo-600 hover:bg-indigo-700 text-white",
+        default: "bg-[var(--elan-amber)] hover:bg-[#f29113] text-[var(--elan-ink)]",
     };
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={title} size="sm">
-            <p className="text-slate-600">{message}</p>
+            <p className="text-[var(--elan-slate)]">{message}</p>
             <ModalFooter>
                 <button
                     onClick={onClose}
                     disabled={isLoading}
-                    className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors disabled:opacity-50"
+                    className="px-4 py-2 text-sm font-medium text-[var(--elan-slate)] hover:text-[var(--elan-ink)] hover:bg-[var(--elan-paper)] rounded-lg transition-colors disabled:opacity-50"
                 >
                     {cancelText}
                 </button>

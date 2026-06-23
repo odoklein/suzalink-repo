@@ -50,13 +50,13 @@ function Toggle({
             aria-checked={checked}
             onClick={() => onChange(!checked)}
             className={cn(
-                "relative inline-flex h-6 w-11 flex-shrink-0 rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#7C5CFC]/40 focus:ring-offset-2",
-                checked ? "bg-[#7C5CFC]" : "bg-[#E2E4EF]"
+                "relative inline-flex h-6 w-11 flex-shrink-0 rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[rgba(255,158,27,0.28)] focus:ring-offset-2",
+                checked ? "bg-[var(--elan-amber)]" : "bg-[#E2E4EF]"
             )}
         >
             <span
                 className={cn(
-                    "inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform duration-200 mt-[2px]",
+                    "inline-block h-5 w-5 transform rounded-full bg-[var(--elan-surface)] shadow-sm transition-transform duration-200 mt-[2px]",
                     checked ? "translate-x-5" : "translate-x-0.5"
                 )}
             />
@@ -88,14 +88,14 @@ function NotifRow({
     return (
         <div className={cn(
             "flex items-center gap-4 p-4 rounded-xl border transition-all duration-200",
-            checked ? "border-[#E8EEFF] bg-[#F7F8FF]" : "border-[#EFEFEF] bg-white"
+            checked ? "border-[#E8EEFF] bg-[#F7F8FF]" : "border-[#EFEFEF] bg-[var(--elan-surface)]"
         )}>
             <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center shrink-0", iconBg)}>
                 <Icon className={cn("w-4 h-4", iconColor)} />
             </div>
             <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-[#12122A]">{title}</p>
-                <p className="text-xs text-[#8B8BA7] mt-0.5 leading-relaxed">{description}</p>
+                <p className="text-sm font-semibold text-[var(--elan-ink)]">{title}</p>
+                <p className="text-xs text-[var(--elan-slate)] mt-0.5 leading-relaxed">{description}</p>
             </div>
             <Toggle checked={checked} onChange={onChange} />
         </div>
@@ -283,18 +283,18 @@ export default function ClientPortalSettingsPage() {
 
     if (isLoading && !profile) {
         return (
-            <div className="min-h-full bg-[#F4F6F9] p-6 flex items-center justify-center">
-                <Loader2 className="w-8 h-8 text-[#7C5CFC] animate-spin" />
+            <div className="min-h-full bg-[var(--elan-paper)] p-6 flex items-center justify-center">
+                <Loader2 className="w-8 h-8 text-[var(--elan-petrol)] animate-spin" />
             </div>
         );
     }
 
     return (
-        <div className="min-h-full bg-gradient-to-br from-[#F8F9FC] via-[#F4F6F9] to-[#ECEEF4] p-4 md:p-6 space-y-6">
+        <div className="min-h-full bg-gradient-to-br from-[var(--elan-paper)] via-[var(--elan-paper)] to-[var(--elan-paper-2)] p-4 md:p-6 space-y-6">
             {/* ── Page header ── */}
             <div style={{ animation: "settingsFadeUp 0.35s ease both" }}>
-                <h1 className="text-2xl font-bold text-[#12122A] tracking-tight">Paramètres</h1>
-                <p className="text-sm text-[#6B7194] mt-0.5">Gérez vos informations et préférences</p>
+                <h1 className="text-2xl font-bold text-[var(--elan-ink)] tracking-tight">Paramètres</h1>
+                <p className="text-sm text-[var(--elan-slate)] mt-0.5">Gérez vos informations et préférences</p>
             </div>
 
             {/* ── Profile identity banner ── */}
@@ -306,8 +306,8 @@ export default function ClientPortalSettingsPage() {
                     background: "#0C3B38",
                 }}
             >
-                <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-white/[0.04] -translate-y-1/2 translate-x-1/3 pointer-events-none" />
-                <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-white text-lg font-black border border-white/20 shrink-0 select-none">
+                <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-[var(--elan-surface)]/[0.04] -translate-y-1/2 translate-x-1/3 pointer-events-none" />
+                <div className="w-14 h-14 rounded-2xl bg-[var(--elan-surface)]/20 backdrop-blur-sm flex items-center justify-center text-white text-lg font-black border border-white/20 shrink-0 select-none">
                     {initials}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -332,48 +332,48 @@ export default function ClientPortalSettingsPage() {
                             className={cn(
                                 "flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200 group w-full",
                                 activeTab === tab.id
-                                    ? "bg-white border border-[#E0E3F5] shadow-sm text-[#7C5CFC]"
-                                    : "text-[#6B7194] hover:bg-white/60 hover:text-[#12122A]"
+                                    ? "bg-[var(--elan-surface)] border border-[var(--elan-line)] shadow-sm text-[var(--elan-petrol)]"
+                                    : "text-[var(--elan-slate)] hover:bg-[var(--elan-surface)]/60 hover:text-[var(--elan-ink)]"
                             )}
                         >
                             <div className={cn(
                                 "w-8 h-8 rounded-lg flex items-center justify-center transition-colors duration-200",
                                 activeTab === tab.id ? "bg-[#EEF2FF]" : "bg-[#F0F1F7] group-hover:bg-[#EEF2FF]"
                             )}>
-                                <tab.icon className={cn("w-4 h-4 transition-colors", activeTab === tab.id ? "text-[#7C5CFC]" : "text-[#8B8BA7] group-hover:text-[#7C5CFC]")} />
+                                <tab.icon className={cn("w-4 h-4 transition-colors", activeTab === tab.id ? "text-[var(--elan-petrol)]" : "text-[var(--elan-slate)] group-hover:text-[var(--elan-petrol)]")} />
                             </div>
                             <div className="hidden md:block min-w-0">
                                 <p className="text-sm font-semibold leading-tight truncate">{tab.label}</p>
-                                <p className={cn("text-[11px] leading-tight mt-0.5 truncate", activeTab === tab.id ? "text-[#7C5CFC]/70" : "text-[#A0A3BD]")}>{tab.description}</p>
+                                <p className={cn("text-[11px] leading-tight mt-0.5 truncate", activeTab === tab.id ? "text-[var(--elan-petrol)]/70" : "text-[#899892]")}>{tab.description}</p>
                             </div>
                         </button>
                     ))}
                 </nav>
 
                 {/* ── Tab content ── */}
-                <div className="flex-1 bg-white rounded-2xl border border-[#E8EBF0] shadow-sm overflow-hidden">
+                <div className="flex-1 bg-[var(--elan-surface)] rounded-2xl border border-[var(--elan-line)] shadow-sm overflow-hidden">
 
                     {/* ── Profile tab ── */}
                     {activeTab === "profile" && (
                         <div className="p-6 space-y-6">
-                            <div className="flex items-center gap-3 pb-4 border-b border-[#F0F1F7]">
+                            <div className="flex items-center gap-3 pb-4 border-b border-[var(--elan-line)]">
                                 <div className="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center">
-                                    <User className="w-4 h-4 text-[#7C5CFC]" />
+                                    <User className="w-4 h-4 text-[var(--elan-petrol)]" />
                                 </div>
                                 <div>
-                                    <h2 className="text-base font-bold text-[#12122A]">Informations personnelles</h2>
-                                    <p className="text-xs text-[#8B8BA7]">Modifiez vos coordonnées visibles par l&apos;équipe</p>
+                                    <h2 className="text-base font-bold text-[var(--elan-ink)]">Informations personnelles</h2>
+                                    <p className="text-xs text-[var(--elan-slate)]">Modifiez vos coordonnées visibles par l&apos;équipe</p>
                                 </div>
                             </div>
 
                             <form onSubmit={saveProfile} className="space-y-4">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-xs font-semibold text-[#6B7194] uppercase tracking-wide mb-1.5">
+                                        <label className="block text-xs font-semibold text-[var(--elan-slate)] uppercase tracking-wide mb-1.5">
                                             Nom complet
                                         </label>
                                         <div className="relative">
-                                            <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A0A3BD]" />
+                                            <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#899892]" />
                                             <Input
                                                 value={name}
                                                 onChange={(e) => setName(e.target.value)}
@@ -383,11 +383,11 @@ export default function ClientPortalSettingsPage() {
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-semibold text-[#6B7194] uppercase tracking-wide mb-1.5">
+                                        <label className="block text-xs font-semibold text-[var(--elan-slate)] uppercase tracking-wide mb-1.5">
                                             Téléphone
                                         </label>
                                         <div className="relative">
-                                            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A0A3BD]" />
+                                            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#899892]" />
                                             <Input
                                                 value={phone}
                                                 onChange={(e) => setPhone(e.target.value)}
@@ -399,26 +399,26 @@ export default function ClientPortalSettingsPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-semibold text-[#6B7194] uppercase tracking-wide mb-1.5">
+                                    <label className="block text-xs font-semibold text-[var(--elan-slate)] uppercase tracking-wide mb-1.5">
                                         Email
                                     </label>
                                     <div className="relative">
-                                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A0A3BD]" />
+                                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#899892]" />
                                         <Input
                                             value={profile?.email ?? ""}
                                             disabled
-                                            className="pl-9 bg-[#F8F9FC] text-[#A0A3BD] cursor-not-allowed"
+                                            className="pl-9 bg-[var(--elan-paper)] text-[#899892] cursor-not-allowed"
                                         />
                                     </div>
-                                    <p className="text-xs text-[#A0A3BD] mt-1">L&apos;email ne peut pas être modifié ici.</p>
+                                    <p className="text-xs text-[#899892] mt-1">L&apos;email ne peut pas être modifié ici.</p>
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-semibold text-[#6B7194] uppercase tracking-wide mb-1.5">
+                                    <label className="block text-xs font-semibold text-[var(--elan-slate)] uppercase tracking-wide mb-1.5">
                                         Fuseau horaire
                                     </label>
                                     <div className="relative">
-                                        <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A0A3BD]" />
+                                        <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#899892]" />
                                         <Input
                                             value={timezone}
                                             onChange={(e) => setTimezone(e.target.value)}
@@ -428,14 +428,14 @@ export default function ClientPortalSettingsPage() {
                                     </div>
                                 </div>
 
-                                <div className="pt-4 border-t border-[#F0F1F7]">
+                                <div className="pt-4 border-t border-[var(--elan-line)]">
                                     <div className="flex items-center gap-3 mb-3">
                                         <div className="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center">
-                                            <Calendar className="w-4 h-4 text-[#7C5CFC]" />
+                                            <Calendar className="w-4 h-4 text-[var(--elan-petrol)]" />
                                         </div>
                                         <div>
-                                            <h3 className="text-sm font-bold text-[#12122A]">Lien de réservation</h3>
-                                            <p className="text-xs text-[#8B8BA7]">Utilisé par l&apos;équipe pour planifier vos RDV</p>
+                                            <h3 className="text-sm font-bold text-[var(--elan-ink)]">Lien de réservation</h3>
+                                            <p className="text-xs text-[var(--elan-slate)]">Utilisé par l&apos;équipe pour planifier vos RDV</p>
                                         </div>
                                     </div>
                                     <Input
@@ -459,20 +459,20 @@ export default function ClientPortalSettingsPage() {
                     {/* ── Notifications tab ── */}
                     {activeTab === "notifications" && (
                         <div className="p-6 space-y-5">
-                            <div className="flex items-center gap-3 pb-4 border-b border-[#F0F1F7]">
+                            <div className="flex items-center gap-3 pb-4 border-b border-[var(--elan-line)]">
                                 <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center">
                                     <Bell className="w-4 h-4 text-amber-500" />
                                 </div>
                                 <div>
-                                    <h2 className="text-base font-bold text-[#12122A]">Préférences de notification</h2>
-                                    <p className="text-xs text-[#8B8BA7]">Choisissez les alertes que vous souhaitez recevoir</p>
+                                    <h2 className="text-base font-bold text-[var(--elan-ink)]">Préférences de notification</h2>
+                                    <p className="text-xs text-[var(--elan-slate)]">Choisissez les alertes que vous souhaitez recevoir</p>
                                 </div>
                             </div>
 
                             <div className="space-y-2.5">
                                 <NotifRow
                                     icon={Calendar}
-                                    iconColor="text-[#7C5CFC]"
+                                    iconColor="text-[var(--elan-petrol)]"
                                     iconBg="bg-indigo-50"
                                     title="Nouveau RDV planifié"
                                     description="Notification lorsqu'un nouveau rendez-vous est réservé"
@@ -542,23 +542,23 @@ export default function ClientPortalSettingsPage() {
                     {/* ── Security tab ── */}
                     {activeTab === "security" && (
                         <div className="p-6 space-y-6">
-                            <div className="flex items-center gap-3 pb-4 border-b border-[#F0F1F7]">
+                            <div className="flex items-center gap-3 pb-4 border-b border-[var(--elan-line)]">
                                 <div className="w-9 h-9 rounded-xl bg-red-50 flex items-center justify-center">
                                     <Shield className="w-4 h-4 text-red-500" />
                                 </div>
                                 <div>
-                                    <h2 className="text-base font-bold text-[#12122A]">Sécurité du compte</h2>
-                                    <p className="text-xs text-[#8B8BA7]">Mot de passe et historique des connexions</p>
+                                    <h2 className="text-base font-bold text-[var(--elan-ink)]">Sécurité du compte</h2>
+                                    <p className="text-xs text-[var(--elan-slate)]">Mot de passe et historique des connexions</p>
                                 </div>
                             </div>
 
                             <form onSubmit={changePassword} className="space-y-4 max-w-sm">
                                 <div>
-                                    <label className="block text-xs font-semibold text-[#6B7194] uppercase tracking-wide mb-1.5">
+                                    <label className="block text-xs font-semibold text-[var(--elan-slate)] uppercase tracking-wide mb-1.5">
                                         Mot de passe actuel
                                     </label>
                                     <div className="relative">
-                                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A0A3BD]" />
+                                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#899892]" />
                                         <Input
                                             type="password"
                                             value={currentPassword}
@@ -570,11 +570,11 @@ export default function ClientPortalSettingsPage() {
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-semibold text-[#6B7194] uppercase tracking-wide mb-1.5">
+                                    <label className="block text-xs font-semibold text-[var(--elan-slate)] uppercase tracking-wide mb-1.5">
                                         Nouveau mot de passe
                                     </label>
                                     <div className="relative">
-                                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A0A3BD]" />
+                                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#899892]" />
                                         <Input
                                             type="password"
                                             value={newPassword}
@@ -584,14 +584,14 @@ export default function ClientPortalSettingsPage() {
                                             className="pl-9"
                                         />
                                     </div>
-                                    <p className="text-xs text-[#A0A3BD] mt-1">Minimum 6 caractères</p>
+                                    <p className="text-xs text-[#899892] mt-1">Minimum 6 caractères</p>
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-semibold text-[#6B7194] uppercase tracking-wide mb-1.5">
+                                    <label className="block text-xs font-semibold text-[var(--elan-slate)] uppercase tracking-wide mb-1.5">
                                         Confirmer le nouveau mot de passe
                                     </label>
                                     <div className="relative">
-                                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A0A3BD]" />
+                                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#899892]" />
                                         <Input
                                             type="password"
                                             value={confirmPassword}
@@ -615,23 +615,23 @@ export default function ClientPortalSettingsPage() {
                             </form>
 
                             {/* ── Login history ── */}
-                            <div className="pt-4 border-t border-[#F0F1F7] space-y-3">
+                            <div className="pt-4 border-t border-[var(--elan-line)] space-y-3">
                                 <div className="flex items-center gap-3">
                                     <div className="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center">
-                                        <LogIn className="w-4 h-4 text-[#7C5CFC]" />
+                                        <LogIn className="w-4 h-4 text-[var(--elan-petrol)]" />
                                     </div>
                                     <div>
-                                        <h3 className="text-sm font-bold text-[#12122A]">Connexions récentes</h3>
-                                        <p className="text-xs text-[#8B8BA7]">20 dernières tentatives — conservées 90 jours</p>
+                                        <h3 className="text-sm font-bold text-[var(--elan-ink)]">Connexions récentes</h3>
+                                        <p className="text-xs text-[var(--elan-slate)]">20 dernières tentatives — conservées 90 jours</p>
                                     </div>
                                 </div>
 
                                 {loginHistoryLoading ? (
                                     <div className="flex items-center justify-center py-8">
-                                        <Loader2 className="w-5 h-5 text-[#7C5CFC] animate-spin" />
+                                        <Loader2 className="w-5 h-5 text-[var(--elan-petrol)] animate-spin" />
                                     </div>
                                 ) : loginHistory.length === 0 ? (
-                                    <p className="text-sm text-[#8B8BA7] py-4">Aucune connexion enregistrée.</p>
+                                    <p className="text-sm text-[var(--elan-slate)] py-4">Aucune connexion enregistrée.</p>
                                 ) : (
                                     <div className="space-y-2">
                                         {loginHistory.map((event) => {
@@ -693,7 +693,7 @@ export default function ClientPortalSettingsPage() {
                                                                 </span>
                                                             )}
                                                         </div>
-                                                        <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1 text-xs text-[#6B7194]">
+                                                        <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1 text-xs text-[var(--elan-slate)]">
                                                             <span>{date}</span>
                                                             {event.country && (
                                                                 <span className="flex items-center gap-1">
@@ -718,8 +718,8 @@ export default function ClientPortalSettingsPage() {
                 </div>
             </div>
 
-            <div className="text-sm text-[#8B8BA7]" style={{ animation: "settingsFadeUp 0.35s ease both", animationDelay: "150ms" }}>
-                <Link href="/client/portal" className="text-[#7C5CFC] hover:underline">
+            <div className="text-sm text-[var(--elan-slate)]" style={{ animation: "settingsFadeUp 0.35s ease both", animationDelay: "150ms" }}>
+                <Link href="/client/portal" className="text-[var(--elan-petrol)] hover:underline">
                     ← Retour au tableau de bord
                 </Link>
             </div>

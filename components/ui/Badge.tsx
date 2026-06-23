@@ -14,12 +14,12 @@ const BADGE_STATUS_VARIANTS: Record<CompletenessStatus, string> = {
 };
 
 const BADGE_VARIANTS: Record<string, string> = {
-    default: "bg-slate-100 text-slate-700 border-slate-200",
-    primary: "bg-indigo-50 text-indigo-700 border-indigo-200",
+    default: "bg-[var(--elan-paper-2)] text-[var(--elan-ink-soft)] border-[var(--elan-line)]",
+    primary: "bg-[var(--elan-eucalyptus)] text-[var(--elan-petrol)] border-[rgba(12,59,56,0.22)]",
     success: "bg-emerald-50 text-emerald-700 border-emerald-200",
     warning: "bg-amber-50 text-amber-700 border-amber-200",
     danger: "bg-red-50 text-red-700 border-red-200",
-    outline: "bg-transparent text-slate-600 border-slate-300",
+    outline: "bg-transparent text-[var(--elan-slate)] border-[var(--elan-line-strong)]",
 };
 
 const Badge = forwardRef<HTMLSpanElement, BadgeProps>(
