@@ -325,12 +325,15 @@ function InnerLayout({
     const navigation =
         customNavigation || (userRole ? getNavByRole(userRole) : []);
 
-    // Email Hub & Mailbox (Boîte de réception) — need sidebar but NOT the padded cp-content wrapper
+    // Full-bleed shell for the canonical Inbox views (no padded cp-content
+    // wrapper). Post Phase 1 inbox unification: /manager/email is the single
+    // manager surface that needs this; /manager/email/* sub-routes (overview,
+    // sent, contacts, etc.) live inside (hub)/layout.tsx and use the normal
+    // padded content area like any other manager page. SDR side untouched.
     const isEmailHub =
-        pathname.startsWith("/manager/emails") ||
-        pathname.startsWith("/sdr/emails") ||
         pathname === "/manager/email" ||
-        pathname === "/sdr/email";
+        pathname === "/sdr/email" ||
+        pathname.startsWith("/sdr/emails");
     const isRdvPage = pathname.startsWith("/manager/rdv");
 
     const pathParts = pathname.split("/").filter(Boolean);

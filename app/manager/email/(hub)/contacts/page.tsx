@@ -6,7 +6,7 @@ import { Users, ArrowRight } from "lucide-react";
 
 // ============================================
 // CONTACTS PAGE — Placeholder for Phase 3
-// /manager/emails/contacts
+// /manager/email/contacts
 // ============================================
 
 export default function ContactsPage() {

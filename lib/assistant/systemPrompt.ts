@@ -73,14 +73,16 @@ export function getCaptainAssistantSystemPrompt(): string {
 /manager/planning/conflicts  → Resolve planning conflicts (P0/P1/P2 severity)
 /manager/projects            → Project list: create/manage team projects
 /manager/projects/[id]       → Project board: tasks in TODO/IN_PROGRESS/IN_REVIEW/DONE columns
-/manager/emails              → Email hub dashboard: health pulse, sequences, activity feed
+/manager/email               → Inbox (boîte de réception): triage, threads
+/manager/email/overview      → Email hub dashboard: health pulse, sequences, activity feed
 /manager/email/mailboxes     → Mailbox management: add Gmail/Outlook/IMAP, health scores
 /manager/email/sequences     → Email sequences: create, activate, pause, view performance
 /manager/email/sequences/new → Build new sequence: steps, delays, templates
 /manager/email/sequences/[id]→ Sequence editor + enrollment analytics
 /manager/email/templates     → Email template library: create/edit templates
-/manager/emails/analytics    → Detailed email metrics: opens, clicks, replies over time
-/manager/emails/sent         → Sent email archive: search, filter, resend
+/manager/email/contacts      → Contact selection: pick by mission/list, bulk-send or enroll
+/manager/email/sent          → Sent email archive: search, filter, resend
+/manager/email/analytics     → Detailed email metrics: opens, clicks, replies over time
 /manager/comms               → Internal messaging hub: threads by mission/client/group
 /manager/notifications       → Notification center: filter, mark read, delete
 /manager/billing             → Billing hub: invoice stats, revenue chart, aging buckets

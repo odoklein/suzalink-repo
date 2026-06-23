@@ -27,6 +27,11 @@ interface GlobalSidebarProps {
     navigation: NavSection[];
 }
 
+function isPathActive(pathname: string, href: string): boolean {
+    if (!href) return false;
+    return pathname === href || (href !== "/" && pathname.startsWith(href + "/"));
+}
+
 function SidebarNavItem({
     item,
     isExpanded,
@@ -45,19 +50,31 @@ function SidebarNavItem({
         return null;
     }
 
-    const isActive =
-        pathname === item.href ||
-        (item.href !== "/" && pathname.startsWith(item.href + "/"));
+    const hasChildren = Boolean(item.children?.length);
+    const isActive = isPathActive(pathname, item.href);
+    const isChildActive =
+        hasChildren &&
+        item.children!.some((c) => isPathActive(pathname, c.href));
+
+    const shouldShowChildren = hasChildren && isExpanded;
+    // Auto-expand when the parent or one of its children is active.
+    const [isOpen, setIsOpen] = useState<boolean>(isActive || isChildActive);
+    useEffect(() => {
+        if (isActive || isChildActive) setIsOpen(true);
+    }, [isActive, isChildActive]);
 
     const content = (
         <>
             <div
                 className={cn(
                     "cp-nav-icon-wrap",
-                    isActive && "cp-nav-icon-active"
+                    (isActive || isChildActive) && "cp-nav-icon-active"
                 )}
             >
-                <item.icon className="w-[16px] h-[16px]" strokeWidth={isActive ? 2 : 1.75} />
+                <item.icon
+                    className="w-[16px] h-[16px]"
+                    strokeWidth={isActive || isChildActive ? 2 : 1.75}
+                />
             </div>
 
             <div
@@ -100,27 +117,81 @@ function SidebarNavItem({
     const cls = cn(
         "cp-nav-item",
         isActive && "cp-nav-item-active",
-        depth > 0 && "ml-3"
+        !isActive && isChildActive && "cp-nav-item-parent-active",
+        depth > 0 && "cp-nav-item-child"
     );
 
-    if (item.openInNewTab) {
+    const renderLink = (extraClass?: string) => {
+        if (item.openInNewTab) {
+            return (
+                <a
+                    href={item.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={onMobileClose}
+                    className={cn(cls, extraClass)}
+                >
+                    {content}
+                </a>
+            );
+        }
         return (
-            <a
+            <Link
                 href={item.href}
-                target="_blank"
-                rel="noopener noreferrer"
                 onClick={onMobileClose}
-                className={cls}
+                className={cn(cls, extraClass)}
             >
                 {content}
-            </a>
+            </Link>
         );
+    };
+
+    if (!shouldShowChildren) {
+        return renderLink();
     }
 
+    // Parent with collapsible children: link + chevron toggle side-by-side.
     return (
-        <Link href={item.href} onClick={onMobileClose} className={cls}>
-            {content}
-        </Link>
+        <>
+            <div className="cp-nav-parent-row">
+                {renderLink("cp-nav-parent-link")}
+                <button
+                    type="button"
+                    aria-label={isOpen ? "Réduire" : "Développer"}
+                    aria-expanded={isOpen}
+                    onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setIsOpen((v) => !v);
+                    }}
+                    className={cn(
+                        "cp-nav-chevron",
+                        isOpen && "cp-nav-chevron-open"
+                    )}
+                >
+                    <ChevronRight className="w-3 h-3" />
+                </button>
+            </div>
+            <div
+                className={cn(
+                    "cp-nav-children-wrap",
+                    isOpen && "cp-nav-children-wrap-open"
+                )}
+                aria-hidden={!isOpen}
+            >
+                <div className="cp-nav-children">
+                    {item.children!.map((child) => (
+                        <SidebarNavItem
+                            key={child.href}
+                            item={child}
+                            isExpanded={true}
+                            onMobileClose={onMobileClose}
+                            depth={depth + 1}
+                        />
+                    ))}
+                </div>
+            </div>
+        </>
     );
 }
 
@@ -167,48 +238,14 @@ function SidebarSection({
 
             <div className="cp-nav-items">
                 {visibleItems.map((item) => (
-                    <React.Fragment key={item.href}>
-                        <SidebarNavItem
-                            item={item}
-                            isExpanded={isExpanded}
-                            onMobileClose={onMobileClose}
-                        />
-                        {isExpanded && item.children?.length ? (
-                            <NestedChildren
-                                items={item.children}
-                                onMobileClose={onMobileClose}
-                            />
-                        ) : null}
-                    </React.Fragment>
+                    <SidebarNavItem
+                        key={item.href}
+                        item={item}
+                        isExpanded={isExpanded}
+                        onMobileClose={onMobileClose}
+                    />
                 ))}
             </div>
-        </div>
-    );
-}
-
-function NestedChildren({
-    items,
-    onMobileClose,
-}: {
-    items: NavItem[];
-    onMobileClose?: () => void;
-}) {
-    const { hasPermission, isLoading } = usePermissions();
-    const visible = items.filter(
-        (item) => !item.permission || isLoading || hasPermission(item.permission)
-    );
-    if (visible.length === 0) return null;
-    return (
-        <div className="cp-nav-children">
-            {visible.map((child) => (
-                <SidebarNavItem
-                    key={child.href}
-                    item={child}
-                    isExpanded={true}
-                    onMobileClose={onMobileClose}
-                    depth={1}
-                />
-            ))}
         </div>
     );
 }

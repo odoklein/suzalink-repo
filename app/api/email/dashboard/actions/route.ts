@@ -100,7 +100,7 @@ export async function GET(req: NextRequest) {
                         title: `${bounce._count} rebonds`,
                         description: `Hard bounces sur ${mailbox?.email || "boîte mail"}`,
                         missionName: null,
-                        linkHref: `/manager/emails/mailboxes`,
+                        linkHref: `/manager/email/mailboxes`,
                         linkLabel: "Vérifier →",
                         count: bounce._count,
                     });
@@ -127,7 +127,7 @@ export async function GET(req: NextRequest) {
                 title: `${stuckEnrollments} contacts bloqués`,
                 description: `Contacts sans ouverture après l'étape 3 dans une séquence active`,
                 missionName: null,
-                linkHref: `/manager/emails/sequences`,
+                linkHref: `/manager/email/sequences`,
                 linkLabel: "Prendre une action →",
                 count: stuckEnrollments,
             });
@@ -157,7 +157,7 @@ export async function GET(req: NextRequest) {
                     title: `Limite d'envoi atteinte`,
                     description: `${mb.email} : ${mb.sentToday}/${mb.dailySendLimit} emails envoyés`,
                     missionName: null,
-                    linkHref: `/manager/emails/mailboxes`,
+                    linkHref: `/manager/email/mailboxes`,
                     linkLabel: "Ajuster →",
                     meta: {
                         sent: mb.sentToday,

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useToast, Badge } from "@/components/ui";
+import { useToast, Badge, PageHeader } from "@/components/ui";
 import {
     Search,
     Plus,
@@ -227,37 +227,30 @@ export default function ClientsPage() {
 
     return (
         <div className="space-y-6">
-            {/* Premium Header */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold text-slate-900">Clients</h1>
-                    <p className="text-sm text-slate-500 mt-1">
-                        Gérez votre portefeuille de clients et leurs activités
-                    </p>
-                </div>
-                <div className="flex items-center gap-3">
-                    <button
-                        onClick={() => refetchClients()}
-                        className="p-2.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 transition-colors"
-                    >
-                        <RefreshCw className={`w-4 h-4 text-slate-500 ${isFetching ? "animate-spin" : ""}`} />
-                    </button>
-                    <Link
-                        href="/manager/playbook/import"
-                        className="flex items-center gap-2 h-10 px-5 text-sm font-medium rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors"
-                    >
-                        <FileText className="w-4 h-4" />
-                        Importer un playbook
-                    </Link>
-                    <button
-                        onClick={() => setShowOnboardingModal(true)}
-                        className="mgr-btn-primary flex items-center gap-2 h-10 px-5 text-sm font-medium"
-                    >
-                        <Plus className="w-4 h-4" />
-                        Nouveau client
-                    </button>
-                </div>
-            </div>
+            <PageHeader
+                title="Clients"
+                subtitle="Gérez votre portefeuille de clients et leurs activités"
+                onRefresh={() => refetchClients()}
+                isRefreshing={isFetching}
+                actions={
+                    <>
+                        <Link
+                            href="/manager/playbook/import"
+                            className="flex items-center gap-2 h-10 px-5 text-sm font-medium rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors"
+                        >
+                            <FileText className="w-4 h-4" />
+                            Importer un playbook
+                        </Link>
+                        <button
+                            onClick={() => setShowOnboardingModal(true)}
+                            className="mgr-btn-primary flex items-center gap-2 h-10 px-5 text-sm font-medium"
+                        >
+                            <Plus className="w-4 h-4" />
+                            Nouveau client
+                        </button>
+                    </>
+                }
+            />
 
             {/* Premium Stats */}
             <div className="grid grid-cols-3 gap-5">

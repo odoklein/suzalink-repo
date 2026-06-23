@@ -11,7 +11,7 @@ import { PendingActions } from "@/components/email/dashboard/PendingActions";
 
 // ============================================
 // EMAIL HUB DASHBOARD — Landing Page
-// /manager/emails
+// /manager/email
 //
 // three horizontal zones:
 //   A: Health pulse strip (top)
@@ -186,7 +186,7 @@ export default function EmailDashboardPage() {
     // ── Handlers ──
 
     const handleNavigate = (tab: string) => {
-        router.push(`/manager/emails/${tab}`);
+        router.push(`/manager/email/${tab}`);
     };
 
     const handleSequenceToggle = async (id: string, newStatus: string) => {
@@ -211,11 +211,11 @@ export default function EmailDashboardPage() {
     };
 
     const handleSequenceClick = (sequenceId: string) => {
-        router.push(`/manager/emails/sequences/${sequenceId}`);
+        router.push(`/manager/email/sequences/${sequenceId}`);
     };
 
     const handleMailboxClick = (mailboxId: string) => {
-        router.push(`/manager/emails/mailboxes?selected=${mailboxId}`);
+        router.push(`/manager/email/mailboxes?selected=${mailboxId}`);
     };
 
     return (

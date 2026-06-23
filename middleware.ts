@@ -1,11 +1,38 @@
 import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
 
+// Phase 1 — Inbox unification. Permanent redirects from the deprecated
+// /manager/emails Hub to the canonical /manager/email surface. Safe to keep
+// for ~90 days; remove after analytics confirm no traffic.
+const MANAGER_EMAIL_REDIRECTS: Record<string, string> = {
+    "/manager/emails": "/manager/email/overview",
+    "/manager/emails/sent": "/manager/email/sent",
+    "/manager/emails/contacts": "/manager/email/contacts",
+    "/manager/emails/mailboxes": "/manager/email/mailboxes",
+    "/manager/emails/analytics": "/manager/email/analytics",
+    "/manager/emails/sequences": "/manager/email/sequences",
+};
+
 export default withAuth(
     function middleware(req) {
         const token = req.nextauth.token;
         const path = req.nextUrl.pathname;
         const apiKey = req.headers.get("x-api-key");
+
+        // 0. Phase 1 IA redirects (Hub → canonical Inbox). Run before role
+        //    gating so even pre-auth navigations land on the new URL.
+        const exactRedirect = MANAGER_EMAIL_REDIRECTS[path];
+        if (exactRedirect) {
+            const url = req.nextUrl.clone();
+            url.pathname = exactRedirect;
+            return NextResponse.redirect(url, 308);
+        }
+        // Prefix-match for /manager/emails/sequences/<id>, /sequences/new, etc.
+        if (path.startsWith("/manager/emails/")) {
+            const url = req.nextUrl.clone();
+            url.pathname = path.replace("/manager/emails/", "/manager/email/");
+            return NextResponse.redirect(url, 308);
+        }
 
         // 1. Autoriser l'accès si une API Key est présente
         // On laisse la route API finale valider si la clé est correcte dans Supabase
