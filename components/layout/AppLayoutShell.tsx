@@ -325,21 +325,12 @@ function InnerLayout({
     const navigation =
         customNavigation || (userRole ? getNavByRole(userRole) : []);
 
-    // Old standalone full-screen email pages (no sidebar)
-    const isLegacyEmailPage =
-        pathname === "/sdr/email" || pathname === "/manager/email";
-    if (isLegacyEmailPage) {
-        return (
-            <div className="h-screen w-screen overflow-hidden flex flex-col bg-[#fafbfc]">
-                {children}
-            </div>
-        );
-    }
-
-    // New Email Hub — needs sidebar but NOT the padded cp-content wrapper
+    // Email Hub & Mailbox (Boîte de réception) — need sidebar but NOT the padded cp-content wrapper
     const isEmailHub =
         pathname.startsWith("/manager/emails") ||
-        pathname.startsWith("/sdr/emails");
+        pathname.startsWith("/sdr/emails") ||
+        pathname === "/manager/email" ||
+        pathname === "/sdr/email";
     const isRdvPage = pathname.startsWith("/manager/rdv");
 
     const pathParts = pathname.split("/").filter(Boolean);
@@ -354,6 +345,7 @@ function InnerLayout({
         planning: "Planning",
         projects: "Projets",
         emails: "Email Hub",
+        email: "Boîte de réception",
     };
     const currentPage = pageLabels[rawPage?.toLowerCase()] || rawPage;
 

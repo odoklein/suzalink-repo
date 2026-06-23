@@ -290,7 +290,7 @@ export function InboxLayout({
         addToast("success", "Boîte mail connectée");
     }, [fetchMailboxes, addToast]);
 
-    const containerHeight = standalone ? "h-screen" : "h-[calc(100vh-8rem)]";
+    const containerHeight = standalone ? "h-screen" : "h-full";
 
     // Folder label map
     const folderLabels: Record<string, string> = {

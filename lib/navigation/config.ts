@@ -6,6 +6,7 @@ import {
   LayoutGrid,
   List,
   BarChart3,
+  Bell,
   Users,
   FolderKanban,
   Calendar,
@@ -61,6 +62,10 @@ export interface NavSection {
 // MANAGER NAVIGATION
 // ============================================
 
+// Manager IA — Phase 0 refactor (verb-based 7-section structure).
+// Goals: collapse 18 flat items → 7 semantic groups; fix label/URL/permission drift;
+// surface orphaned routes (campaigns, notifications, sdrs); defer inbox consolidation
+// to Phase 1 (canonical = /manager/email).
 export const MANAGER_NAV: NavSection[] = [
   {
     items: [
@@ -80,30 +85,38 @@ export const MANAGER_NAV: NavSection[] = [
         icon: Target,
         label: "Missions",
         permission: "pages.missions",
+        children: [
+          {
+            href: "/manager/lists",
+            icon: Database,
+            label: "Listes",
+            permission: "pages.lists",
+          },
+          {
+            href: "/manager/prospection",
+            icon: Activity,
+            label: "Cockpit",
+            permission: "pages.missions",
+          },
+        ],
       },
       {
-        href: "/manager/lists",
-        icon: Database,
-        label: "Listes",
-        permission: "pages.prospects",
+        href: "/manager/prospects",
+        icon: Users,
+        label: "Prospects",
+        permission: "pages.lists",
       },
       {
-        href: "/manager/prospection",
-        icon: Activity,
-        label: "Suivi des appels",
-        permission: "pages.missions",
+        href: "/manager/campaigns",
+        icon: Zap,
+        label: "Campagnes",
+        permission: "pages.campaigns",
       },
     ],
   },
   {
-    title: "Résultats",
+    title: "Pipeline",
     items: [
-      {
-        href: "/manager/clients",
-        icon: Building2,
-        label: "Clients",
-        permission: "pages.clients",
-      },
       {
         href: "/manager/rdv",
         icon: CalendarClock,
@@ -111,9 +124,20 @@ export const MANAGER_NAV: NavSection[] = [
         permission: "pages.analytics",
       },
       {
+        href: "/manager/clients",
+        icon: Building2,
+        label: "Clients",
+        permission: "pages.clients",
+      },
+    ],
+  },
+  {
+    title: "Insights",
+    items: [
+      {
         href: "/manager/analytics",
         icon: BarChart3,
-        label: "Statistiques",
+        label: "Performance",
         permission: "pages.analytics",
       },
       {
@@ -132,6 +156,20 @@ export const MANAGER_NAV: NavSection[] = [
         icon: Users,
         label: "Collaborateurs",
         permission: "pages.sdrs",
+        children: [
+          {
+            href: "/manager/sdr-feedback",
+            icon: MessageSquare,
+            label: "Évaluations",
+            permission: "pages.sdrs",
+          },
+          {
+            href: "/manager/sdrs",
+            icon: UserPlus,
+            label: "SDRs",
+            permission: "pages.sdrs",
+          },
+        ],
       },
       {
         href: "/manager/planning",
@@ -145,28 +183,16 @@ export const MANAGER_NAV: NavSection[] = [
         label: "Projets",
         permission: "pages.projects",
       },
-      {
-        href: "/manager/sdr-feedback",
-        icon: MessageSquare,
-        label: "Avis équipe",
-        permission: "pages.sdrs",
-      },
     ],
   },
   {
-    title: "Communication",
+    title: "Inbox",
     dividerBefore: true,
     items: [
       {
-        href: "/manager/comms",
-        icon: MessageSquare,
-        label: "Messagerie",
-        permission: "pages.dashboard",
-      },
-      {
-        href: "/manager/emails",
-        icon: Mail,
-        label: "Email Hub",
+        href: "/manager/email",
+        icon: Inbox,
+        label: "Boîte de réception",
         permission: "pages.email",
       },
     ],
@@ -176,16 +202,10 @@ export const MANAGER_NAV: NavSection[] = [
     dividerBefore: true,
     items: [
       {
-        href: "/manager/files",
-        icon: FileText,
-        label: "Fichiers",
-        permission: "pages.files",
-      },
-      {
         href: "/manager/settings",
         icon: Settings,
         label: "Paramètres",
-        permission: "pages.sdrs",
+        permission: "pages.settings",
       },
       {
         href: "/manager/billing",
@@ -194,10 +214,22 @@ export const MANAGER_NAV: NavSection[] = [
         permission: "pages.billing",
       },
       {
+        href: "/manager/files",
+        icon: FileText,
+        label: "Fichiers",
+        permission: "pages.files",
+      },
+      {
+        href: "/manager/notifications",
+        icon: Bell,
+        label: "Notifications",
+        permission: "pages.dashboard",
+      },
+      {
         href: "/manager/api",
         icon: Key,
         label: "API & Intégrations",
-        permission: "pages.sdrs",
+        permission: "pages.settings",
       },
     ],
   },
@@ -268,9 +300,9 @@ export const SDR_NAV: NavSection[] = [
         permission: "pages.dashboard",
       },
       {
-        href: "/sdr/emails",
-        icon: Mail,
-        label: "Email Hub",
+        href: "/sdr/email",
+        icon: Inbox,
+        label: "Boîte de réception",
         permission: "pages.email",
       },
     ],

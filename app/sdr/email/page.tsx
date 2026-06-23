@@ -11,5 +11,5 @@ export const metadata = {
 };
 
 export default function SDREmailPage() {
-    return <InboxLayout showTeamInbox={false} standalone />;
+    return <InboxLayout showTeamInbox={false} />;
 }

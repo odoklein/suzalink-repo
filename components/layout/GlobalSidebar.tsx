@@ -167,14 +167,48 @@ function SidebarSection({
 
             <div className="cp-nav-items">
                 {visibleItems.map((item) => (
-                    <SidebarNavItem
-                        key={item.href}
-                        item={item}
-                        isExpanded={isExpanded}
-                        onMobileClose={onMobileClose}
-                    />
+                    <React.Fragment key={item.href}>
+                        <SidebarNavItem
+                            item={item}
+                            isExpanded={isExpanded}
+                            onMobileClose={onMobileClose}
+                        />
+                        {isExpanded && item.children?.length ? (
+                            <NestedChildren
+                                items={item.children}
+                                onMobileClose={onMobileClose}
+                            />
+                        ) : null}
+                    </React.Fragment>
                 ))}
             </div>
+        </div>
+    );
+}
+
+function NestedChildren({
+    items,
+    onMobileClose,
+}: {
+    items: NavItem[];
+    onMobileClose?: () => void;
+}) {
+    const { hasPermission, isLoading } = usePermissions();
+    const visible = items.filter(
+        (item) => !item.permission || isLoading || hasPermission(item.permission)
+    );
+    if (visible.length === 0) return null;
+    return (
+        <div className="cp-nav-children">
+            {visible.map((child) => (
+                <SidebarNavItem
+                    key={child.href}
+                    item={child}
+                    isExpanded={true}
+                    onMobileClose={onMobileClose}
+                    depth={1}
+                />
+            ))}
         </div>
     );
 }

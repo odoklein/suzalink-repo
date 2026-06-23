@@ -50,6 +50,43 @@
     --color-brand-accent: var(--brand-accent);
     --font-sans: var(--font-geist-sans);
     --font-mono: var(--font-geist-mono);
+
+    /* Élan palette — exposed as Tailwind color utilities so new code can use
+       bg-ink, text-ink-soft, border-line, etc. instead of hardcoded hex values.
+       Defined in app/elan-theme.css as --elan-*. Phase 0 of manager refactor. */
+    --color-ink: var(--elan-ink);
+    --color-ink-soft: var(--elan-ink-soft);
+    --color-slate: var(--elan-slate);
+    --color-paper: var(--elan-paper);
+    --color-paper-2: var(--elan-paper-2);
+    --color-paper-3: var(--elan-paper-3);
+    --color-surface: var(--elan-surface);
+    --color-petrol: var(--elan-petrol);
+    --color-petrol-700: var(--elan-petrol-700);
+    --color-eucalyptus: var(--elan-eucalyptus);
+    --color-amber: var(--elan-amber);
+    --color-amber-deep: var(--elan-amber-deep);
+    --color-success: var(--elan-success);
+    --color-danger: var(--elan-danger);
+    --color-line: var(--elan-line);
+    --color-line-strong: var(--elan-line-strong);
+
+    /* Élan typography — display/sans/mono families used by font-display utility
+       and elan-theme.css. Aligning Tailwind's font-* utilities to these tokens. */
+    --font-display: var(--font-elan-display), var(--font-elan-sans), sans-serif;
+    --font-elan: var(--font-elan-sans), "Segoe UI", sans-serif;
+    --font-elan-monospace: var(--font-elan-mono), ui-monospace, monospace;
+
+    /* Élan elevation — shadow utilities (shadow-elan-sm / shadow-elan-md). */
+    --shadow-elan-sm: var(--elan-shadow-sm);
+    --shadow-elan-md: var(--elan-shadow-md);
+
+    /* Élan radii — legacy bridge in elan-theme.css overrides .rounded-* to these
+       exact values. Exposing them as named tokens (rounded-elan / rounded-elan-lg)
+       so new components can opt in without relying on the override. */
+    --radius-elan-sm: 9px;
+    --radius-elan: 11px;
+    --radius-elan-lg: 14px;
 }
 
 /* ============================================

@@ -385,6 +385,25 @@ body.elan-app :focus-visible {
     color: rgba(244, 240, 232, 0.42) !important;
 }
 
+/* Nested sidebar children (Phase 0 — IA restructure).
+   Indent + left guide so child relationship is visible. */
+.cp-nav-children {
+    position: relative;
+    margin: 2px 0 4px 22px;
+    padding-left: 10px;
+    border-left: 1px solid rgba(244, 240, 232, 0.12);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.cp-nav-children .cp-nav-item {
+    margin-left: 0 !important;
+    padding-top: 6px;
+    padding-bottom: 6px;
+    font-size: 12.5px;
+}
+
 .cp-tooltip-inner {
     background: var(--elan-petrol-700) !important;
     color: var(--elan-paper) !important;
