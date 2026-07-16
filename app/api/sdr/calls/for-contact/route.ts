@@ -62,6 +62,11 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ success: false, error: 'Non autorisé' }, { status: 401 });
   }
 
+  const role = session.user.role as string;
+  if (role !== 'SDR' && role !== 'BUSINESS_DEVELOPER' && role !== 'BOOKER') {
+    return NextResponse.json({ success: false, error: 'R\u00e9serv\u00e9 aux SDR/BD' }, { status: 403 });
+  }
+
   const phone = req.nextUrl.searchParams.get('phone');
   const meetingDate = req.nextUrl.searchParams.get('meetingDate');
   if (!phone) {

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useCallback, useRef } from "react";
+import { useEffect, useCallback, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -37,6 +38,25 @@ const SIZES = {
     full: "max-w-[95vw]",
 };
 
+let openModalDrawerCount = 0;
+let bodyOverflowBeforeDrawers = "";
+
+function lockBodyScroll() {
+    if (openModalDrawerCount === 0) {
+        bodyOverflowBeforeDrawers = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+    }
+    openModalDrawerCount += 1;
+}
+
+function unlockBodyScroll() {
+    openModalDrawerCount = Math.max(0, openModalDrawerCount - 1);
+    if (openModalDrawerCount === 0) {
+        document.body.style.overflow = bodyOverflowBeforeDrawers;
+        bodyOverflowBeforeDrawers = "";
+    }
+}
+
 export function Drawer({
     isOpen,
     onClose,
@@ -55,6 +75,11 @@ export function Drawer({
     modal = true,
 }: DrawerProps) {
     const drawerRef = useRef<HTMLDivElement>(null);
+    const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
+
+    useEffect(() => {
+        setPortalContainer(document.body);
+    }, []);
 
     // Handle ESC key
     const handleKeyDown = useCallback(
@@ -66,35 +91,35 @@ export function Drawer({
         [closeOnEscape, onClose]
     );
 
-    // Lock body scroll when drawer is open
+    // Lock body scroll while any modal drawer is open. Drawers can be nested or
+    // paired, so one drawer closing must not unlock the page behind another.
     useEffect(() => {
         if (isOpen && modal) {
-            document.body.style.overflow = "hidden";
-            document.addEventListener("keydown", handleKeyDown);
-        } else {
-            document.body.style.overflow = "";
+            lockBodyScroll();
         }
 
+        if (isOpen && modal) document.addEventListener("keydown", handleKeyDown);
+
         return () => {
-            document.body.style.overflow = "";
+            if (isOpen && modal) unlockBodyScroll();
             document.removeEventListener("keydown", handleKeyDown);
         };
-    }, [isOpen, handleKeyDown]);
+    }, [isOpen, modal, handleKeyDown]);
 
     // Focus trap
     useEffect(() => {
-        if (isOpen && drawerRef.current) {
+        if (isOpen && modal && portalContainer && drawerRef.current) {
             drawerRef.current.focus();
         }
-    }, [isOpen]);
+    }, [isOpen, modal, portalContainer]);
 
-    if (!isOpen) return null;
+    if (!isOpen || !portalContainer) return null;
 
     const handleOverlayClickClose = () => {
         if (closeOnOverlay) onClose();
     };
 
-    return (
+    return createPortal(
         <div className={cn("fixed inset-0 z-[80] flex", modal ? "pointer-events-auto" : "pointer-events-none")}>
             {/* Overlay */}
             {modal && (
@@ -193,7 +218,8 @@ export function Drawer({
                     </div>
                 )}
             </div>
-        </div>
+        </div>,
+        portalContainer
     );
 }
 
