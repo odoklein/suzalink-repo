@@ -18,6 +18,13 @@ export async function POST(req: NextRequest) {
             );
         }
 
+        if (!['MANAGER', 'SDR', 'BUSINESS_DEVELOPER', 'CLIENT'].includes(session.user.role)) {
+            return NextResponse.json(
+                { success: false, error: 'R\u00f4le non autoris\u00e9' },
+                { status: 403 }
+            );
+        }
+
         const body = await req.json();
         const {
             email,
@@ -36,14 +43,26 @@ export async function POST(req: NextRequest) {
             );
         }
 
+        const normalizedImapPort = Number(imapPort || 993);
+        const normalizedSmtpPort = Number(smtpPort || 587);
+        if (
+            !Number.isInteger(normalizedImapPort) || normalizedImapPort < 1 || normalizedImapPort > 65535 ||
+            !Number.isInteger(normalizedSmtpPort) || normalizedSmtpPort < 1 || normalizedSmtpPort > 65535
+        ) {
+            return NextResponse.json(
+                { success: false, error: 'Ports IMAP/SMTP invalides', imapOk: false, smtpOk: false },
+                { status: 400 }
+            );
+        }
+
         // Create provider with config
         const provider = new ImapProvider({
-            email,
+            email: email.trim(),
             password,
-            imapHost,
-            imapPort: imapPort || 993,
-            smtpHost,
-            smtpPort: smtpPort || 587,
+            imapHost: imapHost.trim(),
+            imapPort: normalizedImapPort,
+            smtpHost: smtpHost.trim(),
+            smtpPort: normalizedSmtpPort,
         });
 
         // Test connection

@@ -5,7 +5,6 @@ import { cn } from "@/lib/utils";
 import {
     Mail,
     Plus,
-    Settings,
     Trash2,
     RefreshCw,
     CheckCircle,
@@ -15,7 +14,6 @@ import {
     Server,
     X,
 } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/Dialog";
 
 // ============================================
 // TYPES
@@ -56,6 +54,7 @@ function AddMailboxView({ onCancel, onSuccess, onMailboxAdded }: AddMailboxViewP
     const [step, setStep] = useState<'select' | 'imap'>('select');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [connectionResult, setConnectionResult] = useState<{ imapOk: boolean; smtpOk: boolean } | null>(null);
     const [imapForm, setImapForm] = useState({
         email: '',
         password: '',
@@ -107,6 +106,7 @@ function AddMailboxView({ onCancel, onSuccess, onMailboxAdded }: AddMailboxViewP
         e.preventDefault();
         setIsLoading(true);
         setError(null);
+        setConnectionResult(null);
 
         try {
             const response = await fetch('/api/email/mailboxes', {
@@ -126,8 +126,21 @@ function AddMailboxView({ onCancel, onSuccess, onMailboxAdded }: AddMailboxViewP
 
             const result = await response.json();
 
+            setConnectionResult({
+                imapOk: result.connection?.imapOk ?? result.imapOk ?? false,
+                smtpOk: result.connection?.smtpOk ?? result.smtpOk ?? false,
+            });
+
             if (!result.success) {
-                throw new Error(result.error || 'Erreur lors de la connexion');
+                const failedProtocols = [
+                    result.imapOk === false ? 'IMAP' : null,
+                    result.smtpOk === false ? 'SMTP' : null,
+                ].filter(Boolean).join(' et ');
+                throw new Error(
+                    failedProtocols
+                        ? `${failedProtocols}: ${result.error || 'connexion impossible'}`
+                        : (result.error || 'Erreur lors de la connexion')
+                );
             }
 
             onMailboxAdded?.();
@@ -140,12 +153,13 @@ function AddMailboxView({ onCancel, onSuccess, onMailboxAdded }: AddMailboxViewP
     };
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-5">
             <div className="flex items-center gap-3 mb-4">
                 {step === 'imap' && (
                     <button
                         onClick={() => setStep('select')}
-                        className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors"
+                        className="p-2 hover:bg-[#F1F4F3] rounded-lg transition-colors"
+                        aria-label="Retour au choix du fournisseur"
                     >
                         <ArrowRight className="w-4 h-4 rotate-180 text-slate-500" />
                     </button>
@@ -156,16 +170,16 @@ function AddMailboxView({ onCancel, onSuccess, onMailboxAdded }: AddMailboxViewP
             </div>
 
             {step === 'select' ? (
-                <div className="space-y-3">
+                <div className="grid gap-3 md:grid-cols-3">
                     {providers.map((provider) => (
                         <button
                             key={provider.id}
                             onClick={() => handleProviderSelect(provider.id)}
                             className={cn(
-                                "w-full flex items-center gap-4 p-4 rounded-xl border-2 text-left transition-all",
+                                "w-full flex items-center md:items-start gap-3 p-4 rounded-xl border text-left transition-all active:translate-y-px",
                                 provider.bgColor,
                                 provider.borderColor,
-                                "hover:shadow-md"
+                                "hover:border-[#B9C9C5] hover:shadow-sm"
                             )}
                         >
                             <div className={cn(
@@ -178,16 +192,16 @@ function AddMailboxView({ onCancel, onSuccess, onMailboxAdded }: AddMailboxViewP
                                     <Mail className="w-6 h-6 text-white" />
                                 )}
                             </div>
-                            <div className="flex-1">
+                            <div className="flex-1 min-w-0">
                                 <h3 className="font-semibold text-slate-900">{provider.name}</h3>
                                 <p className="text-sm text-slate-500">{provider.description}</p>
                             </div>
-                            <ArrowRight className="w-5 h-5 text-slate-400" />
+                            <ArrowRight className="w-4 h-4 text-slate-400 md:hidden" />
                         </button>
                     ))}
                     <button
                         onClick={onCancel}
-                        className="w-full p-2 text-sm text-slate-500 hover:text-slate-700 mt-2"
+                        className="md:col-span-3 w-full h-10 text-sm font-medium text-slate-600 hover:bg-[#F1F4F3] rounded-lg"
                     >
                         Annuler
                     </button>
@@ -201,8 +215,30 @@ function AddMailboxView({ onCancel, onSuccess, onMailboxAdded }: AddMailboxViewP
                         </div>
                     )}
 
-                    <div className="grid grid-cols-2 gap-3">
-                        <div className="col-span-2">
+                    {connectionResult && (
+                        <div className="grid grid-cols-2 gap-2" aria-live="polite">
+                            {([
+                                ['IMAP', connectionResult.imapOk],
+                                ['SMTP', connectionResult.smtpOk],
+                            ] as const).map(([label, ok]) => (
+                                <div
+                                    key={label}
+                                    className={cn(
+                                        "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold",
+                                        ok
+                                            ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                                            : "border-red-200 bg-red-50 text-red-800"
+                                    )}
+                                >
+                                    {ok ? <CheckCircle className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+                                    {label} {ok ? 'connect\u00e9' : '\u00e9chou\u00e9'}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="sm:col-span-2">
                             <label className="block text-sm font-medium text-slate-700 mb-1">
                                 Adresse email *
                             </label>
@@ -211,12 +247,12 @@ function AddMailboxView({ onCancel, onSuccess, onMailboxAdded }: AddMailboxViewP
                                 required
                                 value={imapForm.email}
                                 onChange={(e) => setImapForm({ ...imapForm, email: e.target.value })}
-                                className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all text-sm"
+                                className="w-full px-3 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:border-[#E07C00] focus:ring-2 focus:ring-[#FF9E1B]/20 outline-none transition-all text-sm"
                                 placeholder="vous@example.com"
                             />
                         </div>
 
-                        <div className="col-span-2">
+                        <div className="sm:col-span-2">
                             <label className="block text-sm font-medium text-slate-700 mb-1">
                                 Nom d'affichage
                             </label>
@@ -224,12 +260,12 @@ function AddMailboxView({ onCancel, onSuccess, onMailboxAdded }: AddMailboxViewP
                                 type="text"
                                 value={imapForm.displayName}
                                 onChange={(e) => setImapForm({ ...imapForm, displayName: e.target.value })}
-                                className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all text-sm"
+                                className="w-full px-3 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:border-[#E07C00] focus:ring-2 focus:ring-[#FF9E1B]/20 outline-none transition-all text-sm"
                                 placeholder="John Doe"
                             />
                         </div>
 
-                        <div className="col-span-2">
+                        <div className="sm:col-span-2">
                             <label className="block text-sm font-medium text-slate-700 mb-1">
                                 Mot de passe / App Password *
                             </label>
@@ -238,7 +274,7 @@ function AddMailboxView({ onCancel, onSuccess, onMailboxAdded }: AddMailboxViewP
                                 required
                                 value={imapForm.password}
                                 onChange={(e) => setImapForm({ ...imapForm, password: e.target.value })}
-                                className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all text-sm"
+                                className="w-full px-3 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:border-[#E07C00] focus:ring-2 focus:ring-[#FF9E1B]/20 outline-none transition-all text-sm"
                                 placeholder="••••••••"
                             />
                         </div>
@@ -252,7 +288,7 @@ function AddMailboxView({ onCancel, onSuccess, onMailboxAdded }: AddMailboxViewP
                                 required
                                 value={imapForm.imapHost}
                                 onChange={(e) => setImapForm({ ...imapForm, imapHost: e.target.value })}
-                                className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all text-sm"
+                                className="w-full px-3 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:border-[#E07C00] focus:ring-2 focus:ring-[#FF9E1B]/20 outline-none transition-all text-sm"
                                 placeholder="imap.example.com"
                             />
                         </div>
@@ -262,11 +298,13 @@ function AddMailboxView({ onCancel, onSuccess, onMailboxAdded }: AddMailboxViewP
                                 Port IMAP *
                             </label>
                             <input
-                                type="text"
+                                type="number"
+                                min="1"
+                                max="65535"
                                 required
                                 value={imapForm.imapPort}
                                 onChange={(e) => setImapForm({ ...imapForm, imapPort: e.target.value })}
-                                className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all text-sm"
+                                className="w-full px-3 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:border-[#E07C00] focus:ring-2 focus:ring-[#FF9E1B]/20 outline-none transition-all text-sm"
                                 placeholder="993"
                             />
                         </div>
@@ -280,7 +318,7 @@ function AddMailboxView({ onCancel, onSuccess, onMailboxAdded }: AddMailboxViewP
                                 required
                                 value={imapForm.smtpHost}
                                 onChange={(e) => setImapForm({ ...imapForm, smtpHost: e.target.value })}
-                                className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all text-sm"
+                                className="w-full px-3 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:border-[#E07C00] focus:ring-2 focus:ring-[#FF9E1B]/20 outline-none transition-all text-sm"
                                 placeholder="smtp.example.com"
                             />
                         </div>
@@ -290,14 +328,21 @@ function AddMailboxView({ onCancel, onSuccess, onMailboxAdded }: AddMailboxViewP
                                 Port SMTP *
                             </label>
                             <input
-                                type="text"
+                                type="number"
+                                min="1"
+                                max="65535"
                                 required
                                 value={imapForm.smtpPort}
                                 onChange={(e) => setImapForm({ ...imapForm, smtpPort: e.target.value })}
-                                className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all text-sm"
+                                className="w-full px-3 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:border-[#E07C00] focus:ring-2 focus:ring-[#FF9E1B]/20 outline-none transition-all text-sm"
                                 placeholder="587"
                             />
                         </div>
+                    </div>
+
+                    <div className="flex items-start gap-2 rounded-lg border border-[#D7E1DE] bg-[#EEF3F1] px-3 py-2.5 text-xs leading-relaxed text-[#3F625D]">
+                        <Server className="mt-0.5 h-4 w-4 shrink-0" />
+                        <p>Ports habituels: IMAP 993, SMTP 587 (STARTTLS) ou 465 (TLS). Gmail, Outlook et iCloud exigent généralement un mot de passe d&apos;application.</p>
                     </div>
 
                     <div className="flex gap-3 pt-2">
@@ -305,22 +350,22 @@ function AddMailboxView({ onCancel, onSuccess, onMailboxAdded }: AddMailboxViewP
                             type="button"
                             onClick={onCancel}
                             disabled={isLoading}
-                            className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-medium text-sm transition-colors disabled:opacity-50"
+                            className="flex-1 px-4 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-[#F1F4F3] font-semibold text-sm transition-colors disabled:opacity-50 active:translate-y-px"
                         >
                             Annuler
                         </button>
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 text-white font-medium text-sm hover:from-indigo-400 hover:to-indigo-500 transition-all disabled:opacity-50"
+                            className="flex-[1.4] flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-[#E07C00] bg-[#FF9E1B] text-[#15201E] font-bold text-sm hover:bg-[#F09212] transition-colors disabled:opacity-50 active:translate-y-px"
                         >
                             {isLoading ? (
                                 <>
                                     <Loader2 className="w-4 h-4 animate-spin" />
-                                    Connexion...
+                                    Test IMAP/SMTP...
                                 </>
                             ) : (
-                                'Connecter'
+                                'Tester et connecter'
                             )}
                         </button>
                     </div>
@@ -335,41 +380,50 @@ function AddMailboxView({ onCancel, onSuccess, onMailboxAdded }: AddMailboxViewP
 // ============================================
 
 interface MailboxManagerDialogProps {
-    isOpen: boolean;
-    onClose: () => void;
+    isOpen?: boolean;
+    onClose?: () => void;
     onMailboxAdded?: () => void;
+    variant?: 'dialog' | 'page';
 }
 
-export function MailboxManagerDialog({ isOpen, onClose, onMailboxAdded }: MailboxManagerDialogProps) {
+export function MailboxManagerDialog({ isOpen = false, onClose = () => undefined, onMailboxAdded, variant = 'dialog' }: MailboxManagerDialogProps) {
+    const isPage = variant === 'page';
+    const isVisible = isPage || isOpen;
     const [view, setView] = useState<'list' | 'add'>('list');
     const [mailboxes, setMailboxes] = useState<Mailbox[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [syncingMailboxes, setSyncingMailboxes] = useState<Set<string>>(new Set());
+    const [actionMessage, setActionMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
     const fetchMailboxes = async () => {
         setIsLoading(true);
+        setActionMessage(null);
         try {
-            const res = await fetch("/api/email/mailboxes?includeShared=true", { cache: "no-store" });
+            const res = await fetch("/api/email/mailboxes?includeShared=true&includeInactive=true", { cache: "no-store" });
             const json = await res.json();
             if (json.success) {
                 setMailboxes(json.data);
+            } else {
+                setActionMessage({ type: 'error', text: json.error || 'Impossible de charger les bo\u00eetes mail' });
             }
         } catch (error) {
             console.error("Failed to fetch mailboxes:", error);
+            setActionMessage({ type: 'error', text: 'Connexion au serveur impossible' });
         } finally {
             setIsLoading(false);
         }
     };
 
     useEffect(() => {
-        if (isOpen) {
+        if (isVisible) {
             fetchMailboxes();
             setView('list');
         }
-    }, [isOpen]);
+    }, [isVisible]);
 
     const handleSync = async (mailboxId: string) => {
         setSyncingMailboxes(prev => new Set([...prev, mailboxId]));
+        setActionMessage(null);
         try {
             const res = await fetch(`/api/email/mailboxes/${mailboxId}/sync`, {
                 method: "POST",
@@ -378,12 +432,18 @@ export function MailboxManagerDialog({ isOpen, onClose, onMailboxAdded }: Mailbo
             });
             const json = await res.json();
 
-            if (json.success) {
-                // Refresh list to update status if needed
-                fetchMailboxes();
-            }
+            if (!json.success) throw new Error(json.error || 'Synchronisation impossible');
+            await fetchMailboxes();
+            setActionMessage({
+                type: 'success',
+                text: `${json.data?.messagesProcessed ?? 0} message(s) synchronis\u00e9(s)`,
+            });
         } catch (error) {
             console.error("Sync failed:", error);
+            setActionMessage({
+                type: 'error',
+                text: error instanceof Error ? error.message : 'Synchronisation impossible',
+            });
         } finally {
             setSyncingMailboxes(prev => {
                 const next = new Set(prev);
@@ -397,10 +457,14 @@ export function MailboxManagerDialog({ isOpen, onClose, onMailboxAdded }: Mailbo
         if (!confirm("Êtes-vous sûr de vouloir supprimer cette boîte mail ?")) return;
 
         try {
-            await fetch(`/api/email/mailboxes/${mailboxId}`, { method: "DELETE" });
+            const response = await fetch(`/api/email/mailboxes/${mailboxId}`, { method: "DELETE" });
+            const result = await response.json();
+            if (!response.ok || !result.success) throw new Error(result.error || 'Suppression impossible');
             setMailboxes(prev => prev.filter(m => m.id !== mailboxId));
+            setActionMessage({ type: 'success', text: 'Bo\u00eete mail supprim\u00e9e' });
         } catch (error) {
             console.error("Delete failed:", error);
+            setActionMessage({ type: 'error', text: error instanceof Error ? error.message : 'Suppression impossible' });
         }
     };
 
@@ -411,7 +475,7 @@ export function MailboxManagerDialog({ isOpen, onClose, onMailboxAdded }: Mailbo
             case "OUTLOOK":
                 return "#0078D4";
             default:
-                return "#6366F1";
+                return "#1F4D47";
         }
     };
 
@@ -443,25 +507,37 @@ export function MailboxManagerDialog({ isOpen, onClose, onMailboxAdded }: Mailbo
         }
     };
 
-    if (!isOpen) return null;
+    if (!isVisible) return null;
 
     return (
         <React.Fragment>
-            {/* Overlay */}
-            <div className="fixed inset-0 bg-black/50 z-50 backdrop-blur-sm" onClick={onClose} />
+            {!isPage && (
+                <div className="fixed inset-0 bg-[#15201E]/45 z-[90] backdrop-blur-[2px]" onClick={onClose} />
+            )}
 
-            {/* Dialog */}
-            <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-4xl max-h-[90vh] flex flex-col bg-white rounded-2xl shadow-2xl">
-                <div className="flex items-center justify-between p-6 border-b border-slate-100">
-                    <h2 className="text-xl font-bold text-slate-900">
+            <div
+                className={cn(
+                    "flex flex-col overflow-hidden bg-[#F7F9F8] rounded-xl border border-[#DDE5E2]",
+                    isPage
+                        ? "min-h-[560px] shadow-sm"
+                        : "fixed inset-x-3 top-1/2 -translate-y-1/2 z-[91] mx-auto w-auto max-w-5xl max-h-[calc(100dvh-2rem)] shadow-[0_24px_70px_rgba(21,32,30,0.24)]"
+                )}
+                role={isPage ? "region" : "dialog"}
+                aria-modal={isPage ? undefined : true}
+                aria-labelledby="mailbox-manager-title"
+            >
+                <div className="flex items-center justify-between px-5 py-4 border-b border-[#E1E7E5] bg-white">
+                    <h2 id="mailbox-manager-title" className="text-lg font-bold text-[#15201E]">
                         Gestion des boîtes mails
                     </h2>
-                    <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
-                        <X className="w-5 h-5 text-slate-500" />
-                    </button>
+                    {!isPage && (
+                        <button onClick={onClose} className="p-2 hover:bg-[#F1F4F3] rounded-lg transition-colors" aria-label="Fermer">
+                            <X className="w-5 h-5 text-slate-600" />
+                        </button>
+                    )}
                 </div>
 
-                <div className="p-6 overflow-y-auto email-scrollbar">
+                <div className="p-4 sm:p-5 overflow-y-auto email-scrollbar">
                     {view === 'add' ? (
                         <AddMailboxView
                             onCancel={() => setView('list')}
@@ -472,14 +548,20 @@ export function MailboxManagerDialog({ isOpen, onClose, onMailboxAdded }: Mailbo
                             onMailboxAdded={onMailboxAdded}
                         />
                     ) : (
-                        <div className="space-y-6">
-                            <div className="flex justify-between items-center">
-                                <p className="text-sm text-slate-500">
+                        <div className="space-y-5">
+                            {actionMessage && (
+                                <div className={cn("flex items-start gap-2 rounded-lg border px-3 py-2.5 text-sm", actionMessage.type === 'success' ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-red-200 bg-red-50 text-red-800")} role="status">
+                                    {actionMessage.type === 'success' ? <CheckCircle className="mt-0.5 h-4 w-4 shrink-0" /> : <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />}
+                                    <span>{actionMessage.text}</span>
+                                </div>
+                            )}
+                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+                                <p className="text-sm font-medium text-slate-600">
                                     {mailboxes.length} boîte{mailboxes.length > 1 ? 's' : ''} connectée{mailboxes.length > 1 ? 's' : ''}
                                 </p>
                                 <button
                                     onClick={() => setView('add')}
-                                    className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-xl hover:bg-indigo-700 transition-colors"
+                                    className="inline-flex items-center justify-center gap-2 h-10 px-4 border border-[#E07C00] bg-[#FF9E1B] text-[#15201E] text-sm font-bold rounded-lg hover:bg-[#F09212] transition-colors active:translate-y-px"
                                 >
                                     <Plus className="w-4 h-4" />
                                     Ajouter une boîte
@@ -513,7 +595,7 @@ export function MailboxManagerDialog({ isOpen, onClose, onMailboxAdded }: Mailbo
                                     ))}
                                 </div>
                             ) : mailboxes.length === 0 ? (
-                                <div className="text-center py-12 bg-slate-50 rounded-2xl border border-slate-100">
+                                <div className="text-center py-12 bg-white rounded-xl border border-[#E1E7E5]">
                                     <div className="w-16 h-16 rounded-2xl bg-white flex items-center justify-center mx-auto mb-4 shadow-sm">
                                         <Mail className="w-8 h-8 text-slate-400" />
                                     </div>
@@ -525,17 +607,17 @@ export function MailboxManagerDialog({ isOpen, onClose, onMailboxAdded }: Mailbo
                                     </p>
                                     <button
                                         onClick={() => setView('add')}
-                                        className="text-indigo-600 font-medium hover:underline"
+                                        className="inline-flex h-10 items-center px-4 rounded-lg bg-[#FF9E1B] text-[#15201E] font-bold hover:bg-[#F09212]"
                                     >
                                         Connecter une boîte
                                     </button>
                                 </div>
                             ) : (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                                     {mailboxes.map((mailbox) => (
                                         <div
                                             key={mailbox.id}
-                                            className="group relative bg-white border border-slate-200 rounded-2xl overflow-hidden hover:border-indigo-200 hover:shadow-lg hover:shadow-indigo-500/10 transition-all"
+                                            className="group relative bg-white border border-[#DDE5E2] rounded-xl overflow-hidden hover:border-[#B8CAC5] hover:shadow-[0_10px_28px_rgba(31,77,71,0.08)] transition-all"
                                         >
                                             {/* Status Header */}
                                             <div className="h-1.5 w-full" style={{ backgroundColor: getProviderColor(mailbox.provider) }} />
@@ -565,7 +647,8 @@ export function MailboxManagerDialog({ isOpen, onClose, onMailboxAdded }: Mailbo
                                                                 e.stopPropagation();
                                                                 handleDelete(mailbox.id);
                                                             }}
-                                                            className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+                                                            className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                            aria-label={`Supprimer ${mailbox.email}`}
                                                         >
                                                             <Trash2 className="w-4 h-4" />
                                                         </button>
@@ -573,15 +656,15 @@ export function MailboxManagerDialog({ isOpen, onClose, onMailboxAdded }: Mailbo
                                                 </div>
 
                                                 <div className="grid grid-cols-3 gap-2 mb-4">
-                                                    <div className="bg-slate-50 rounded-lg p-2 text-center">
+                                                    <div className="bg-[#F4F6F5] rounded-lg p-2 text-center">
                                                         <span className="block text-lg font-bold text-slate-900">{mailbox._count.threads}</span>
                                                         <span className="text-[10px] text-slate-500 uppercase tracking-wide">Threads</span>
                                                     </div>
-                                                    <div className="bg-slate-50 rounded-lg p-2 text-center">
+                                                    <div className="bg-[#F4F6F5] rounded-lg p-2 text-center">
                                                         <span className="block text-lg font-bold text-slate-900">{mailbox.sentToday}</span>
                                                         <span className="text-[10px] text-slate-500 uppercase tracking-wide">Envoyés</span>
                                                     </div>
-                                                    <div className="bg-slate-50 rounded-lg p-2 text-center">
+                                                    <div className="bg-[#F4F6F5] rounded-lg p-2 text-center">
                                                         <span className={cn(
                                                             "block text-lg font-bold",
                                                             mailbox.healthScore > 80 ? "text-emerald-500" :
@@ -624,22 +707,15 @@ export function MailboxManagerDialog({ isOpen, onClose, onMailboxAdded }: Mailbo
                                                     <button
                                                         onClick={() => handleSync(mailbox.id)}
                                                         disabled={syncingMailboxes.has(mailbox.id)}
-                                                        className="flex-1 flex items-center justify-center gap-2 py-2 px-4 bg-slate-50 hover:bg-slate-100 text-slate-600 text-sm font-medium rounded-xl transition-colors disabled:opacity-50"
+                                                        className="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 border border-[#CBD8D4] bg-white hover:bg-[#F1F4F3] text-[#1F4D47] text-sm font-bold rounded-lg transition-colors disabled:opacity-50 active:translate-y-px"
                                                     >
                                                         {syncingMailboxes.has(mailbox.id) ? (
                                                             <Loader2 className="w-4 h-4 animate-spin" />
                                                         ) : (
                                                             <RefreshCw className="w-4 h-4" />
                                                         )}
-                                                        Sync
+                                                        Synchroniser
                                                     </button>
-                                                    <a
-                                                        href={`/manager/email/mailboxes/${mailbox.id}`}
-                                                        className="flex-1 flex items-center justify-center gap-2 py-2 px-4 bg-slate-50 hover:bg-slate-100 text-slate-600 text-sm font-medium rounded-xl transition-colors"
-                                                    >
-                                                        <Settings className="w-4 h-4" />
-                                                        Config
-                                                    </a>
                                                 </div>
                                             </div>
                                         </div>

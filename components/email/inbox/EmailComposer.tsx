@@ -438,12 +438,12 @@ export function EmailComposer({
 
             <div
                 className={cn(
-                    "fixed z-50 bg-white flex flex-col transition-all duration-300 ease-in-out",
+                    "fixed z-[100] bg-white flex flex-col transition-[width,height,inset] duration-200 ease-out border-[#CBD8D4]",
                     isMinimized
                         ? "bottom-0 right-4 w-80 h-10 rounded-t-xl shadow-lg border border-slate-200"
                         : isFullscreen
-                            ? "inset-6 rounded-2xl shadow-2xl border border-slate-200"
-                            : "bottom-0 right-4 w-[620px] max-w-[calc(100vw-2rem)] h-[520px] rounded-t-2xl shadow-2xl border border-slate-200 border-b-0"
+                            ? "inset-3 sm:inset-6 rounded-xl shadow-[0_24px_70px_rgba(21,32,30,0.22)] border"
+                            : "bottom-0 right-2 sm:right-4 w-[680px] max-w-[calc(100vw-1rem)] h-[min(620px,calc(100dvh-5rem))] rounded-t-xl shadow-[0_24px_70px_rgba(21,32,30,0.22)] border border-b-0"
                 )}
             >
                 {/* Header */}
@@ -452,8 +452,8 @@ export function EmailComposer({
                     sendSuccess
                         ? "bg-emerald-600 rounded-t-2xl"
                         : isMinimized
-                            ? "bg-slate-800 rounded-t-xl"
-                            : "bg-gradient-to-r from-slate-800 to-slate-900 rounded-t-2xl"
+                            ? "bg-[#1F4D47] rounded-t-xl"
+                            : "bg-[#1F4D47] rounded-t-xl"
                 )}>
                     <div className="flex items-center gap-2 min-w-0">
                         {sendSuccess ? (
@@ -463,13 +463,12 @@ export function EmailComposer({
                             </>
                         ) : (
                             <>
-                                <div className="w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0" />
                                 <span className="text-sm font-medium text-white truncate">
                                     {replyTo?.isForward ? "Transférer" : replyTo ? "Répondre" : "Nouveau message"}
                                 </span>
                                 {isMinimized && subject && (
                                     <span className="text-xs text-slate-400 truncate ml-1">
-                                        — {subject}
+                                        - {subject}
                                     </span>
                                 )}
                             </>
@@ -531,12 +530,12 @@ export function EmailComposer({
                             {to.map((email, i) => (
                                 <span
                                     key={i}
-                                    className="inline-flex items-center gap-1 px-2.5 py-1 bg-indigo-50 text-indigo-700 text-[12px] rounded-lg font-medium border border-indigo-100"
+                                    className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#EDF4F2] text-[#1F4D47] text-[12px] rounded-lg font-medium border border-[#C9D9D5]"
                                 >
                                     {email}
                                     <button
                                         onClick={() => setTo(prev => prev.filter((_, idx) => idx !== i))}
-                                        className="text-indigo-400 hover:text-indigo-600 ml-0.5"
+                                        className="text-[#66847F] hover:text-[#1F4D47] ml-0.5"
                                     >
                                         <X className="w-3 h-3" />
                                     </button>
@@ -567,7 +566,7 @@ export function EmailComposer({
                                                 className={cn(
                                                     "cursor-pointer px-3 py-2 text-[13px] font-medium",
                                                     i === domainSuggestionsIndex
-                                                        ? "bg-indigo-50 text-indigo-700"
+                                                        ? "bg-[#EDF4F2] text-[#1F4D47]"
                                                         : "text-slate-700 hover:bg-slate-50"
                                                 )}
                                                 onMouseDown={(e) => {
@@ -583,12 +582,12 @@ export function EmailComposer({
                             </div>
                             <div className="flex items-center gap-1.5 text-[12px] text-slate-400 flex-shrink-0">
                                 {!showCc && (
-                                    <button onClick={() => setShowCc(true)} className="hover:text-indigo-600 font-medium">
+                                    <button onClick={() => setShowCc(true)} className="hover:text-[#1F4D47] font-medium">
                                         Cc
                                     </button>
                                 )}
                                 {!showBcc && (
-                                    <button onClick={() => setShowBcc(true)} className="hover:text-indigo-600 font-medium">
+                                    <button onClick={() => setShowBcc(true)} className="hover:text-[#1F4D47] font-medium">
                                         Cci
                                     </button>
                                 )}
@@ -633,7 +632,7 @@ export function EmailComposer({
                                                     aria-selected={i === domainSuggestionsIndex}
                                                     className={cn(
                                                         "cursor-pointer px-3 py-2 text-[13px] font-medium",
-                                                        i === domainSuggestionsIndex ? "bg-indigo-50 text-indigo-700" : "text-slate-700 hover:bg-slate-50"
+                                                        i === domainSuggestionsIndex ? "bg-[#EDF4F2] text-[#1F4D47]" : "text-slate-700 hover:bg-slate-50"
                                                     )}
                                                     onMouseDown={(e) => {
                                                         e.preventDefault();
@@ -687,7 +686,7 @@ export function EmailComposer({
                                                     aria-selected={i === domainSuggestionsIndex}
                                                     className={cn(
                                                         "cursor-pointer px-3 py-2 text-[13px] font-medium",
-                                                        i === domainSuggestionsIndex ? "bg-indigo-50 text-indigo-700" : "text-slate-700 hover:bg-slate-50"
+                                                        i === domainSuggestionsIndex ? "bg-[#EDF4F2] text-[#1F4D47]" : "text-slate-700 hover:bg-slate-50"
                                                     )}
                                                     onMouseDown={(e) => {
                                                         e.preventDefault();
@@ -759,7 +758,7 @@ export function EmailComposer({
                             <div className="w-px h-4 bg-slate-200 mx-0.5" />
                             <button
                                 onClick={() => setShowAiDraftDialog(true)}
-                                className="flex items-center gap-1 px-2 py-1.5 rounded-lg hover:bg-indigo-50 text-indigo-600 transition-colors"
+                                className="flex items-center gap-1 px-2 py-1.5 rounded-lg hover:bg-[#EDF4F2] text-[#1F4D47] transition-colors"
                                 title="Rédaction assistée par IA"
                             >
                                 <Sparkles className="w-4 h-4" />
@@ -831,7 +830,7 @@ export function EmailComposer({
                         )}
 
                         {/* Footer */}
-                        <div className="px-4 py-2.5 border-t border-slate-100 flex items-center justify-between bg-white rounded-b-2xl">
+                        <div className="px-4 py-2.5 border-t border-slate-100 flex items-center justify-between bg-white rounded-b-xl">
                             <div className="flex items-center gap-0.5">
                                 <input
                                     ref={fileInputRef}
@@ -873,10 +872,10 @@ export function EmailComposer({
                                     onClick={handleSend}
                                     disabled={isSending || !selectedMailboxId || to.length === 0 || isOverLimit}
                                     className={cn(
-                                        "flex items-center gap-2 px-5 py-2 text-white text-sm font-semibold rounded-xl transition-all duration-200",
+                                        "flex items-center gap-2 px-5 py-2 text-sm font-bold rounded-lg transition-colors active:translate-y-px",
                                         isSending || !selectedMailboxId || to.length === 0 || isOverLimit
                                             ? "bg-slate-300 cursor-not-allowed"
-                                            : "bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 hover:shadow-lg hover:shadow-indigo-500/25 hover:-translate-y-[1px] active:translate-y-0"
+                                            : "border border-[#E07C00] bg-[#FF9E1B] text-[#15201E] hover:bg-[#F09212]"
                                     )}
                                 >
                                     {isSending ? (

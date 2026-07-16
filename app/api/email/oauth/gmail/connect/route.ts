@@ -27,6 +27,21 @@ export async function GET(req: NextRequest) {
             );
         }
 
+        if (
+            !process.env.GOOGLE_CLIENT_ID ||
+            !process.env.GOOGLE_CLIENT_SECRET ||
+            !process.env.ENCRYPTION_KEY ||
+            (!process.env.GOOGLE_REDIRECT_URI && !process.env.NEXTAUTH_URL)
+        ) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: 'OAuth Google non configur\u00e9: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, ENCRYPTION_KEY et GOOGLE_REDIRECT_URI (ou NEXTAUTH_URL) sont requis.',
+                },
+                { status: 503 }
+            );
+        }
+
         const defaultReturn = session.user.role === 'CLIENT' ? '/client/portal/email' : '/manager/email/mailboxes';
 
         // Create state token with user ID for callback verification

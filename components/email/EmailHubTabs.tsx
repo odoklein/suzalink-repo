@@ -27,7 +27,7 @@ const ITEMS: SubNavItem[] = [
 ];
 
 export function EmailHubTabs() {
-    return <SubNav items={ITEMS} aria-label="Email Hub" />;
+    return <SubNav items={ITEMS} tone="email" aria-label="Navigation email" />;
 }
 
 export default EmailHubTabs;

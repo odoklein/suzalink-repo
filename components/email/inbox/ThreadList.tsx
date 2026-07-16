@@ -320,7 +320,7 @@ export function ThreadList({
                             setPage(1);
                             fetchThreads(1, false);
                         }}
-                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors"
+                        className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-[#1F4D47] hover:bg-[#EDF4F2] rounded-lg transition-colors"
                     >
                         <RefreshCw className="w-4 h-4" />
                         Réessayer
@@ -356,7 +356,7 @@ export function ThreadList({
                     {searchInput && (
                         <button
                             onClick={() => setSearchInput("")}
-                            className="mt-4 px-4 py-2 text-sm font-medium text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors"
+                            className="mt-4 px-4 py-2 text-sm font-bold text-[#1F4D47] hover:bg-[#EDF4F2] rounded-lg transition-colors"
                         >
                             Effacer la recherche
                         </button>
@@ -412,7 +412,7 @@ export function ThreadList({
                 {/* Load more indicator */}
                 {isLoadingMore && (
                     <div className="flex items-center justify-center py-4">
-                        <Loader2 className="w-5 h-5 text-indigo-400 animate-spin" />
+                        <Loader2 className="w-5 h-5 text-[#1F4D47] animate-spin" />
                     </div>
                 )}
             </div>
@@ -438,16 +438,16 @@ function SearchBar({
     searchRef: React.RefObject<HTMLInputElement | null>;
 }) {
     return (
-        <div className="p-3">
+        <div className="p-3 border-b border-[#EEF2F1] bg-white">
             <div className={cn(
                 "relative rounded-xl transition-all duration-200",
                 isSearchFocused
-                    ? "ring-2 ring-indigo-500/20 shadow-sm"
+                    ? "ring-2 ring-[#FF9E1B]/25 shadow-sm"
                     : ""
             )}>
                 <Search className={cn(
                     "absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors",
-                    isSearchFocused ? "text-indigo-500" : "text-slate-400"
+                    isSearchFocused ? "text-[#E07C00]" : "text-slate-400"
                 )} />
                 <input
                     ref={searchRef}
@@ -457,7 +457,7 @@ function SearchBar({
                     onChange={(e) => setSearchInput(e.target.value)}
                     onFocus={() => setIsSearchFocused(true)}
                     onBlur={() => setIsSearchFocused(false)}
-                    className="w-full pl-9 pr-9 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-indigo-500 focus:bg-white transition-all"
+                    className="w-full pl-9 pr-9 py-2.5 bg-[#F7F9F8] border border-[#DDE5E2] rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#E07C00] focus:bg-white transition-colors"
                 />
                 {searchInput && (
                     <button
@@ -502,17 +502,27 @@ function ThreadListItem({
     return (
         <div
             onClick={onSelect}
+            onKeyDown={(event) => {
+                if (event.target !== event.currentTarget) return;
+                if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    onSelect();
+                }
+            }}
+            role="button"
+            tabIndex={0}
+            aria-current={isSelected ? "true" : undefined}
             className={cn(
-                "group relative px-5 py-4 cursor-pointer transition-all duration-150 border-b border-slate-100/80",
+                "group relative px-4 py-3.5 cursor-pointer transition-colors duration-150 border-b border-[#EEF2F1] focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#E07C00] focus-within:bg-[#F7F9F8]",
                 isSelected
-                    ? "bg-indigo-50/60"
-                    : "hover:bg-slate-50/80",
+                    ? "bg-[#FFF4E2]"
+                    : "hover:bg-[#F7F9F8]",
                 !thread.isRead && !isSelected && "bg-white"
             )}
         >
             {/* Selected indicator */}
             {isSelected && (
-                <div className="absolute left-0 top-3 bottom-3 w-[3px] bg-indigo-500 rounded-r-full" />
+                <div className="absolute left-0 top-3 bottom-3 w-[3px] bg-[#E07C00] rounded-r-full" />
             )}
 
             <div className="flex items-start gap-3.5">
@@ -527,7 +537,7 @@ function ThreadListItem({
                         {initials}
                     </div>
                     {!thread.isRead && (
-                        <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-indigo-500 rounded-full ring-2 ring-white" />
+                        <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-[#E07C00] rounded-full ring-2 ring-white" />
                     )}
                 </div>
 
@@ -550,7 +560,7 @@ function ThreadListItem({
                         </div>
                         <span className={cn(
                             "text-[11px] flex-shrink-0 tabular-nums pr-1",
-                            thread.isRead ? "text-slate-400" : "text-indigo-600 font-semibold"
+                            thread.isRead ? "text-slate-400" : "text-[#9A5400] font-semibold"
                         )}>
                             {smartDate}
                         </span>
@@ -594,7 +604,7 @@ function ThreadListItem({
             </div>
 
             {/* Hover actions */}
-            <div className="absolute right-4 top-1/2 -translate-y-1/2 hidden group-hover:flex items-center gap-0.5 bg-white/95 backdrop-blur-sm shadow-lg border border-slate-200 rounded-xl px-1.5 py-1 z-10">
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 hidden group-hover:flex group-focus-within:flex items-center gap-0.5 bg-white/95 backdrop-blur-sm shadow-lg border border-slate-200 rounded-xl px-1.5 py-1 z-10">
                 <button
                     onClick={onStar}
                     className={cn(
@@ -604,6 +614,7 @@ function ThreadListItem({
                             : "text-slate-400 hover:text-amber-400 hover:bg-slate-50"
                     )}
                     title={thread.isStarred ? "Retirer des favoris" : "Ajouter aux favoris"}
+                    aria-label={thread.isStarred ? "Retirer des favoris" : "Ajouter aux favoris"}
                 >
                     <Star className={cn("w-4 h-4", thread.isStarred && "fill-current")} />
                 </button>
@@ -611,6 +622,7 @@ function ThreadListItem({
                     onClick={onArchive}
                     className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors"
                     title="Archiver"
+                    aria-label="Archiver"
                 >
                     <Archive className="w-4 h-4" />
                 </button>
@@ -618,6 +630,7 @@ function ThreadListItem({
                     onClick={onTrash}
                     className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
                     title="Supprimer"
+                    aria-label="Supprimer"
                 >
                     <Trash2 className="w-4 h-4" />
                 </button>

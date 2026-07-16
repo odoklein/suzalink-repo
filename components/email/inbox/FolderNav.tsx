@@ -145,7 +145,7 @@ export function FolderNav({
         <div className="py-1">
             {/* Section Label */}
             <div className="px-4 pt-2 pb-1.5">
-                <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                <span className="text-[11px] font-semibold text-slate-500">
                     Dossiers
                 </span>
             </div>
@@ -159,25 +159,25 @@ export function FolderNav({
                             key={folder.id}
                             onClick={() => onSelectFolder(folder.id)}
                             className={cn(
-                                "w-full flex items-center gap-2.5 px-3 py-[9px] rounded-xl text-[13px] font-medium transition-all duration-200 group relative",
+                                "w-full flex items-center gap-2.5 px-3 py-[9px] rounded-lg text-[13px] font-medium transition-colors group relative",
                                 isSelected
-                                    ? "bg-indigo-50/80 text-indigo-700 shadow-sm shadow-indigo-500/5"
-                                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-800"
+                                    ? "bg-[#E9F0EE] text-[#1F4D47]"
+                                    : "text-slate-600 hover:bg-[#EEF2F1] hover:text-[#15201E]"
                             )}
                         >
                             {isSelected && (
-                                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-indigo-500 rounded-r-full" />
+                                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-[#1F4D47] rounded-r-full" />
                             )}
                             <folder.icon className={cn(
                                 "w-[18px] h-[18px] flex-shrink-0 transition-colors",
-                                isSelected ? "text-indigo-500" : "text-slate-400 group-hover:text-slate-500"
+                                isSelected ? "text-[#1F4D47]" : "text-slate-400 group-hover:text-slate-600"
                             )} />
                             <span className="flex-1 text-left truncate">{folder.label}</span>
                             {folder.showCount && folder.count > 0 && (
                                 <span className={cn(
                                     "min-w-[20px] h-5 flex items-center justify-center px-1.5 text-[11px] font-bold rounded-full tabular-nums",
                                     isSelected
-                                        ? "bg-indigo-500 text-white"
+                                        ? "bg-[#1F4D47] text-white"
                                         : "bg-slate-200/80 text-slate-600"
                                 )}>
                                     {folder.count > 99 ? "99+" : folder.count}
@@ -191,7 +191,7 @@ export function FolderNav({
             {/* Quick Filters */}
             <div className="mt-3 px-2">
                 <div className="px-2 pt-2 pb-1.5">
-                    <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                    <span className="text-[11px] font-semibold text-slate-500">
                         Filtres rapides
                     </span>
                 </div>
@@ -199,26 +199,26 @@ export function FolderNav({
                     <button
                         onClick={() => onSelectFolder("unread")}
                         className={cn(
-                            "w-full flex items-center gap-2.5 px-3 py-[9px] rounded-xl text-[13px] font-medium transition-all duration-200 group relative",
+                            "w-full flex items-center gap-2.5 px-3 py-[9px] rounded-lg text-[13px] font-medium transition-colors group relative",
                             selectedFolder === "unread"
-                                ? "bg-indigo-50/80 text-indigo-700 shadow-sm shadow-indigo-500/5"
-                                : "text-slate-600 hover:bg-slate-50 hover:text-slate-800"
+                                ? "bg-[#FFF4E2] text-[#8A4A00]"
+                                : "text-slate-600 hover:bg-[#EEF2F1] hover:text-[#15201E]"
                         )}
                     >
                         {selectedFolder === "unread" && (
-                            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-indigo-500 rounded-r-full" />
+                            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-[#E07C00] rounded-r-full" />
                         )}
                         <MailOpen className={cn(
                             "w-[18px] h-[18px] flex-shrink-0 transition-colors",
-                            selectedFolder === "unread" ? "text-indigo-500" : "text-slate-400 group-hover:text-slate-500"
+                            selectedFolder === "unread" ? "text-[#E07C00]" : "text-slate-400 group-hover:text-slate-600"
                         )} />
                         <span className="flex-1 text-left">Non lus</span>
                         {counts.unread > 0 && (
                             <span className={cn(
                                 "min-w-[20px] h-5 flex items-center justify-center px-1.5 text-[11px] font-bold rounded-full tabular-nums",
                                 selectedFolder === "unread"
-                                    ? "bg-indigo-500 text-white"
-                                    : "bg-indigo-100 text-indigo-600"
+                                    ? "bg-[#E07C00] text-white"
+                                    : "bg-[#FFF0D6] text-[#8A4A00]"
                             )}>
                                 {counts.unread > 99 ? "99+" : counts.unread}
                             </span>
@@ -249,7 +249,7 @@ export function FolderNav({
                                     className={cn(
                                         "w-full flex items-center gap-2.5 px-3 py-[9px] rounded-xl text-[13px] font-medium transition-all duration-200",
                                         selectedFolder === `label:${label}`
-                                            ? "bg-indigo-50/80 text-indigo-700"
+                                            ? "bg-[#E9F0EE] text-[#1F4D47]"
                                             : "text-slate-600 hover:bg-slate-50 hover:text-slate-800"
                                     )}
                                 >

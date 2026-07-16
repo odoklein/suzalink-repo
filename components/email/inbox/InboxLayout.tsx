@@ -69,12 +69,12 @@ function ToastContainer({
                         "flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg border text-sm font-medium animate-in slide-in-from-right-5 fade-in duration-300",
                         toast.type === "success" && "bg-emerald-50 border-emerald-200 text-emerald-800",
                         toast.type === "error" && "bg-red-50 border-red-200 text-red-800",
-                        toast.type === "info" && "bg-indigo-50 border-indigo-200 text-indigo-800"
+                        toast.type === "info" && "bg-[#EDF4F2] border-[#C9D9D5] text-[#1F4D47]"
                     )}
                 >
                     {toast.type === "success" && <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />}
                     {toast.type === "error" && <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />}
-                    {toast.type === "info" && <RefreshCw className="w-4 h-4 text-indigo-500 flex-shrink-0" />}
+                    {toast.type === "info" && <RefreshCw className="w-4 h-4 text-[#1F4D47] flex-shrink-0" />}
                     <span className="flex-1">{toast.message}</span>
                     <button
                         onClick={() => onDismiss(toast.id)}
@@ -290,7 +290,7 @@ export function InboxLayout({
         addToast("success", "Boîte mail connectée");
     }, [fetchMailboxes, addToast]);
 
-    const containerHeight = standalone ? "h-screen" : "h-full";
+    const containerHeight = standalone ? "h-[100dvh]" : "h-full";
 
     // Folder label map
     const folderLabels: Record<string, string> = {
@@ -306,10 +306,10 @@ export function InboxLayout({
     // Loading state
     if (isLoadingMailboxes) {
         return (
-            <div className={cn(containerHeight, "flex items-center justify-center bg-white", !standalone && "rounded-2xl border border-slate-200 shadow-sm", className)}>
+            <div className={cn(containerHeight, "flex items-center justify-center bg-[#F5F7F6]", className)}>
                 <div className="flex flex-col items-center gap-4">
                     <div className="relative">
-                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/25">
+                        <div className="w-14 h-14 rounded-xl bg-[#1F4D47] flex items-center justify-center shadow-[0_10px_28px_rgba(31,77,71,0.18)]">
                             <Loader2 className="w-7 h-7 text-white animate-spin" />
                         </div>
                     </div>
@@ -325,7 +325,7 @@ export function InboxLayout({
     // Error state for mailbox loading
     if (mailboxError && mailboxes.length === 0) {
         return (
-            <div className={cn(containerHeight, "flex items-center justify-center bg-white", !standalone && "rounded-2xl border border-slate-200 shadow-sm", className)}>
+            <div className={cn(containerHeight, "flex items-center justify-center bg-[#F5F7F6]", className)}>
                 <div className="flex flex-col items-center gap-4 text-center p-8">
                     <div className="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center">
                         <AlertCircle className="w-7 h-7 text-red-400" />
@@ -336,7 +336,7 @@ export function InboxLayout({
                     </div>
                     <button
                         onClick={fetchMailboxes}
-                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors"
+                        className="flex items-center gap-2 px-4 py-2.5 text-sm font-bold text-[#1F4D47] bg-white border border-[#CBD8D4] hover:bg-[#EDF4F2] rounded-lg transition-colors active:translate-y-px"
                     >
                         <RefreshCw className="w-4 h-4" />
                         Réessayer
@@ -349,7 +349,7 @@ export function InboxLayout({
     // No mailboxes - show onboarding
     if (mailboxes.length === 0) {
         return (
-            <div className={cn(containerHeight, "bg-white overflow-hidden flex flex-col", !standalone && "rounded-2xl border border-slate-200 shadow-sm", className)}>
+            <div className={cn(containerHeight, "bg-[#F5F7F6] overflow-hidden flex flex-col", className)}>
                 {standalone && (
                     <header className="h-14 flex-shrink-0 flex items-center gap-4 px-5 border-b border-slate-100 bg-white/80 backdrop-blur-xl">
                         <Link href={showTeamInbox ? "/manager/dashboard" : "/sdr"} className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors">
@@ -357,7 +357,7 @@ export function InboxLayout({
                             <span className="text-sm font-medium">Retour</span>
                         </Link>
                         <div className="flex-1 flex items-center gap-2.5">
-                            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center">
+                            <div className="w-7 h-7 rounded-lg bg-[#1F4D47] flex items-center justify-center">
                                 <Image src="/elan-mark.svg" alt="" width={16} height={16} className="rounded object-contain" />
                             </div>
                             <span className="font-semibold text-slate-800 text-[15px]">Email Hub</span>
@@ -372,9 +372,9 @@ export function InboxLayout({
     }
 
     return (
-        <div className={cn(containerHeight, "flex flex-col bg-white overflow-hidden", !standalone && "rounded-2xl border border-slate-200 shadow-sm", className)}>
+        <div className={cn(containerHeight, "flex flex-col bg-[#F5F7F6] overflow-hidden", className)}>
             {/* Top Header Bar */}
-            <header className="h-[52px] flex-shrink-0 flex items-center gap-3 px-4 border-b border-slate-100 bg-white/80 backdrop-blur-xl z-10">
+            <header className="h-[58px] flex-shrink-0 flex items-center gap-3 px-4 border-b border-[#DDE5E2] bg-white z-10">
                 {/* Left: Back / Logo */}
                 <div className="flex items-center gap-3 min-w-0">
                     {/* Mobile: Back button when thread is open */}
@@ -391,7 +391,7 @@ export function InboxLayout({
                         </Link>
                     ) : null}
                     <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-sm shadow-indigo-500/20">
+                        <div className="w-7 h-7 rounded-lg bg-[#1F4D47] flex items-center justify-center shadow-sm">
                             <Image src="/elan-mark.svg" alt="" width={16} height={16} className="rounded object-contain" />
                         </div>
                         <span className="font-semibold text-slate-800 text-[15px] hidden sm:inline">Email Hub</span>
@@ -402,7 +402,7 @@ export function InboxLayout({
                 <div className="flex-1 flex items-center justify-center">
                     <button
                         onClick={() => setIsLeftPanelCollapsed(!isLeftPanelCollapsed)}
-                        className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors mr-2 hidden lg:flex"
+                        className="p-2 rounded-lg border border-transparent hover:border-[#DDE5E2] hover:bg-[#F1F4F3] text-slate-500 hover:text-[#1F4D47] transition-colors mr-2 hidden lg:flex"
                         title={isLeftPanelCollapsed ? "Afficher les dossiers" : "Masquer les dossiers"}
                     >
                         {isLeftPanelCollapsed ? (
@@ -423,14 +423,14 @@ export function InboxLayout({
                     <button
                         onClick={handleSync}
                         disabled={isSyncing}
-                        className="p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors disabled:opacity-50"
+                        className="p-2 rounded-lg border border-[#DDE5E2] bg-white hover:bg-[#F1F4F3] text-slate-500 hover:text-[#1F4D47] transition-colors disabled:opacity-50"
                         title="Synchroniser"
                     >
                         <RefreshCw className={cn("w-4 h-4", isSyncing && "animate-spin")} />
                     </button>
                     <button
                         onClick={() => setShowShortcuts(s => !s)}
-                        className="p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors hidden sm:flex"
+                        className="p-2 rounded-lg border border-[#DDE5E2] bg-white hover:bg-[#F1F4F3] text-slate-500 hover:text-[#1F4D47] transition-colors hidden sm:flex"
                         title="Raccourcis clavier (Shift+?)"
                     >
                         <Keyboard className="w-4 h-4" />
@@ -443,15 +443,15 @@ export function InboxLayout({
                 {/* Left Panel - Folders & Mailboxes (hidden on mobile) */}
                 <div
                     className={cn(
-                        "border-r border-slate-100 flex-col bg-slate-50/30 transition-all duration-300 ease-in-out flex-shrink-0 overflow-hidden hidden lg:flex",
-                        isLeftPanelCollapsed ? "w-0" : "w-[240px]"
+                        "border-r border-[#DDE5E2] flex-col bg-[#F7F9F8] transition-[width] duration-200 ease-out flex-shrink-0 overflow-hidden hidden lg:flex",
+                        isLeftPanelCollapsed ? "w-0" : "w-[252px]"
                     )}
                 >
                     {/* Compose Button */}
                     <div className="p-3 pb-1">
                         <button
                             onClick={handleCompose}
-                            className="w-full flex items-center justify-center gap-2.5 h-11 px-4 bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-semibold rounded-xl hover:from-indigo-500 hover:to-violet-500 hover:shadow-lg hover:shadow-indigo-500/25 hover:-translate-y-[1px] active:translate-y-0 transition-all duration-200"
+                            className="w-full flex items-center justify-center gap-2.5 h-11 px-4 border border-[#E07C00] bg-[#FF9E1B] text-[#15201E] text-sm font-bold rounded-lg hover:bg-[#F09212] active:translate-y-px transition-colors"
                         >
                             <Pencil className="w-4 h-4" />
                             Nouveau message
@@ -484,7 +484,7 @@ export function InboxLayout({
                     {/* Thread List - hide on mobile when thread is open */}
                     <div
                         className={cn(
-                            "flex flex-col transition-all duration-300 ease-in-out border-r border-slate-100",
+                            "flex flex-col transition-[width] duration-200 ease-out border-r border-[#DDE5E2] bg-white",
                             selectedThread
                                 ? "w-[360px] flex-shrink-0 hidden lg:flex"
                                 : "flex-1",
@@ -495,7 +495,7 @@ export function InboxLayout({
                         <div className="p-3 pb-0 lg:hidden">
                             <button
                                 onClick={handleCompose}
-                                className="w-full flex items-center justify-center gap-2.5 h-11 px-4 bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-semibold rounded-xl hover:from-indigo-500 hover:to-violet-500 transition-all duration-200"
+                                className="w-full flex items-center justify-center gap-2.5 h-11 px-4 border border-[#E07C00] bg-[#FF9E1B] text-[#15201E] text-sm font-bold rounded-lg hover:bg-[#F09212] transition-colors active:translate-y-px"
                             >
                                 <Pencil className="w-4 h-4" />
                                 Nouveau message
@@ -514,7 +514,7 @@ export function InboxLayout({
                     {/* Thread View */}
                     {selectedThread && (
                         <div className={cn(
-                            "flex-1 flex flex-col min-w-0 bg-slate-50/50",
+                            "flex-1 flex flex-col min-w-0 bg-[#F5F7F6]",
                             !isMobileThreadOpen && "hidden lg:flex"
                         )}>
                             <ThreadView
@@ -528,8 +528,8 @@ export function InboxLayout({
 
                     {/* No thread selected placeholder (desktop only) */}
                     {!selectedThread && (
-                        <div className="flex-1 hidden lg:flex flex-col items-center justify-center bg-slate-50/30">
-                            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center mb-4">
+                        <div className="flex-1 hidden lg:flex flex-col items-center justify-center bg-[#F5F7F6]">
+                            <div className="w-16 h-16 rounded-xl bg-white border border-[#DDE5E2] flex items-center justify-center mb-4 shadow-sm">
                                 <Image src="/elan-mark.svg" alt="" width={32} height={32} className="rounded-lg object-contain opacity-40" />
                             </div>
                             <p className="text-sm text-slate-400 font-medium">Sélectionnez un email pour le lire</p>

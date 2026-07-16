@@ -11,6 +11,8 @@ import { authOptions } from '@/lib/auth';
 import { encrypt } from '@/lib/encryption';
 import { MailboxType } from '@prisma/client';
 import { scheduleEmailSync } from '@/lib/email/queue';
+import { ImapProvider } from '@/lib/email/providers/imap';
+import { emailSyncService } from '@/lib/email/services/sync-service';
 
 // ============================================
 // GET - List user's mailboxes
@@ -28,12 +30,13 @@ export async function GET(req: NextRequest) {
 
         const { searchParams } = new URL(req.url);
         const includeShared = searchParams.get('includeShared') === 'true';
+        const includeInactive = searchParams.get('includeInactive') === 'true';
         const type = searchParams.get('type') as MailboxType | null;
 
         // Get owned mailboxes
         const whereClause = {
             ownerId: session.user.id,
-            isActive: true,
+            ...(!includeInactive && { isActive: true }),
             ...(type && { type }),
         };
 
@@ -162,6 +165,8 @@ export async function POST(req: NextRequest) {
         } = body;
 
         const type = session.user.role === 'CLIENT' ? 'CLIENT' : (requestedType || 'PERSONAL');
+        const normalizedImapPort = Number(imapPort || 993);
+        const normalizedSmtpPort = Number(smtpPort || 587);
 
         // Validate required fields
         if (!email?.trim()) {
@@ -174,6 +179,48 @@ export async function POST(req: NextRequest) {
         if (!imapHost || !smtpHost || !password) {
             return NextResponse.json(
                 { success: false, error: 'Configuration IMAP/SMTP requise' },
+                { status: 400 }
+            );
+        }
+
+        if (
+            !Number.isInteger(normalizedImapPort) || normalizedImapPort < 1 || normalizedImapPort > 65535 ||
+            !Number.isInteger(normalizedSmtpPort) || normalizedSmtpPort < 1 || normalizedSmtpPort > 65535
+        ) {
+            return NextResponse.json(
+                { success: false, error: 'Ports IMAP/SMTP invalides' },
+                { status: 400 }
+            );
+        }
+
+        if (!process.env.ENCRYPTION_KEY) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: 'Configuration serveur incompl\u00e8te: ENCRYPTION_KEY est manquante. Les identifiants mail ne peuvent pas \u00eatre enregistr\u00e9s.',
+                },
+                { status: 503 }
+            );
+        }
+
+        // Never persist credentials until both protocols have been verified.
+        const connection = await new ImapProvider({
+            email: email.trim(),
+            password,
+            imapHost: imapHost.trim(),
+            imapPort: normalizedImapPort,
+            smtpHost: smtpHost.trim(),
+            smtpPort: normalizedSmtpPort,
+        }).testConnection();
+
+        if (!connection.success) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: connection.error || 'Connexion IMAP/SMTP impossible',
+                    imapOk: connection.imapOk ?? false,
+                    smtpOk: connection.smtpOk ?? false,
+                },
                 { status: 400 }
             );
         }
@@ -201,9 +248,9 @@ export async function POST(req: NextRequest) {
                 email: email.trim(),
                 displayName: displayName?.trim() || null,
                 imapHost: imapHost.trim(),
-                imapPort: imapPort || 993,
+                imapPort: normalizedImapPort,
                 smtpHost: smtpHost.trim(),
-                smtpPort: smtpPort || 587,
+                smtpPort: normalizedSmtpPort,
                 password: encrypt(password),
                 type: type as MailboxType,
                 syncStatus: 'PENDING',
@@ -222,6 +269,7 @@ export async function POST(req: NextRequest) {
         });
 
         // Schedule initial sync (queue-based if Redis available, or trigger synchronously)
+        let initialSync: { mode: 'queue' | 'inline'; success: boolean; error?: string };
         try {
             await scheduleEmailSync({
                 mailboxId: mailbox.id,
@@ -230,15 +278,33 @@ export async function POST(req: NextRequest) {
                 maxThreads: 100,
             });
             console.log('[Mailbox] Initial sync scheduled via queue');
+            initialSync = { mode: 'queue', success: true };
         } catch (syncError) {
-            console.warn('[Mailbox] Queue not available, will sync on next manual trigger:', syncError instanceof Error ? syncError.message : syncError);
-            // Queue not available (Redis not running) - user can manually sync
-            // Don't fail the request, mailbox is created successfully
+            console.warn('[Mailbox] Queue not available, running initial sync inline:', syncError instanceof Error ? syncError.message : syncError);
+            try {
+                const inlineResult = await emailSyncService.syncMailbox(mailbox.id, {
+                    fullSync: false,
+                    maxThreads: 25,
+                });
+                initialSync = {
+                    mode: 'inline',
+                    success: inlineResult.success,
+                    error: inlineResult.success ? undefined : inlineResult.errors.join(', '),
+                };
+            } catch (inlineError) {
+                initialSync = {
+                    mode: 'inline',
+                    success: false,
+                    error: inlineError instanceof Error ? inlineError.message : 'Synchronisation initiale impossible',
+                };
+            }
         }
 
         return NextResponse.json({
             success: true,
             data: mailbox,
+            connection: { imapOk: true, smtpOk: true },
+            initialSync,
         });
     } catch (error) {
         console.error('POST /api/email/mailboxes error:', error);

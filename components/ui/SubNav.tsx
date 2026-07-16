@@ -26,6 +26,8 @@ interface SubNavProps {
     /** Small uppercase label rendered above the nav (e.g. "Facturation"). */
     eyebrow?: string;
     className?: string;
+    /** Optional product tone for active and focus states. */
+    tone?: "default" | "email";
     "aria-label"?: string;
 }
 
@@ -38,6 +40,7 @@ export function SubNav({
     items,
     eyebrow,
     className,
+    tone = "default",
     "aria-label": ariaLabel,
 }: SubNavProps) {
     const pathname = usePathname();
@@ -50,7 +53,12 @@ export function SubNav({
                 </p>
             )}
             <nav
-                className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl border border-slate-200/80 overflow-x-auto"
+                className={cn(
+                    "flex items-center gap-1 p-1 rounded-xl border overflow-x-auto",
+                    tone === "email"
+                        ? "bg-[#EEF3F1] border-[#D7E1DE]"
+                        : "bg-slate-100 border-slate-200/80"
+                )}
                 aria-label={ariaLabel ?? eyebrow ?? "Sub-navigation"}
             >
                 {items.map((item) => {
@@ -64,8 +72,12 @@ export function SubNav({
                             className={cn(
                                 "flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors",
                                 isActive
-                                    ? "bg-white text-indigo-700 shadow-sm border border-slate-200/80"
-                                    : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
+                                    ? tone === "email"
+                                        ? "bg-white text-[#1F4D47] shadow-sm border border-[#CBD8D4]"
+                                        : "bg-white text-indigo-700 shadow-sm border border-slate-200/80"
+                                    : tone === "email"
+                                        ? "text-slate-600 hover:text-[#1F4D47] hover:bg-white/70"
+                                        : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
                             )}
                         >
                             <Icon className="w-4 h-4 flex-shrink-0" />

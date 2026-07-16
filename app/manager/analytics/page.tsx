@@ -71,11 +71,13 @@ export default function AnalyticsPage() {
     const [lists, setLists] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const [loadError, setLoadError] = useState<string | null>(null);
 
     // Actions State for the Journal
     const [actions, setActions] = useState<any[]>([]);
     const [isLoadingActions, setIsLoadingActions] = useState(true);
     const [journalFilter, setJournalFilter] = useState<string>('all');
+    const [journalSearch, setJournalSearch] = useState('');
 
     // AI Recap State
     const [aiRecap, setAiRecap] = useState<string | null>(null);
@@ -83,6 +85,7 @@ export default function AnalyticsPage() {
     const [aiRecapExtras, setAiRecapExtras] = useState<Array<{ id: string; label: string; answer: string }>>([]);
     const [isLoadingAiRecap, setIsLoadingAiRecap] = useState(false);
     const [isLoadingFollowUp, setIsLoadingFollowUp] = useState<string | null>(null);
+    const [aiError, setAiError] = useState<string | null>(null);
 
     // Phase-by-phase AI analysis
     const [aiPhase, setAiPhase] = useState<number>(0); // 0=idle, 1=collecting, 2=statuses, 3=notes, 4=recommendations, 5=done
@@ -91,7 +94,7 @@ export default function AnalyticsPage() {
 
     // Status labels from mission config (or global fallback)
     const defaultColors: Record<string, string> = {
-        NO_RESPONSE: "#60a5fa", BAD_CONTACT: "#5c6e69", INTERESTED: "#f59e0b",
+        NO_RESPONSE: "#8D9B96", BAD_CONTACT: "#5c6e69", INTERESTED: "#f59e0b",
         CALLBACK_REQUESTED: "#f59e0b", MEETING_BOOKED: "#10b981",
         MEETING_CANCELLED: "#94a3b8", DISQUALIFIED: "#ef4444",
         ENVOIE_MAIL: "#94a3b8", NOT_INTERESTED: "#94a3b8",
@@ -151,6 +154,7 @@ export default function AnalyticsPage() {
     // Fetch Stats Data
     const fetchStats = async () => {
         setIsRefreshing(true);
+        setLoadError(null);
         try {
             const params = new URLSearchParams();
             params.set('from', dateRange.from);
@@ -162,11 +166,11 @@ export default function AnalyticsPage() {
 
             const res = await fetch(`/api/analytics/stats?${params.toString()}`);
             const json = await res.json();
-            if (json.success) {
-                setStats(json.data);
-            }
+            if (!res.ok || !json.success) throw new Error(json.error || "Impossible de charger les performances");
+            setStats(json.data);
         } catch (err) {
             console.error("Stats fetch error:", err);
+            setLoadError(err instanceof Error ? err.message : "Impossible de charger les performances");
         } finally {
             setIsRefreshing(false);
             setIsLoading(false);
@@ -363,16 +367,12 @@ export default function AnalyticsPage() {
         setAiAnalysis(null);
         setAiRecapExtras([]);
         setShowFullRecap(false);
+        setAiError(null);
         setAiPhase(1);
 
-        await new Promise(r => setTimeout(r, 800));
-        setAiPhase(2);
-
-        await new Promise(r => setTimeout(r, 1000));
-        setAiPhase(3);
-
         try {
-            const fetchPromise = fetch("/api/analytics/ai-recap", {
+            setAiPhase(2);
+            const res = await fetch("/api/analytics/ai-recap", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -384,18 +384,15 @@ export default function AnalyticsPage() {
                     listIds: selectedLists,
                 }),
             });
-
-            await new Promise(r => setTimeout(r, 900));
-            setAiPhase(4);
-
-            const res = await fetchPromise;
+            setAiPhase(3);
             const json = await res.json();
-            if (json.success && json.data?.recap) {
-                setAiRecap(json.data.recap);
-                setAiAnalysis(json.data.analysis ?? null);
-            }
+            setAiPhase(4);
+            if (!res.ok || !json.success || !json.data?.recap) throw new Error(json.error || "Analyse IA indisponible");
+            setAiRecap(json.data.recap);
+            setAiAnalysis(json.data.analysis ?? null);
         } catch (err) {
             console.error("AI recap fetch error:", err);
+            setAiError(err instanceof Error ? err.message : "Analyse IA indisponible");
         } finally {
             setAiPhase(5);
             setIsLoadingAiRecap(false);
@@ -441,19 +438,30 @@ export default function AnalyticsPage() {
         setAiAnalysis(null);
         setAiRecapExtras([]);
         setIsLoadingFollowUp(null);
+        setAiError(null);
     }, [dateRange.from, dateRange.to, selectedMissions.join(","), selectedSdrs.join(","), selectedClients.join(","), selectedLists.join(",")]);
 
     // Handle Journal Filtering
     const filteredActions = useMemo(() => {
-        if (journalFilter === 'all') return actions;
-        if (journalFilter === 'meetings') return actions.filter(a => a.result === 'MEETING_BOOKED');
-        if (journalFilter === 'callbacks') return actions.filter(a => a.result === 'CALLBACK_REQUESTED' || a.result === 'INTERESTED');
-        if (journalFilter === 'disqualified') return actions.filter(a => a.result === 'DISQUALIFIED');
-        if (journalFilter === 'no_response') return actions.filter(a => a.result === 'NO_RESPONSE');
-        return actions;
-    }, [actions, journalFilter]);
+        let rows = actions;
+        if (journalFilter === 'meetings') rows = rows.filter(a => a.result === 'MEETING_BOOKED');
+        if (journalFilter === 'callbacks') rows = rows.filter(a => a.result === 'CALLBACK_REQUESTED' || a.result === 'INTERESTED');
+        if (journalFilter === 'disqualified') rows = rows.filter(a => a.result === 'DISQUALIFIED');
+        if (journalFilter === 'no_response') rows = rows.filter(a => a.result === 'NO_RESPONSE');
 
-    // Persona chart data (for BarChart) — sorted by selected metric
+        const query = journalSearch.trim().toLocaleLowerCase('fr');
+        if (!query) return rows;
+
+        return rows.filter((action) => [
+            action.sdrName,
+            action.missionName,
+            action.contactName,
+            action.companyName,
+            ACTION_RESULT_LABELS[action.result] || action.result,
+        ].some((value) => String(value || '').toLocaleLowerCase('fr').includes(query)));
+    }, [actions, journalFilter, journalSearch]);
+
+    // Persona chart data (for BarChart), sorted by selected metric
     const personaChartData = useMemo(() => {
         if (!personaData || personaData.mode !== 'single' || !personaData[personaDimension]) return [];
         const rows = (personaData[personaDimension] || []).map((r: any) => ({
@@ -474,10 +482,10 @@ export default function AnalyticsPage() {
     const getBarColor = (entry: { conversionRate: number; calls: number; meetings: number }) => {
         if (personaMetric === 'conversion') {
             if (entry.conversionRate >= 5) return '#10b981';
-            if (entry.conversionRate >= 3) return '#6366f1';
+            if (entry.conversionRate >= 3) return '#1F4D47';
             return '#94a3b8';
         }
-        if (personaMetric === 'calls') return '#6366f1';
+        if (personaMetric === 'calls') return '#1F4D47';
         return '#10b981'; // meetings
     };
 
@@ -488,7 +496,7 @@ export default function AnalyticsPage() {
         return (
             <div className="bg-white rounded-xl border border-slate-200 shadow-lg px-4 py-3 text-[12px]">
                 <div className="font-bold text-slate-800 mb-1">{p.fullName}</div>
-                <div className="text-slate-500">{p.calls} appels · {p.meetings} RDV · {p.conversionRate}% conversion</div>
+                <div className="text-slate-500">{p.calls} appels / {p.meetings} RDV / {p.conversionRate}% conversion</div>
             </div>
         );
     };
@@ -501,7 +509,7 @@ export default function AnalyticsPage() {
                 <BarChart data={data} layout="vertical" margin={{ top: 4, right: 24, left: 0, bottom: 4 }}>
                     <XAxis type="number" domain={[0, 'auto']} tickFormatter={tickFormatter} tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
                     <YAxis type="category" dataKey="name" width={100} tick={{ fontSize: 11, fill: '#475569', fontWeight: 600 }} axisLine={false} tickLine={false} />
-                    <RechartsTooltip content={<PersonaTooltip />} cursor={{ fill: 'rgba(99, 102, 241, 0.06)' }} />
+                    <RechartsTooltip content={<PersonaTooltip />} cursor={{ fill: 'rgba(31, 77, 71, 0.06)' }} />
                     <Bar dataKey={dataKey} name={metric === 'conversion' ? 'Conversion' : metric === 'calls' ? 'Appels' : 'RDV'} radius={[0, 6, 6, 0]} barSize={22} minPointSize={4}>
                         {data.map((entry, i) => (
                             <Cell key={i} fill={getBarColor(entry)} stroke="none" />
@@ -528,13 +536,45 @@ export default function AnalyticsPage() {
         return items.sort((a, b) => b.count - a.count);
     }, [stats?.statusBreakdown, statusLabelMap, statusColorMap]);
 
+    const activeFilterCount = selectedMissions.length + selectedSdrs.length + selectedClients.length + selectedLists.length;
+    const clearFilters = () => {
+        setSelectedMissions([]);
+        setSelectedSdrs([]);
+        setSelectedClients([]);
+        setSelectedLists([]);
+    };
+
     if (isLoading) {
         return (
-            <div className="flex flex-col items-center justify-center py-40" style={{ background: "#F4F6FA", minHeight: "100vh" }}>
-                <div className="w-14 h-14 rounded-2xl bg-violet-100 flex items-center justify-center mb-4">
-                    <RefreshCw className="w-7 h-7 text-violet-600 animate-spin" />
+            <div className="min-h-[100dvh] bg-[#F5F7F6] p-4 sm:p-6" aria-busy="true" aria-label="Chargement des performances">
+                <div className="mx-auto max-w-[1500px] space-y-5">
+                    <div className="flex items-center justify-between gap-4">
+                        <div className="space-y-2"><div className="h-7 w-64 skeleton-shimmer rounded-lg" /><div className="h-3 w-80 max-w-full skeleton-shimmer rounded" /></div>
+                        <div className="hidden sm:block h-10 w-72 skeleton-shimmer rounded-xl" />
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+                        {[1, 2, 3, 4].map((item) => <div key={item} className="h-16 skeleton-shimmer rounded-xl" />)}
+                    </div>
+                    <div className="h-64 skeleton-shimmer rounded-xl" />
+                    <div className="grid grid-cols-1 lg:grid-cols-4 gap-3">
+                        {[1, 2, 3, 4].map((item) => <div key={item} className="h-36 skeleton-shimmer rounded-xl" />)}
+                    </div>
                 </div>
-                <p className="text-[13px] text-slate-400 font-medium">Chargement des analytics...</p>
+            </div>
+        );
+    }
+
+    if (loadError && !stats) {
+        return (
+            <div className="min-h-[60dvh] bg-[#F5F7F6] flex items-center justify-center p-6">
+                <div className="w-full max-w-md rounded-xl border border-red-200 bg-white p-6 text-center shadow-sm" role="alert">
+                    <AlertTriangle className="mx-auto mb-3 h-8 w-8 text-red-500" />
+                    <h1 className="text-lg font-bold text-slate-900">Performances indisponibles</h1>
+                    <p className="mt-2 text-sm text-slate-600">{loadError}</p>
+                    <button onClick={fetchStats} className="mt-5 inline-flex h-10 items-center gap-2 rounded-lg border border-[#CBD8D4] bg-white px-4 text-sm font-bold text-[#1F4D47] hover:bg-[#EEF3F1] active:translate-y-px">
+                        <RefreshCw className="h-4 w-4" /> Réessayer
+                    </button>
+                </div>
             </div>
         );
     }
@@ -553,57 +593,81 @@ export default function AnalyticsPage() {
     const HOURS = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
 
     return (
-        <div className="min-h-full p-5 lg:p-6 pb-20 overflow-x-hidden" style={{ background: "linear-gradient(160deg, #F4F6FA 0%, #EEF2FF 100%)", fontFamily: "'Inter', system-ui, sans-serif" }}>
+        <div className="min-h-full p-5 lg:p-6 pb-20 overflow-x-hidden" style={{ background: "#F5F7F6" }}>
 
             {/* Page Header */}
             <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
                 <div>
                     <div className="flex items-center gap-2 mb-1">
-                        <div className="w-8 h-8 rounded-xl bg-violet-600 flex items-center justify-center shadow-lg shadow-violet-500/30">
+                        <div className="w-8 h-8 rounded-xl bg-[#1F4D47] flex items-center justify-center shadow-lg shadow-[#1F4D47]/20">
                             <Activity className="w-4 h-4 text-white" />
                         </div>
-                        <h1 className="text-[22px] font-black text-slate-900 tracking-tight">Analytics & Performance</h1>
+                        <h1 className="text-[22px] font-black text-slate-900 tracking-tight">Performance</h1>
                     </div>
                     <p className="text-[12px] text-slate-400 ml-10 font-medium">Suivi détaillé des appels et des résultats d'équipe</p>
                 </div>
 
                 <div className="flex items-center gap-2.5 flex-wrap">
-                    <div className="flex items-center gap-2 px-3.5 py-2 text-[12px] font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl shadow-sm hover:border-violet-300 transition-all">
-                        <Calendar className="w-3.5 h-3.5 text-violet-500" />
+                    <div className="flex items-center gap-2 px-3.5 py-2 text-[12px] font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl shadow-sm hover:border-[#AFC5BF] transition-all">
+                        <Calendar className="w-3.5 h-3.5 text-[#2F6B62]" />
                         <input
                             type="date"
+                            aria-label="Date de début"
+                            max={dateRange.to}
                             value={dateRange.from}
                             onChange={e => setDateRange(prev => ({ ...prev, from: e.target.value }))}
-                            className="bg-transparent border-none p-0 outline-none hover:text-violet-600 transition-colors cursor-pointer"
+                            className="bg-transparent border-none p-0 outline-none hover:text-[#1F4D47] transition-colors cursor-pointer"
                         />
                         <span className="text-slate-300 font-normal">→</span>
                         <input
                             type="date"
+                            aria-label="Date de fin"
+                            min={dateRange.from}
                             value={dateRange.to}
                             onChange={e => setDateRange(prev => ({ ...prev, to: e.target.value }))}
-                            className="bg-transparent border-none p-0 outline-none hover:text-violet-600 transition-colors cursor-pointer"
+                            className="bg-transparent border-none p-0 outline-none hover:text-[#1F4D47] transition-colors cursor-pointer"
                         />
                     </div>
 
                     <button
                         onClick={() => setShowReportModal(true)}
-                        className="flex items-center gap-2 px-3.5 py-2 text-[12px] font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl hover:border-violet-300 hover:shadow-sm transition-all shadow-sm"
+                        className="flex items-center gap-2 px-3.5 py-2 text-[12px] font-semibold text-[#1F4D47] bg-white border border-[#CBD8D4] rounded-lg hover:bg-[#EEF3F1] active:translate-y-px transition-colors shadow-sm"
                     >
                         <FileText className="w-3.5 h-3.5 text-slate-400" /> Générer un rapport
                     </button>
-                    <button onClick={fetchStats} className="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-violet-600 hover:border-violet-300 hover:shadow-sm transition-all shadow-sm">
+                    <button onClick={fetchStats} aria-label="Actualiser les performances" className="w-9 h-9 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-[#1F4D47] hover:border-[#AFC5BF] active:translate-y-px transition-colors shadow-sm">
                         <RefreshCw className={cn("w-3.5 h-3.5", isRefreshing && "animate-spin")} />
                     </button>
                 </div>
             </div>
 
+            {loadError && (
+                <div className="mb-4 flex items-start justify-between gap-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-800" role="alert">
+                    <span className="flex items-start gap-2"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />{loadError}</span>
+                    <button type="button" onClick={fetchStats} className="shrink-0 font-bold hover:underline">Réessayer</button>
+                </div>
+            )}
+
             {/* Filters */}
-            <div className="flex flex-wrap gap-3 mb-6">
-                <div className="flex-1 min-w-[200px] flex items-center gap-3 bg-white border border-slate-200 rounded-xl px-4 py-3 transition-all hover:border-violet-300 shadow-sm">
-                    <div className="flex-1">
-                        <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Mission</span>
+            <section className="mb-6 rounded-xl border border-[#DDE5E2] bg-white p-3 sm:p-4 shadow-sm" aria-label="Filtres de performance">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                        <h2 className="text-sm font-bold text-slate-800">Filtres</h2>
+                        {activeFilterCount > 0 && <span className="rounded-md bg-[#FFF4E2] px-2 py-0.5 text-[11px] font-bold text-[#9A5400]">{activeFilterCount} actif{activeFilterCount > 1 ? "s" : ""}</span>}
+                    </div>
+                    {activeFilterCount > 0 && (
+                        <button type="button" onClick={clearFilters} className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-bold text-[#1F4D47] hover:bg-[#EEF3F1] active:translate-y-px">
+                            <X className="h-3.5 w-3.5" /> Effacer
+                        </button>
+                    )}
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+                <label className="flex min-w-0 items-center gap-3 rounded-lg border border-[#DDE5E2] bg-[#F8FAF9] px-3 py-2.5 focus-within:border-[#E07C00] focus-within:ring-2 focus-within:ring-[#FF9E1B]/20">
+                    <div className="w-8 h-8 rounded-lg bg-[#EEF3F1] flex items-center justify-center shrink-0"><Target className="w-4 h-4 text-[#2F6B62]" /></div>
+                    <span className="min-w-0 flex-1">
+                        <span className="block text-[11px] font-semibold text-slate-500 mb-0.5">Mission</span>
                         <select
-                            className="w-full bg-transparent border-none text-[13px] font-semibold text-slate-700 outline-none p-0 cursor-pointer"
+                            className="w-full bg-transparent border-none text-[13px] font-semibold text-slate-800 outline-none p-0 cursor-pointer"
                             value={selectedMissions[0] || "all"}
                             onChange={(e) => {
                                 if (e.target.value === "all") setSelectedMissions([]);
@@ -615,43 +679,43 @@ export default function AnalyticsPage() {
                                 <option key={m.id} value={m.id}>{m.name}</option>
                             ))}
                         </select>
-                    </div>
-                    <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0"><Target className="w-4 h-4 text-indigo-500" /></div>
-                </div>
+                    </span>
+                </label>
 
-                <div className="flex-1 min-w-[200px] flex items-center gap-3 bg-white border border-slate-200 rounded-xl px-4 py-3 transition-all hover:border-violet-300 shadow-sm">
-                    <div className="flex-1">
-                        <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">SDR</span>
-                        <select className="w-full bg-transparent border-none text-[13px] font-semibold text-slate-700 outline-none p-0 cursor-pointer" onChange={e => {
+                <label className="flex min-w-0 items-center gap-3 rounded-lg border border-[#DDE5E2] bg-[#F8FAF9] px-3 py-2.5 focus-within:border-[#E07C00] focus-within:ring-2 focus-within:ring-[#FF9E1B]/20">
+                    <div className="w-8 h-8 rounded-lg bg-[#EEF3F1] flex items-center justify-center shrink-0"><User className="w-4 h-4 text-[#2F6B62]" /></div>
+                    <span className="min-w-0 flex-1">
+                        <span className="block text-[11px] font-semibold text-slate-500 mb-0.5">SDR</span>
+                        <select value={selectedSdrs[0] || "all"} className="w-full bg-transparent border-none text-[13px] font-semibold text-slate-800 outline-none p-0 cursor-pointer" onChange={e => {
                             if (e.target.value === "all") setSelectedSdrs([]);
-                            else if (!selectedSdrs.includes(e.target.value)) setSelectedSdrs([e.target.value]);
+                            else setSelectedSdrs([e.target.value]);
                         }}>
                             <option value="all">Toute l'équipe</option>
                             {(sdrs || []).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                         </select>
-                    </div>
-                    <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0"><User className="w-4 h-4 text-emerald-500" /></div>
-                </div>
+                    </span>
+                </label>
 
-                <div className="flex-1 min-w-[200px] flex items-center gap-3 bg-white border border-slate-200 rounded-xl px-4 py-3 transition-all hover:border-violet-300 shadow-sm">
-                    <div className="flex-1">
-                        <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Client</span>
-                        <select className="w-full bg-transparent border-none text-[13px] font-semibold text-slate-700 outline-none p-0 cursor-pointer" onChange={e => {
+                <label className="flex min-w-0 items-center gap-3 rounded-lg border border-[#DDE5E2] bg-[#F8FAF9] px-3 py-2.5 focus-within:border-[#E07C00] focus-within:ring-2 focus-within:ring-[#FF9E1B]/20">
+                    <div className="w-8 h-8 rounded-lg bg-[#FFF4E2] flex items-center justify-center shrink-0"><Briefcase className="w-4 h-4 text-[#B66300]" /></div>
+                    <span className="min-w-0 flex-1">
+                        <span className="block text-[11px] font-semibold text-slate-500 mb-0.5">Client</span>
+                        <select value={selectedClients[0] || "all"} className="w-full bg-transparent border-none text-[13px] font-semibold text-slate-800 outline-none p-0 cursor-pointer" onChange={e => {
                             if (e.target.value === "all") setSelectedClients([]);
-                            else if (!selectedClients.includes(e.target.value)) setSelectedClients([e.target.value]);
+                            else setSelectedClients([e.target.value]);
                         }}>
                             <option value="all">Tous les clients</option>
                             {(clients || []).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                         </select>
-                    </div>
-                    <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center shrink-0"><Briefcase className="w-4 h-4 text-amber-500" /></div>
-                </div>
+                    </span>
+                </label>
 
-                <div className="flex-1 min-w-[200px] flex items-center gap-3 bg-white border border-slate-200 rounded-xl px-4 py-3 transition-all hover:border-violet-300 shadow-sm">
-                    <div className="flex-1">
-                        <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Liste</span>
+                <label className="flex min-w-0 items-center gap-3 rounded-lg border border-[#DDE5E2] bg-[#F8FAF9] px-3 py-2.5 focus-within:border-[#E07C00] focus-within:ring-2 focus-within:ring-[#FF9E1B]/20">
+                    <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center shrink-0"><List className="w-4 h-4 text-slate-600" /></div>
+                    <span className="min-w-0 flex-1">
+                        <span className="block text-[11px] font-semibold text-slate-500 mb-0.5">Liste</span>
                         <select
-                            className="w-full bg-transparent border-none text-[13px] font-semibold text-slate-700 outline-none p-0 cursor-pointer"
+                            className="w-full bg-transparent border-none text-[13px] font-semibold text-slate-800 outline-none p-0 cursor-pointer"
                             value={selectedLists[0] || "all"}
                             onChange={(e) => {
                                 if (e.target.value === "all") setSelectedLists([]);
@@ -663,22 +727,22 @@ export default function AnalyticsPage() {
                                 <option key={l.id} value={l.id}>{l.name}</option>
                             ))}
                         </select>
-                    </div>
-                    <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center shrink-0"><List className="w-4 h-4 text-slate-500" /></div>
+                    </span>
+                </label>
                 </div>
-            </div>
+            </section>
 
             {/* AI Hero Banner */}
-            <div className="relative overflow-hidden rounded-2xl p-6 lg:p-8 mb-6 shadow-xl" style={{ background: "#0C3B38" }}>
+            <div className="relative overflow-hidden rounded-xl p-5 pt-20 sm:p-6 lg:p-8 mb-6 shadow-[0_14px_36px_rgba(31,77,71,0.16)]" style={{ background: "#0C3B38" }}>
                 <div className="absolute -top-32 -right-32 w-80 h-80 rounded-full blur-3xl opacity-30 pointer-events-none" style={{ background: "radial-gradient(circle, #FF9E1B, transparent 70%)" }} />
                 <div className="absolute -bottom-32 -left-32 w-72 h-72 rounded-full blur-3xl opacity-20 pointer-events-none" style={{ background: "radial-gradient(circle, #F4F0E8, transparent 70%)" }} />
 
                 <button
-                    className="absolute top-6 right-6 flex items-center gap-2 px-4 py-2 rounded-xl bg-[#FF9E1B] hover:bg-[#F09212] border border-[#E07C00] text-[#15201E] transition-all text-[12px] font-bold z-20 disabled:opacity-60 shadow-lg"
+                    className="absolute top-5 right-5 flex items-center gap-2 px-4 py-2 rounded-lg bg-[#FF9E1B] hover:bg-[#F09212] border border-[#E07C00] text-[#15201E] transition-colors text-[12px] font-bold z-20 disabled:opacity-60 shadow-sm active:translate-y-px"
                     onClick={() => fetchAiRecap()}
                     disabled={isLoadingAiRecap}
                 >
-                    {isLoadingAiRecap ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <BrainCircuit className="w-3.5 h-3.5" />} Ré-analyser
+                    {isLoadingAiRecap ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <BrainCircuit className="w-3.5 h-3.5" />} {aiRecap ? "Ré-analyser" : "Analyser"}
                 </button>
 
                 <div className="relative z-10 flex items-center gap-3 mb-5">
@@ -688,6 +752,12 @@ export default function AnalyticsPage() {
                     </div>
                     <span className="text-[13px] font-medium text-white/50">Analyse des notes et statuts</span>
                 </div>
+
+                {aiError && (
+                    <div className="relative z-10 mb-4 flex items-start gap-2 rounded-lg border border-red-400/30 bg-red-500/10 px-3 py-2.5 text-sm text-red-100" role="alert">
+                        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" /> {aiError}
+                    </div>
+                )}
 
                 {/* Phase-by-phase analysis progress */}
                 {isLoadingAiRecap && aiPhase > 0 && (
@@ -703,14 +773,14 @@ export default function AnalyticsPage() {
                                 className={cn(
                                     "flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-500",
                                     aiPhase > phase ? "bg-emerald-500/10 border border-emerald-500/20" :
-                                    aiPhase === phase ? "bg-violet-500/15 border border-violet-400/30 animate-pulse" :
+                                    aiPhase === phase ? "bg-[#FF9E1B]/15 border border-[#FF9E1B]/30 animate-pulse" :
                                     "bg-white/5 border border-white/5 opacity-40"
                                 )}
                             >
                                 <div className={cn(
                                     "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors duration-500",
                                     aiPhase > phase ? "bg-emerald-500/20 text-emerald-400" :
-                                    aiPhase === phase ? "bg-violet-500/30 text-violet-300" :
+                                    aiPhase === phase ? "bg-[#FF9E1B]/25 text-[#FFC56E]" :
                                     "bg-white/10 text-white/30"
                                 )}>
                                     {aiPhase > phase ? <CheckCircle2 className="w-4 h-4" /> : aiPhase === phase ? <Loader2 className="w-4 h-4 animate-spin" /> : icon}
@@ -729,7 +799,7 @@ export default function AnalyticsPage() {
                                 </div>
                                 {aiPhase === phase && (
                                     <div className="w-16 h-1.5 rounded-full bg-white/10 overflow-hidden shrink-0">
-                                        <div className="h-full bg-violet-400 rounded-full animate-[progressPulse_1.5s_ease-in-out_infinite]" style={{ width: '70%' }} />
+                                        <div className="h-full bg-[#FF9E1B] rounded-full animate-[progressPulse_1.5s_ease-in-out_infinite]" style={{ width: '70%' }} />
                                     </div>
                                 )}
                                 {aiPhase > phase && (
@@ -759,11 +829,11 @@ export default function AnalyticsPage() {
                         {aiAnalysis ? (
                             <>
                                 <div className="rounded-2xl bg-white/10 border border-white/15 backdrop-blur-sm p-4 lg:p-5">
-                                    <div className="text-[11px] uppercase tracking-widest text-violet-200/70 font-bold mb-2">Synthèse exécutive</div>
+                                    <div className="text-[11px] uppercase tracking-widest text-[#FFC56E]/70 font-bold mb-2">Synthèse exécutive</div>
                                     <p className="text-[14px] leading-relaxed text-white/90">{aiAnalysis.executiveSummary}</p>
                                     <div className="flex flex-wrap gap-2 mt-4">
                                         {aiAnalysis.keyInsights.map((insight, idx) => (
-                                            <span key={`${insight}-${idx}`} className="px-2.5 py-1.5 rounded-lg bg-violet-500/15 border border-violet-400/30 text-violet-100 text-[11px] font-semibold">
+                                            <span key={`${insight}-${idx}`} className="px-2.5 py-1.5 rounded-lg bg-[#FF9E1B]/15 border border-[#FF9E1B]/30 text-[#FFE2B8] text-[11px] font-semibold">
                                                 {insight}
                                             </span>
                                         ))}
@@ -791,7 +861,7 @@ export default function AnalyticsPage() {
                                                         </span>
                                                     </div>
                                                     <p className="text-[11px] text-white/65">{item.whyItHappens}</p>
-                                                    <p className="text-[11px] text-violet-100/80 mt-1.5">Réponse: {item.recommendedResponse}</p>
+                                                    <p className="text-[11px] text-[#FFE2B8]/80 mt-1.5">Réponse: {item.recommendedResponse}</p>
                                                 </div>
                                             ))}
                                         </div>
@@ -822,7 +892,7 @@ export default function AnalyticsPage() {
                                                 <div key={`${item.title}-${idx}`} className="rounded-xl bg-white/5 border border-white/10 p-3">
                                                     <div className="flex items-center justify-between gap-2 mb-1.5">
                                                         <p className="text-[12px] font-bold text-white">{item.title}</p>
-                                                        <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-violet-500/20 text-violet-200 border border-violet-400/30">
+                                                        <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-[#1F4D47]/20 text-[#FFC56E] border border-[#FF9E1B]/30">
                                                             {item.priority}
                                                         </span>
                                                     </div>
@@ -865,7 +935,7 @@ export default function AnalyticsPage() {
                                 </div>
                                 <button
                                     onClick={() => setShowFullRecap(!showFullRecap)}
-                                    className="flex items-center gap-1.5 text-[12px] font-bold text-violet-300 hover:text-violet-200 transition-colors"
+                                    className="flex items-center gap-1.5 text-[12px] font-bold text-[#FFC56E] hover:text-[#FFE2B8] transition-colors"
                                 >
                                     {showFullRecap ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                                     {showFullRecap ? "Réduire" : "Voir l'analyse complète"}
@@ -892,7 +962,7 @@ export default function AnalyticsPage() {
                                         disabled={!!extra || loading}
                                         className={cn(
                                             "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all border backdrop-blur-sm",
-                                            extra ? "bg-emerald-500/20 border-emerald-400/40 text-emerald-200 cursor-default" : "bg-white/10 hover:bg-white/20 border-white/20 text-white/90 hover:border-violet-400/40"
+                                            extra ? "bg-emerald-500/20 border-emerald-400/40 text-emerald-200 cursor-default" : "bg-white/10 hover:bg-white/20 border-white/20 text-white/90 hover:border-[#FF9E1B]/40"
                                         )}
                                     >
                                         {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : extra ? <CheckCircle2 className="w-3 h-3" /> : icon}
@@ -908,8 +978,8 @@ export default function AnalyticsPage() {
                                 {aiRecapExtras.map((ex) => (
                                     <details key={ex.id} className="group rounded-xl bg-white/5 border border-white/10 overflow-hidden" open>
                                         <summary className="flex items-center gap-2 cursor-pointer px-4 py-3 hover:bg-white/5 transition-colors list-none">
-                                            <ChevronDown className="w-3.5 h-3.5 text-violet-400 group-open:rotate-180 transition-transform duration-200" />
-                                            <span className="text-[12px] font-bold text-violet-300 uppercase tracking-wider">{ex.label}</span>
+                                            <ChevronDown className="w-3.5 h-3.5 text-[#FFB64F] group-open:rotate-180 transition-transform duration-200" />
+                                            <span className="text-[12px] font-bold text-[#FFC56E] uppercase tracking-wider">{ex.label}</span>
                                         </summary>
                                         <div className="px-4 pb-4">
                                             <div className="text-[13px] leading-relaxed text-white/85 [&_strong]:text-white [&_ul]:my-2 [&_li]:my-0.5" dangerouslySetInnerHTML={{ __html: ex.answer.replace(/\n/g, "<br />").replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>") }} />
@@ -921,10 +991,10 @@ export default function AnalyticsPage() {
                     </div>
                 ) : !isLoadingAiRecap ? (
                     <div className="relative z-10 flex flex-col items-center justify-center py-8 gap-3">
-                        <div className="w-14 h-14 rounded-2xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center">
-                            <BrainCircuit className="w-7 h-7 text-violet-400/60" />
+                        <div className="w-14 h-14 rounded-2xl bg-[#1F4D47]/10 border border-[#1F4D47]/20 flex items-center justify-center">
+                            <BrainCircuit className="w-7 h-7 text-[#FFB64F]/60" />
                         </div>
-                        <p className="text-[14px] text-white/40 font-medium text-center">Cliquez sur <span className="text-violet-300 font-bold">Ré-analyser</span> pour lancer l&apos;analyse IA</p>
+                        <p className="text-[14px] text-white/40 font-medium text-center">Cliquez sur <span className="text-[#FFC56E] font-bold">Ré-analyser</span> pour lancer l&apos;analyse IA</p>
                         <p className="text-[11px] text-white/25 text-center max-w-md">L&apos;IA analysera les statuts, les notes d&apos;appels et générera des recommandations actionnables phase par phase.</p>
                     </div>
                 ) : null}
@@ -935,7 +1005,7 @@ export default function AnalyticsPage() {
                         <div><div className="text-[18px] font-black text-white leading-none tracking-tight">{Math.round((noRespCount / totalCalls) * 100)}%</div><div className="text-[10px] text-white/50 uppercase tracking-widest mt-1">Non-réponse</div></div>
                     </div>
                     <div className="flex items-center gap-3 bg-white/5 backdrop-blur-md border border-white/10 rounded-xl px-5 py-3 hover:bg-white/10 transition-colors">
-                        <div className="w-9 h-9 rounded-full bg-blue-500/20 flex items-center justify-center"><Activity className="w-4 h-4 text-blue-400" /></div>
+                        <div className="w-9 h-9 rounded-full bg-[#1F4D47]/20 flex items-center justify-center"><Activity className="w-4 h-4 text-[#8FB0A9]" /></div>
                         <div><div className="text-[18px] font-black text-white leading-none tracking-tight">{kpis?.totalCalls || 0}</div><div className="text-[10px] text-white/50 uppercase tracking-widest mt-1">Appels passés</div></div>
                     </div>
                     <div className="flex items-center gap-3 bg-white/5 backdrop-blur-md border border-white/10 rounded-xl px-5 py-3 hover:bg-white/10 transition-colors">
@@ -947,9 +1017,9 @@ export default function AnalyticsPage() {
                         <div><div className="text-[18px] font-black text-white leading-none tracking-tight">{kpis?.meetings || 0}</div><div className="text-[10px] text-white/50 uppercase tracking-widest mt-1">RDV Confirmés</div></div>
                     </div>
                     {sdrPerformance?.[0] && (
-                        <div className="flex items-center gap-3 bg-violet-600/20 backdrop-blur-md border border-violet-500/30 rounded-xl px-5 py-3 ml-auto hover:bg-violet-600/30 transition-colors">
-                            <div className="w-9 h-9 rounded-full bg-violet-500/30 flex items-center justify-center"><Trophy className="w-4 h-4 text-violet-300" /></div>
-                            <div><div className="text-[18px] font-black text-white leading-none tracking-tight">{sdrPerformance[0].sdrName.split(' ')[0]}</div><div className="text-[10px] text-violet-300 uppercase tracking-widest mt-1 font-bold">Top SDR</div></div>
+                        <div className="flex items-center gap-3 bg-[#1F4D47]/20 backdrop-blur-md border border-[#1F4D47]/30 rounded-xl px-5 py-3 ml-auto hover:bg-[#1F4D47]/30 transition-colors">
+                            <div className="w-9 h-9 rounded-full bg-[#FF9E1B]/25 flex items-center justify-center"><Trophy className="w-4 h-4 text-[#FFC56E]" /></div>
+                            <div><div className="text-[18px] font-black text-white leading-none tracking-tight">{sdrPerformance[0].sdrName.split(' ')[0]}</div><div className="text-[10px] text-[#FFC56E] uppercase tracking-widest mt-1 font-bold">Top SDR</div></div>
                         </div>
                     )}
                 </div>
@@ -957,10 +1027,10 @@ export default function AnalyticsPage() {
 
             {/* KPI ROW */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                <div className="bg-white rounded-2xl border border-slate-100 p-5 flex flex-col justify-between group hover:shadow-md hover:border-violet-100 transition-all cursor-default">
+                <div className="bg-white rounded-2xl border border-slate-100 p-5 flex flex-col justify-between group hover:shadow-md hover:border-[#D7E3DF] transition-all cursor-default">
                     <div className="flex items-center justify-between mb-3">
-                        <div className="w-11 h-11 rounded-xl bg-violet-50 flex items-center justify-center transition-transform group-hover:scale-110">
-                            <Phone className="w-5 h-5 text-violet-600" />
+                        <div className="w-11 h-11 rounded-xl bg-[#F0F5F3] flex items-center justify-center transition-transform group-hover:scale-110">
+                            <Phone className="w-5 h-5 text-[#1F4D47]" />
                         </div>
                         <span className="px-2 py-1 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-600 flex items-center gap-1"><TrendingUp className="w-3 h-3" />+12%</span>
                     </div>
@@ -995,10 +1065,10 @@ export default function AnalyticsPage() {
                     </div>
                 </div>
 
-                <div className="bg-white rounded-2xl border border-slate-100 p-5 flex flex-col justify-between group hover:shadow-md hover:border-indigo-100 transition-all cursor-default">
+                <div className="bg-white rounded-2xl border border-slate-100 p-5 flex flex-col justify-between group hover:shadow-md hover:border-[#D7E3DF] transition-all cursor-default">
                     <div className="flex items-center justify-between mb-5">
-                        <div className="w-11 h-11 rounded-xl bg-indigo-50 flex items-center justify-center transition-transform group-hover:scale-110">
-                            <Zap className="w-5 h-5 text-indigo-500" />
+                        <div className="w-11 h-11 rounded-xl bg-[#EEF3F1] flex items-center justify-center transition-transform group-hover:scale-110">
+                            <Zap className="w-5 h-5 text-[#2F6B62]" />
                         </div>
                         <span className="px-2 py-1 rounded-md text-[10px] font-bold bg-amber-50 text-amber-600 flex items-center gap-1"><TrendingUp className="w-3 h-3 rotate-180" />-2%</span>
                     </div>
@@ -1011,7 +1081,7 @@ export default function AnalyticsPage() {
                     </div>
                     <div className="mt-6">
                         <div className="flex justify-between text-[11px] font-bold text-slate-400 mb-2"><span>Cible (3%)</span><span className="text-slate-700">{Math.min(100, ((kpis?.conversionRate || 0) / 3) * 100).toFixed(0)}%</span></div>
-                        <div className="h-2 bg-slate-100 rounded-full overflow-hidden"><div className="h-full bg-indigo-500 rounded-full transition-all duration-1000" style={{ width: `${Math.min(100, ((kpis?.conversionRate || 0) / 3) * 100)}%` }} /></div>
+                        <div className="h-2 bg-slate-100 rounded-full overflow-hidden"><div className="h-full bg-[#1F4D47] rounded-full transition-all duration-1000" style={{ width: `${Math.min(100, ((kpis?.conversionRate || 0) / 3) * 100)}%` }} /></div>
                     </div>
                 </div>
 
@@ -1037,10 +1107,10 @@ export default function AnalyticsPage() {
             <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm mb-6 hover:shadow-md transition-shadow">
                 <div className="flex items-center justify-between mb-5">
                     <div className="flex items-center gap-2">
-                        <Target className="w-5 h-5 text-violet-500" />
+                        <Target className="w-5 h-5 text-[#2F6B62]" />
                         <h3 className="text-[16px] font-bold text-slate-800">Missions proches de l'objectif</h3>
                     </div>
-                    <button className="text-[12px] font-bold text-violet-600 hover:text-violet-800 transition-colors">Voir toutes →</button>
+                    <button className="text-[12px] font-bold text-[#1F4D47] hover:text-[#143C37] transition-colors">Voir toutes →</button>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
@@ -1053,14 +1123,14 @@ export default function AnalyticsPage() {
                                 <div className="flex items-start justify-between mb-3">
                                     <div className="overflow-hidden">
                                         <div className="flex items-center gap-2 mb-0.5">
-                                            {isHot && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />}
-                                            <div className="text-[14px] font-bold text-slate-800 truncate group-hover:text-violet-600 transition-colors">{m.missionName}</div>
+                                            {isHot && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" aria-label="Objectif proche" />}
+                                            <div className="text-[14px] font-bold text-slate-800 truncate group-hover:text-[#1F4D47] transition-colors">{m.missionName}</div>
                                         </div>
                                         <div className="text-[11.5px] text-slate-400 truncate flex items-center gap-1">
                                             <span className={cn("px-1.5 py-0.5 rounded text-[9px] font-bold", m.isActive ? "bg-emerald-50 text-emerald-600" : "bg-amber-50 text-amber-600")}>
                                                 {m.isActive ? "ACTIF" : "PAUSE"}
                                             </span>
-                                            · {m.clientName}
+                                            - {m.clientName}
                                         </div>
                                     </div>
                                     <div className="text-right shrink-0">
@@ -1073,7 +1143,7 @@ export default function AnalyticsPage() {
                                 </div>
                                 <div className="flex justify-between items-center text-[11px] font-semibold text-slate-500">
                                     <div className="flex gap-3">
-                                        <span><span className="text-blue-600 font-bold">{m.calls}</span> Appels</span>
+                                        <span><span className="text-[#1F4D47] font-bold">{m.calls}</span> Appels</span>
                                         <span><span className="text-amber-500 font-bold">{m.callbacks}</span> Rappels</span>
                                     </div>
                                     <div className="flex">
@@ -1098,7 +1168,7 @@ export default function AnalyticsPage() {
                             <h3 className="text-[15px] font-bold text-slate-800">Évolution de l'activité</h3>
                         </div>
                         <div className="flex items-center gap-3">
-                            <div className="flex items-center gap-1.5 text-[11.5px] font-bold text-slate-500"><div className="w-3 h-1.5 rounded bg-violet-500" />Appels</div>
+                            <div className="flex items-center gap-1.5 text-[11.5px] font-bold text-slate-500"><div className="w-3 h-1.5 rounded bg-[#1F4D47]" />Appels</div>
                             <div className="flex items-center gap-1.5 text-[11.5px] font-bold text-slate-500"><div className="w-3 h-1.5 rounded bg-amber-400" />Meetings</div>
                         </div>
                     </div>
@@ -1231,8 +1301,8 @@ export default function AnalyticsPage() {
             {/* Call Status Funnel */}
             <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm mb-6 hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-2 mb-5">
-                    <div className="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center">
-                        <ArrowRight className="w-5 h-5 text-indigo-500" />
+                    <div className="w-9 h-9 rounded-xl bg-[#EEF3F1] flex items-center justify-center">
+                        <ArrowRight className="w-5 h-5 text-[#2F6B62]" />
                     </div>
                     <div>
                         <h3 className="text-[15px] font-bold text-slate-800">Entonnoir de conversion</h3>
@@ -1304,25 +1374,25 @@ export default function AnalyticsPage() {
                                 const contactRate = Math.round((s.contacts / Math.max(1, crmActions)) * 100) || 0;
                                 const isFirst = i === 0;
                                 return (
-                                    <tr key={s.sdrId} className={cn("transition-colors", isFirst ? "bg-gradient-to-r from-violet-50/50 to-transparent" : "hover:bg-slate-50")}>
+                                    <tr key={s.sdrId} className={cn("transition-colors", isFirst ? "bg-gradient-to-r from-[#F0F5F3]/50 to-transparent" : "hover:bg-slate-50")}>
                                         <td className="px-5 py-4 text-center">
                                             <span className={cn("text-[12px] font-black", i === 0 ? "text-amber-500" : i === 1 ? "text-slate-400" : i === 2 ? "text-amber-700" : "text-slate-300")}>
-                                                {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : i + 1}
+                                                {i + 1}
                                             </span>
                                         </td>
                                         <td className="px-5 py-4">
                                             <div className="flex items-center gap-3">
-                                                <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center text-[11px] font-black text-white shrink-0 shadow-sm", isFirst ? "bg-gradient-to-br from-violet-500 to-indigo-600 shadow-violet-300" : "")} style={!isFirst ? { background: getSdrColor(s.sdrName) } : {}}>
+                                                <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center text-[11px] font-black text-white shrink-0 shadow-sm", isFirst ? "bg-gradient-to-br from-[#2F6B62] to-[#1F4D47] shadow-[#1F4D47]/15" : "")} style={!isFirst ? { background: getSdrColor(s.sdrName) } : {}}>
                                                     {s.sdrName.substring(0, 2).toUpperCase()}
                                                 </div>
                                                 <div>
-                                                    <div className={cn("text-[13.5px] font-bold", isFirst ? "text-violet-700" : "text-slate-800")}>{s.sdrName}</div>
+                                                    <div className={cn("text-[13.5px] font-bold", isFirst ? "text-[#1A5149]" : "text-slate-800")}>{s.sdrName}</div>
                                                     <div className="text-[11px] text-slate-500 font-medium">{s.sdrRole}</div>
                                                 </div>
                                             </div>
                                         </td>
                                         <td className="px-5 py-4 text-center text-[13.5px] font-black text-slate-700">{s.alloCalls ?? 0}</td>
-                                        <td className="px-5 py-4 text-center text-[13.5px] font-black text-indigo-600">{s.connectedCalls ?? 0}</td>
+                                        <td className="px-5 py-4 text-center text-[13.5px] font-black text-[#1F4D47]">{s.connectedCalls ?? 0}</td>
                                         <td className="px-5 py-4 text-center text-[13.5px] font-black text-slate-700">{crmActions}</td>
                                         <td className="px-5 py-4 text-center text-[13.5px] font-bold text-amber-500">{s.callbacks}</td>
                                         <td className="px-5 py-4 text-center">
@@ -1331,7 +1401,7 @@ export default function AnalyticsPage() {
                                         <td className="px-5 py-4">
                                             <div className="flex items-center gap-3 max-w-[140px]">
                                                 <div className="text-[12.5px] font-black text-slate-600 w-10 text-right">{contactRate}%</div>
-                                                <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden"><div className="h-full bg-indigo-500 rounded-full" style={{ width: `${contactRate}%` }} /></div>
+                                                <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden"><div className="h-full bg-[#1F4D47] rounded-full" style={{ width: `${contactRate}%` }} /></div>
                                             </div>
                                         </td>
                                     </tr>
@@ -1346,8 +1416,8 @@ export default function AnalyticsPage() {
             <div className="bg-white border border-slate-100 rounded-2xl shadow-sm hover:shadow-md transition-shadow p-5 mb-6">
                 <div className="flex flex-wrap items-center justify-between gap-4 mb-5">
                     <div className="flex items-center gap-2">
-                        <div className="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center">
-                            <BarChart3 className="w-5 h-5 text-indigo-600" />
+                        <div className="w-9 h-9 rounded-xl bg-[#EEF3F1] flex items-center justify-center">
+                            <BarChart3 className="w-5 h-5 text-[#1F4D47]" />
                         </div>
                         <div>
                             <h3 className="text-[15px] font-bold text-slate-800">Persona / Target Intelligence</h3>
@@ -1358,7 +1428,7 @@ export default function AnalyticsPage() {
                         <select
                             value={compareMode}
                             onChange={(e) => setCompareMode(e.target.value as 'none' | 'lists' | 'missions')}
-                            className="text-[12px] font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl px-3 py-2 hover:border-violet-300 focus:outline-none focus:ring-2 focus:ring-violet-500/20"
+                            className="text-[12px] font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl px-3 py-2 hover:border-[#AFC5BF] focus:outline-none focus:ring-2 focus:ring-[#FF9E1B]/20"
                         >
                             <option value="none">Vue globale</option>
                             <option value="lists">Comparer 2 listes</option>
@@ -1410,7 +1480,7 @@ export default function AnalyticsPage() {
                                 className={cn(
                                     "px-3 py-1.5 text-[11px] font-bold rounded-xl transition-all",
                                     personaDimension === dim
-                                        ? "bg-indigo-600 text-white shadow-md"
+                                        ? "bg-[#1F4D47] text-white shadow-md"
                                         : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                                 )}
                             >
@@ -1446,15 +1516,15 @@ export default function AnalyticsPage() {
 
                 {isLoadingPersona ? (
                     <div className="flex items-center justify-center py-12">
-                        <RefreshCw className="w-6 h-6 text-indigo-500 animate-spin" />
+                        <RefreshCw className="w-6 h-6 text-[#2F6B62] animate-spin" />
                     </div>
                 ) : personaData && (personaData.mode === 'single' ? personaData[personaDimension] : true) ? (
                     personaData.mode === 'compare' ? (
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            <div className="rounded-xl border border-slate-100 bg-gradient-to-br from-violet-50/30 to-white p-5">
+                            <div className="rounded-xl border border-slate-100 bg-gradient-to-br from-[#F0F5F3]/30 to-white p-5">
                                 <div className="flex items-center gap-2 mb-4">
-                                    <div className="w-8 h-8 rounded-lg bg-violet-100 flex items-center justify-center">
-                                        <GitCompare className="w-4 h-4 text-violet-600" />
+                                    <div className="w-8 h-8 rounded-lg bg-[#E5EFEC] flex items-center justify-center">
+                                        <GitCompare className="w-4 h-4 text-[#1F4D47]" />
                                     </div>
                                     <h4 className="text-[13px] font-bold text-slate-800">{personaData.segmentA?.label}</h4>
                                 </div>
@@ -1473,10 +1543,10 @@ export default function AnalyticsPage() {
                                     metric={personaMetric}
                                 />
                             </div>
-                            <div className="rounded-xl border border-slate-100 bg-gradient-to-br from-indigo-50/30 to-white p-5">
+                            <div className="rounded-xl border border-slate-100 bg-gradient-to-br from-[#EEF3F1]/30 to-white p-5">
                                 <div className="flex items-center gap-2 mb-4">
-                                    <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center">
-                                        <GitCompare className="w-4 h-4 text-indigo-600" />
+                                    <div className="w-8 h-8 rounded-lg bg-[#E5EFEC] flex items-center justify-center">
+                                        <GitCompare className="w-4 h-4 text-[#1F4D47]" />
                                     </div>
                                     <h4 className="text-[13px] font-bold text-slate-800">{personaData.segmentB?.label}</h4>
                                 </div>
@@ -1502,7 +1572,7 @@ export default function AnalyticsPage() {
                                 <div className="flex items-center gap-3 mb-2">
                                     <div className="flex gap-1.5 text-[11px] font-bold text-slate-500">
                                         <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500" />≥5%</span>
-                                        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-indigo-500" />≥3%</span>
+                                        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#1F4D47]" />≥3%</span>
                                         <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-slate-400" />&lt;3%</span>
                                     </div>
                                 </div>
@@ -1550,16 +1620,39 @@ export default function AnalyticsPage() {
                         <button className={cn("px-3.5 py-1.5 text-[11px] font-bold transition-all whitespace-nowrap rounded-xl flex items-center gap-1.5", journalFilter === 'disqualified' ? "bg-red-500 text-white shadow-md shadow-red-500/20" : "bg-white text-slate-600 hover:bg-slate-50 border border-slate-200")} onClick={() => setJournalFilter('disqualified')}>
                             <div className={cn("w-1.5 h-1.5 rounded-full", journalFilter === 'disqualified' ? "bg-white" : "bg-red-500")} /> Disqualifiés
                         </button>
-                        <button className={cn("px-3.5 py-1.5 text-[11px] font-bold transition-all whitespace-nowrap rounded-xl flex items-center gap-1.5", journalFilter === 'no_response' ? "bg-blue-500 text-white shadow-md shadow-blue-500/20" : "bg-white text-slate-600 hover:bg-slate-50 border border-slate-200")} onClick={() => setJournalFilter('no_response')}>
-                            <div className={cn("w-1.5 h-1.5 rounded-full", journalFilter === 'no_response' ? "bg-white" : "bg-blue-500")} /> Sans réponse
+                        <button className={cn("px-3.5 py-1.5 text-[11px] font-bold transition-all whitespace-nowrap rounded-xl flex items-center gap-1.5", journalFilter === 'no_response' ? "bg-[#1F4D47] text-white shadow-md shadow-[#1F4D47]/20" : "bg-white text-slate-600 hover:bg-slate-50 border border-slate-200")} onClick={() => setJournalFilter('no_response')}>
+                            <div className={cn("w-1.5 h-1.5 rounded-full", journalFilter === 'no_response' ? "bg-white" : "bg-[#8D9B96]")} /> Sans réponse
                         </button>
                     </div>
 
                     <div className="relative shrink-0 w-full md:w-auto">
                         <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                        <input className="w-full md:w-56 pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-[12px] font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500/50 transition-all placeholder:text-slate-400 shadow-sm" type="text" placeholder="Rechercher..." disabled />
+                        <input
+                            className="w-full md:w-64 pl-9 pr-8 py-2 bg-white border border-slate-200 rounded-xl text-[12px] font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#FF9E1B]/20 focus:border-[#E07C00] transition-all placeholder:text-slate-400 shadow-sm"
+                            type="search"
+                            aria-label="Rechercher dans le journal"
+                            placeholder="SDR, mission, contact..."
+                            value={journalSearch}
+                            onChange={(event) => setJournalSearch(event.target.value)}
+                        />
+                        {journalSearch && (
+                            <button
+                                type="button"
+                                onClick={() => setJournalSearch('')}
+                                aria-label="Effacer la recherche"
+                                className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                            >
+                                <X className="h-3.5 w-3.5" />
+                            </button>
+                        )}
                     </div>
                 </div>
+
+                {!isLoadingActions && filteredActions.length === 0 && actions.length > 0 && (
+                    <div className="mb-4 rounded-lg border border-[#DDE5E2] bg-[#F8FAF9] px-4 py-3 text-center text-xs font-medium text-slate-600">
+                        Aucun résultat ne correspond aux filtres du journal.
+                    </div>
+                )}
 
                 <div className="[&_.rt-table]:border-slate-100 [&_th]:text-[10px] [&_th]:font-extrabold [&_th]:text-slate-400 [&_th]:uppercase [&_th]:tracking-widest [&_th]:bg-slate-50/50 [&_th]:py-3 [&_td]:py-3.5 [&_td]:text-[13px] border border-slate-100 rounded-xl overflow-hidden [&_.rt-pagination]:p-3 [&_.rt-pagination]:border-t [&_.rt-pagination]:border-slate-100">
                     <DataTable
@@ -1567,7 +1660,7 @@ export default function AnalyticsPage() {
                         columns={[
                             { key: "createdAt", header: "Date", sortable: true, render: (val: string) => <div className="text-[12px] text-slate-500 font-bold font-mono bg-slate-50 px-2 py-1 rounded w-max">{new Date(val).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</div> },
                             { key: "sdrName", header: "SDR", sortable: true, render: (val: string) => <div className="flex items-center gap-2"><div className="w-6 h-6 rounded-lg flex items-center justify-center text-[9px] font-black text-white shrink-0 shadow-sm" style={{ background: getSdrColor(val) }}>{val.substring(0, 2).toUpperCase()}</div><span className="font-bold text-slate-700">{val}</span></div> },
-                            { key: "missionName", header: "Mission", sortable: true, render: (val: string) => <span className="text-[12px] font-bold text-violet-600 bg-violet-50 px-2 py-1 rounded-md">{val}</span> },
+                            { key: "missionName", header: "Mission", sortable: true, render: (val: string) => <span className="text-[12px] font-bold text-[#1F4D47] bg-[#F0F5F3] px-2 py-1 rounded-md">{val}</span> },
                             { key: "contactName", header: "Contact", sortable: true, render: (val: string, row: any) => <div><div className="font-black text-slate-800 tracking-tight">{val}</div><div className="text-[11.5px] font-medium text-slate-400">{row.companyName}</div></div> },
                             {
                                 key: "result", header: "Résultat", sortable: true, render: (val: string) => {
@@ -1575,7 +1668,7 @@ export default function AnalyticsPage() {
                                     if (val === 'MEETING_BOOKED') { bg = 'bg-emerald-50 text-emerald-700 border border-emerald-100/50'; dot = 'bg-emerald-500'; }
                                     if (val === 'CALLBACK_REQUESTED' || val === 'INTERESTED') { bg = 'bg-amber-50 text-amber-700 border border-amber-100/50'; dot = 'bg-amber-500'; }
                                     if (val === 'DISQUALIFIED') { bg = 'bg-red-50 text-red-700 border border-red-100/50'; dot = 'bg-red-500'; }
-                                    if (val === 'NO_RESPONSE') { bg = 'bg-blue-50 text-blue-700 border border-blue-100/50'; dot = 'bg-blue-500'; }
+                                    if (val === 'NO_RESPONSE') { bg = 'bg-[#EEF3F1] text-[#1F4D47] border border-[#D7E3DF]'; dot = 'bg-[#8D9B96]'; }
                                     return <span className={cn("px-2.5 py-1.5 rounded-full text-[10px] font-bold tracking-wider flex w-max items-center gap-1.5 uppercase", bg)}><div className={cn("w-1.5 h-1.5 rounded-full", dot)} />{ACTION_RESULT_LABELS[val] || val}</span>
                                 }
                             },
@@ -1609,7 +1702,7 @@ export default function AnalyticsPage() {
                                     className={cn(
                                         "flex-1 px-3 py-2.5 rounded-xl text-[13px] font-semibold border transition-all",
                                         reportType === t
-                                            ? "bg-violet-50 border-violet-300 text-violet-700"
+                                            ? "bg-[#F0F5F3] border-[#AFC5BF] text-[#1A5149]"
                                             : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"
                                     )}
                                 >
@@ -1626,7 +1719,7 @@ export default function AnalyticsPage() {
                                 type="date"
                                 value={reportDate}
                                 onChange={(e) => setReportDate(e.target.value)}
-                                className="w-full px-4 py-3 border border-slate-200 rounded-xl text-[13px] font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
+                                className="w-full px-4 py-3 border border-slate-200 rounded-xl text-[13px] font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#FF9E1B]/20 focus:border-[#E07C00]"
                             />
                         </div>
                     )}
@@ -1638,7 +1731,7 @@ export default function AnalyticsPage() {
                                 type="date"
                                 value={reportDate}
                                 onChange={(e) => setReportDate(e.target.value)}
-                                className="w-full px-4 py-3 border border-slate-200 rounded-xl text-[13px] font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
+                                className="w-full px-4 py-3 border border-slate-200 rounded-xl text-[13px] font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#FF9E1B]/20 focus:border-[#E07C00]"
                             />
                             <p className="text-[11px] text-slate-400 mt-1">La semaine (lun-dim) contenant cette date sera utilisée.</p>
                         </div>
@@ -1652,7 +1745,7 @@ export default function AnalyticsPage() {
                                     type="date"
                                     value={reportDateFrom}
                                     onChange={(e) => setReportDateFrom(e.target.value)}
-                                    className="w-full px-4 py-3 border border-slate-200 rounded-xl text-[13px] font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
+                                    className="w-full px-4 py-3 border border-slate-200 rounded-xl text-[13px] font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#FF9E1B]/20 focus:border-[#E07C00]"
                                 />
                             </div>
                             <div>
@@ -1661,14 +1754,14 @@ export default function AnalyticsPage() {
                                     type="date"
                                     value={reportDateTo}
                                     onChange={(e) => setReportDateTo(e.target.value)}
-                                    className="w-full px-4 py-3 border border-slate-200 rounded-xl text-[13px] font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
+                                    className="w-full px-4 py-3 border border-slate-200 rounded-xl text-[13px] font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#FF9E1B]/20 focus:border-[#E07C00]"
                                 />
                             </div>
                         </div>
                     )}
 
                     <p className="text-[12px] text-slate-500">
-                        Mission(s) et filtres actuels : {selectedMissions.length ? selectedMissions.length + " mission(s)" : "Toutes"} · SDR : {selectedSdrs.length || "Tous"}
+                        Mission(s) et filtres actuels : {selectedMissions.length ? selectedMissions.length + " mission(s)" : "Toutes"} / SDR : {selectedSdrs.length || "Tous"}
                     </p>
 
                     <div className="flex justify-end gap-3 pt-2">
@@ -1684,7 +1777,7 @@ export default function AnalyticsPage() {
                             type="button"
                             onClick={handleGenerateReport}
                             disabled={isGeneratingReport}
-                            className="flex items-center gap-2 px-5 py-2.5 bg-violet-600 text-white text-[13px] font-semibold rounded-xl hover:bg-violet-700 disabled:opacity-60 transition-colors"
+                            className="flex items-center gap-2 px-5 py-2.5 bg-[#1F4D47] text-white text-[13px] font-semibold rounded-xl hover:bg-[#173F3A] disabled:opacity-60 transition-colors"
                         >
                             {isGeneratingReport ? (
                                 <>

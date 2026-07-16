@@ -11,11 +11,8 @@ export default function ManagerEmailHubLayout({
     children: React.ReactNode;
 }) {
     return (
-        <div className="space-y-6">
-            <div className="flex flex-col gap-4">
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                    Email
-                </p>
+        <div className="space-y-5">
+            <div className="rounded-xl border border-[#DDE5E2] bg-white p-2 shadow-sm">
                 <EmailHubTabs />
             </div>
             {children}

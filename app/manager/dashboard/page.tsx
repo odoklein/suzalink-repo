@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
     Phone, RefreshCw, TrendingUp, ArrowUpRight, Flame, Trophy,
-    Clock, ArrowRight, Loader2, Calendar, ChevronDown, Target,
+    Clock, ArrowRight, AlertTriangle, Calendar, ChevronDown, Target,
     Zap, Activity, Users, Star, CheckCircle2,
 } from "lucide-react";
 import Link from "next/link";
@@ -86,20 +86,8 @@ function buildWeeklyGoalData(n: number) {
 }
 
 /* ─── Animated Counter ─── */
-function useCountUp(target: number, duration = 1000) {
-    const [count, setCount] = useState(0);
-    useEffect(() => {
-        if (target === 0) { setCount(0); return; }
-        let current = 0;
-        const step = Math.max(1, Math.ceil(target / (duration / 40)));
-        const id = setInterval(() => {
-            current += step;
-            if (current >= target) { setCount(target); clearInterval(id); }
-            else setCount(current);
-        }, 40);
-        return () => clearInterval(id);
-    }, [target, duration]);
-    return count;
+function useCountUp(target: number) {
+    return target;
 }
 
 /* ─── Progress Ring ─── */
@@ -110,9 +98,9 @@ function ProgressRing({ pct, size = 56, stroke = 5, color = "#0c3b38" }: {
     const circ = 2 * Math.PI * r;
     const offset = circ - (pct / 100) * circ;
     return (
-        <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
+        <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }} aria-hidden="true">
             <circle cx={size / 2} cy={size / 2} r={r} fill="none"
-                stroke="rgba(124,92,252,0.12)" strokeWidth={stroke} />
+                stroke="rgba(31,77,71,0.14)" strokeWidth={stroke} />
             <circle cx={size / 2} cy={size / 2} r={r} fill="none"
                 stroke={color} strokeWidth={stroke}
                 strokeDasharray={circ} strokeDashoffset={offset}
@@ -204,7 +192,7 @@ function MiniKpi({ label, value, suffix, icon: Icon, bgColor, iconColor, trend }
 }) {
     const count = useCountUp(value);
     return (
-        <div className="flex-1 bg-white rounded-2xl border border-slate-100 p-4 flex items-center justify-between group hover:shadow-md hover:border-violet-100 transition-all duration-200">
+        <div className="flex-1 bg-white rounded-2xl border border-slate-100 p-4 flex items-center justify-between group hover:shadow-md hover:border-[#D7E3DF] transition-all duration-200">
             <div>
                 <div className="text-[11px] text-slate-400 font-medium mb-1 uppercase tracking-wider">{label}</div>
                 <div className="flex items-end gap-1">
@@ -266,8 +254,11 @@ async function fetchDashboardData(
     const [statsJson, missionsJson, recentJson] = await Promise.all([
         statsRes.json(), missionsRes.json(), recentRes.json(),
     ]);
+    if (!statsRes.ok || !statsJson.success) {
+        throw new Error(statsJson.error || "Impossible de charger le tableau de bord");
+    }
     return {
-        stats: statsJson.success ? statsJson.data : null,
+        stats: statsJson.data,
         missions: missionsJson.success ? missionsJson.data?.missions ?? [] : [],
         recentActivity: recentJson.success ? recentJson.data ?? [] : [],
     };
@@ -292,7 +283,7 @@ export default function ManagerDashboard() {
         ? dateRange.endDate
         : toISO(getPresetRange((dateRange.preset as DateRangePreset) || "lastMonth").end);
 
-    const { data, isLoading, isFetching, refetch } = useQuery({
+    const { data, error, isError, isLoading, isFetching, refetch } = useQuery({
         queryKey: ["manager", "dashboard", start, end, missionFilter],
         queryFn: () => fetchDashboardData(start, end, missionFilter),
         refetchInterval: 60_000,
@@ -314,25 +305,42 @@ export default function ManagerDashboard() {
 
     if (isLoading && !stats) {
         return (
-            <div className="flex items-center justify-center py-40" style={{ background: "#F4F6FA" }}>
-                <div className="flex flex-col items-center gap-4">
-                    <div className="w-14 h-14 rounded-2xl bg-violet-100 flex items-center justify-center">
-                        <Loader2 className="w-7 h-7 text-violet-600 animate-spin" />
+            <div className="min-h-[60dvh] bg-[#F5F7F6] p-4 sm:p-6" aria-busy="true" aria-label="Chargement du tableau de bord">
+                <div className="space-y-4">
+                    <div className="h-10 w-72 max-w-full skeleton-shimmer rounded-xl" />
+                    <div className="grid grid-cols-1 lg:grid-cols-[2fr_1.2fr] gap-4">
+                        <div className="h-64 skeleton-shimmer rounded-xl" />
+                        <div className="grid gap-3"><div className="h-20 skeleton-shimmer rounded-xl" /><div className="h-20 skeleton-shimmer rounded-xl" /><div className="h-20 skeleton-shimmer rounded-xl" /></div>
                     </div>
-                    <p className="text-[13px] text-slate-400 font-medium">Chargement du tableau de bord...</p>
+                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-4"><div className="h-72 skeleton-shimmer rounded-xl" /><div className="h-72 skeleton-shimmer rounded-xl" /></div>
+                </div>
+            </div>
+        );
+    }
+
+    if (isError && !data) {
+        return (
+            <div className="min-h-[60dvh] bg-[#F5F7F6] flex items-center justify-center p-6">
+                <div className="w-full max-w-md rounded-xl border border-red-200 bg-white p-6 text-center shadow-sm" role="alert">
+                    <AlertTriangle className="mx-auto mb-3 h-8 w-8 text-red-500" />
+                    <h1 className="text-lg font-bold text-slate-900">Tableau de bord indisponible</h1>
+                    <p className="mt-2 text-sm text-slate-600">{error instanceof Error ? error.message : "Une erreur inattendue est survenue."}</p>
+                    <button onClick={() => refetch()} className="mt-5 inline-flex h-10 items-center gap-2 rounded-lg border border-[#CBD8D4] bg-white px-4 text-sm font-bold text-[#1F4D47] hover:bg-[#EEF3F1] active:translate-y-px">
+                        <RefreshCw className="h-4 w-4" /> Réessayer
+                    </button>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-full p-5 lg:p-6" style={{ background: "linear-gradient(160deg, #F4F6FA 0%, #EEF2FF 100%)", fontFamily: "'Inter', system-ui, sans-serif" }}>
+        <div className="min-h-full p-5 lg:p-6" style={{ background: "#F5F7F6" }}>
 
             {/* ── Page Header ── */}
             <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
                 <div>
                     <div className="flex items-center gap-2 mb-1">
-                        <div className="w-8 h-8 rounded-xl bg-violet-600 flex items-center justify-center shadow-lg shadow-violet-500/30">
+                        <div className="w-8 h-8 rounded-xl bg-[#1F4D47] flex items-center justify-center shadow-lg shadow-[#1F4D47]/20">
                             <Activity className="w-4 h-4 text-white" />
                         </div>
                         <h1 className="text-[22px] font-black text-slate-900 tracking-tight">Tableau de bord</h1>
@@ -343,7 +351,7 @@ export default function ManagerDashboard() {
                                 ? `Du ${new Date(dateRange.startDate).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })} au ${new Date(dateRange.endDate).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}`
                                 : "Période"}
                         </span>
-                        {" · "}{missionFilter ? "Mission sélectionnée" : "Toutes les missions"}
+                        {" / "}{missionFilter ? "Mission sélectionnée" : "Toutes les missions"}
                     </p>
                 </div>
 
@@ -351,8 +359,10 @@ export default function ManagerDashboard() {
                     {/* Date filter */}
                     <div className="relative" ref={dateFilterRef}>
                         <button onClick={() => setDateFilterOpen((o) => !o)}
-                            className="flex items-center gap-2 px-3.5 py-2 text-[12px] font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl hover:border-violet-300 hover:shadow-sm transition-all duration-150 shadow-sm">
-                            <Calendar className="w-3.5 h-3.5 text-violet-500" />
+                            aria-expanded={dateFilterOpen}
+                            aria-label="Choisir la période"
+                            className="flex items-center gap-2 px-3.5 py-2 text-[12px] font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl hover:border-[#AFC5BF] hover:shadow-sm transition-all duration-150 shadow-sm">
+                            <Calendar className="w-3.5 h-3.5 text-[#2F6B62]" />
                             <span>{dateRange.preset ? PRESET_LABELS[dateRange.preset] : "Plage"}</span>
                             <ChevronDown className={cn("w-3.5 h-3.5 text-slate-400 transition-transform", dateFilterOpen && "rotate-180")} />
                         </button>
@@ -367,15 +377,16 @@ export default function ManagerDashboard() {
                     </div>
 
                     {/* Mission filter */}
-                    <select value={missionFilter} onChange={(e) => setMissionFilter(e.target.value)}
-                        className="px-3.5 py-2 text-[12px] font-medium text-slate-700 bg-white border border-slate-200 rounded-xl min-w-[160px] focus:outline-none focus:ring-2 focus:ring-violet-400/30 focus:border-violet-400 shadow-sm">
+                    <select value={missionFilter} onChange={(e) => setMissionFilter(e.target.value)} aria-label="Filtrer par mission"
+                        className="px-3.5 py-2 text-[12px] font-medium text-slate-700 bg-white border border-slate-200 rounded-xl min-w-[160px] focus:outline-none focus:ring-2 focus:ring-[#FF9E1B]/25 focus:border-[#E07C00] shadow-sm">
                         <option value="">Toutes les missions</option>
                         {missions.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
                     </select>
 
                     {/* Refresh */}
                     <button onClick={() => refetch()} disabled={isFetching}
-                        className="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-violet-600 hover:border-violet-300 hover:shadow-sm transition-all duration-150 shadow-sm disabled:opacity-50">
+                        aria-label="Actualiser le tableau de bord"
+                        className="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#1F4D47] hover:border-[#AFC5BF] hover:shadow-sm transition-all duration-150 shadow-sm disabled:opacity-50">
                         <RefreshCw className={cn("w-3.5 h-3.5", isFetching && "animate-spin")} />
                     </button>
 
@@ -389,7 +400,7 @@ export default function ManagerDashboard() {
                 </div>
             </div>
 
-            {/* ══ ROW 1 — Hero KPIs ══ */}
+            {/* ROW 1: Hero KPIs */}
             <div className="flex flex-col lg:flex-row gap-4 mb-4">
                 <HeroKpiCard
                     label="RDV décrochés"
@@ -400,13 +411,13 @@ export default function ManagerDashboard() {
                     sparkData={sparklineData}
                 />
                 <div className="flex-[1.2] flex flex-col gap-3">
-                    <MiniKpi label="Appels effectués" value={stats?.totalActions ?? 0} icon={Phone} bgColor="bg-violet-50" iconColor="text-violet-600" trend="up" />
-                    <MiniKpi label="Leads chauds 🔥" value={hotLeads} icon={Flame} bgColor="bg-amber-50" iconColor="text-amber-500" />
+                    <MiniKpi label="Appels effectués" value={stats?.totalActions ?? 0} icon={Phone} bgColor="bg-[#F0F5F3]" iconColor="text-[#1F4D47]" trend="up" />
+                    <MiniKpi label="Leads chauds" value={hotLeads} icon={Flame} bgColor="bg-amber-50" iconColor="text-amber-500" />
                     <MiniKpi label="Taux de conversion" value={Math.round((stats?.conversionRate ?? 0) * 10) / 10} suffix="%" icon={TrendingUp} bgColor="bg-emerald-50" iconColor="text-emerald-500" trend="up" />
                 </div>
             </div>
 
-            {/* ══ ROW 2 — Charts + Insights ══ */}
+            {/* ROW 2: Charts and insights */}
             <div className="flex flex-col xl:flex-row gap-4 mb-4">
 
                 {/* LEFT COL (60%) */}
@@ -415,7 +426,7 @@ export default function ManagerDashboard() {
                     {/* Charts row */}
                     <div className="flex flex-col lg:flex-row gap-4">
 
-                        {/* Résultats appels — donut */}
+                        {/* Résultats appels: donut */}
                         <div className="flex-1 bg-white rounded-2xl border border-slate-100 p-5 shadow-sm hover:shadow-md transition-shadow duration-200">
                             <div className="flex items-center justify-between mb-5">
                                 <h3 className="text-[14px] font-bold text-slate-800">Résultats des appels</h3>
@@ -472,7 +483,7 @@ export default function ManagerDashboard() {
                         <div className="flex-1 bg-white rounded-2xl border border-slate-100 p-5 shadow-sm hover:shadow-md transition-shadow duration-200">
                             <div className="flex items-center justify-between mb-4">
                                 <h3 className="text-[14px] font-bold text-slate-800">Leads à relancer</h3>
-                                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-violet-100 text-violet-600">
+                                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#E5EFEC] text-[#1F4D47]">
                                     {callbackCount} en attente
                                 </span>
                             </div>
@@ -489,9 +500,9 @@ export default function ManagerDashboard() {
                                     </div>
                                 </div>
                                 {/* Interested */}
-                                <div className="flex items-center gap-3 p-3 rounded-xl bg-violet-50 border border-violet-100">
-                                    <div className="w-9 h-9 rounded-xl bg-violet-100 flex items-center justify-center flex-shrink-0">
-                                        <Star className="w-4 h-4 text-violet-600" />
+                                <div className="flex items-center gap-3 p-3 rounded-xl bg-[#F0F5F3] border border-[#D7E3DF]">
+                                    <div className="w-9 h-9 rounded-xl bg-[#E5EFEC] flex items-center justify-center flex-shrink-0">
+                                        <Star className="w-4 h-4 text-[#1F4D47]" />
                                     </div>
                                     <div>
                                         <p className="text-[12px] font-bold text-slate-800">{stats?.resultBreakdown?.INTERESTED ?? 0} contacts intéressés</p>
@@ -501,7 +512,7 @@ export default function ManagerDashboard() {
                             </div>
 
                             <Link href="/manager/prospection"
-                                className="mt-4 flex items-center gap-1.5 text-[12px] font-bold text-violet-600 hover:text-violet-800 transition-colors">
+                                className="mt-4 flex items-center gap-1.5 text-[12px] font-bold text-[#1F4D47] hover:text-[#143C37] transition-colors">
                                 Voir la file de prospection <ArrowRight className="w-3.5 h-3.5" />
                             </Link>
                         </div>
@@ -511,10 +522,10 @@ export default function ManagerDashboard() {
                     <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm hover:shadow-md transition-shadow duration-200">
                         <div className="flex items-center justify-between mb-5">
                             <div className="flex items-center gap-2">
-                                <Target className="w-4 h-4 text-violet-500" />
+                                <Target className="w-4 h-4 text-[#2F6B62]" />
                                 <h3 className="text-[14px] font-bold text-slate-800">Missions proches de l'objectif</h3>
                             </div>
-                            <Link href="/manager/missions" className="text-[12px] font-bold text-violet-600 hover:text-violet-800 transition-colors">
+                            <Link href="/manager/missions" className="text-[12px] font-bold text-[#1F4D47] hover:text-[#143C37] transition-colors">
                                 Voir toutes →
                             </Link>
                         </div>
@@ -530,9 +541,9 @@ export default function ManagerDashboard() {
                                         <Link key={m.id} href={`/manager/missions/${m.id}`} className="block group">
                                             <div className="flex items-center justify-between mb-2">
                                                 <div className="flex items-center gap-2">
-                                                    {isHot && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />}
-                                                    <span className="text-[13px] font-semibold text-slate-700 group-hover:text-violet-600 transition-colors">{m.name}</span>
-                                                    <span className="text-[10px] text-slate-400">· {m.client.name}</span>
+                                                    {isHot && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" aria-label="Objectif proche" />}
+                                                    <span className="text-[13px] font-semibold text-slate-700 group-hover:text-[#1F4D47] transition-colors">{m.name}</span>
+                                                    <span className="text-[10px] text-slate-400">- {m.client.name}</span>
                                                 </div>
                                                 <span className="text-[12px] font-bold text-slate-600">{m.meetingsThisPeriod}<span className="font-normal text-slate-300">/{goal}</span></span>
                                             </div>
@@ -570,8 +581,8 @@ export default function ManagerDashboard() {
                                         : "bg-amber-50 text-amber-600"
                             )}>
                                 <Zap className="w-3 h-3" />
-                                {rdvGoalPct >= 100 ? "Objectif atteint 🎉"
-                                    : rdvGoalPct >= 80 ? "En avance 🔥"
+                                {rdvGoalPct >= 100 ? "Objectif atteint"
+                                    : rdvGoalPct >= 80 ? "En avance"
                                         : `${Math.round(100 - rdvGoalPct)}% restant`}
                             </div>
                         </div>
@@ -588,20 +599,20 @@ export default function ManagerDashboard() {
                                             className={cn(
                                                 "flex items-center gap-3 p-2.5 rounded-xl transition-all duration-150",
                                                 isFirst
-                                                    ? "bg-gradient-to-r from-violet-50 to-indigo-50 border border-violet-100"
+                                                    ? "bg-gradient-to-r from-[#F0F5F3] to-[#FFF4E2] border border-[#D7E3DF]"
                                                     : "hover:bg-slate-50"
                                             )}>
                                             {/* Rank */}
                                             <span className={cn("w-5 text-[12px] font-black text-center flex-shrink-0",
                                                 i === 0 ? "text-amber-400" : i === 1 ? "text-slate-400" : i === 2 ? "text-amber-600" : "text-slate-300"
                                             )}>
-                                                {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : i + 1}
+                                                {i + 1}
                                             </span>
                                             {/* Avatar */}
                                             <div className={cn(
                                                 "w-8 h-8 rounded-xl flex items-center justify-center text-[11px] font-black text-white flex-shrink-0",
                                                 isFirst
-                                                    ? "bg-gradient-to-br from-violet-500 to-indigo-600 shadow-md shadow-violet-300"
+                                                    ? "bg-gradient-to-br from-[#2F6B62] to-[#1F4D47] shadow-md shadow-[#1F4D47]/15"
                                                     : "bg-slate-200 text-slate-600"
                                             )}>
                                                 {getInitials(person.name)}
@@ -610,12 +621,12 @@ export default function ManagerDashboard() {
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center justify-between mb-1">
                                                     <span className={cn("text-[12px] font-bold truncate",
-                                                        isFirst ? "text-violet-700" : "text-slate-700"
+                                                        isFirst ? "text-[#1A5149]" : "text-slate-700"
                                                     )}>{person.name}</span>
                                                     <span className="text-[13px] font-black text-slate-800 flex-shrink-0 ml-2">{person.rdv}<span className="text-[10px] font-normal text-slate-400 ml-0.5">RDV</span></span>
                                                 </div>
                                                 <div className="flex items-center gap-2 mb-1.5">
-                                                    <span className="text-[10px] font-semibold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">
+                                                    <span className="text-[10px] font-semibold text-[#1F4D47] bg-[#EEF3F1] px-1.5 py-0.5 rounded">
                                                         Appels {callStats?.calls ?? 0}
                                                     </span>
                                                     <span className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">
@@ -677,9 +688,8 @@ export default function ManagerDashboard() {
                         ) : (
                             <div className="space-y-3 max-h-[220px] overflow-y-auto pr-1"
                                 style={{ scrollbarWidth: "thin", scrollbarColor: "#E2E8F0 transparent" }}>
-                                {rdvActivity.slice(0, 10).map((item, idx) => (
-                                    <div key={item.id} className="flex items-start gap-3"
-                                        style={{ opacity: 0, animation: `fadeInUp 0.3s ease ${idx * 0.05}s forwards` }}>
+                                {rdvActivity.slice(0, 10).map((item) => (
+                                    <div key={item.id} className="flex items-start gap-3">
                                         <div className="w-7 h-7 rounded-xl bg-emerald-50 flex items-center justify-center flex-shrink-0 mt-0.5">
                                             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
                                         </div>
@@ -687,7 +697,7 @@ export default function ManagerDashboard() {
                                             <p className="text-[12px] text-slate-600 leading-relaxed">
                                                 <span className="font-bold text-slate-800">{item.user}</span>
                                                 {" "}a décroché un RDV{item.contactOrCompanyName && (
-                                                    <> avec <span className="font-bold text-violet-600">{item.contactOrCompanyName}</span></>
+                                                    <> avec <span className="font-bold text-[#1F4D47]">{item.contactOrCompanyName}</span></>
                                                 )}
                                             </p>
                                             <span className="text-[10px] text-slate-300">{item.time}</span>
@@ -700,12 +710,6 @@ export default function ManagerDashboard() {
                 </div>
             </div>
 
-            <style>{`
-                @keyframes fadeInUp {
-                    from { opacity:0; transform:translateY(6px); }
-                    to   { opacity:1; transform:translateY(0); }
-                }
-            `}</style>
         </div>
     );
 }

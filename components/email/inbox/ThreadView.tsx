@@ -408,7 +408,7 @@ export function ThreadView({
     if (isLoading) {
         return (
             <div className="flex-1 flex flex-col items-center justify-center gap-3">
-                <Loader2 className="w-6 h-6 text-indigo-400 animate-spin" />
+                <Loader2 className="w-6 h-6 text-[#1F4D47] animate-spin" />
                 <p className="text-xs text-slate-400">Chargement du thread...</p>
             </div>
         );
@@ -427,7 +427,7 @@ export function ThreadView({
                 <p className="text-sm text-slate-500 mb-5">{error}</p>
                 <button
                     onClick={onClose}
-                    className="px-5 py-2 text-sm font-medium text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors"
+                    className="px-5 py-2 text-sm font-bold text-[#1F4D47] hover:bg-[#EDF4F2] rounded-lg transition-colors"
                 >
                     Retour à la liste
                 </button>
@@ -438,7 +438,7 @@ export function ThreadView({
     return (
         <div className="flex-1 flex flex-col min-h-0">
             {/* Header */}
-            <div className="px-5 py-4 border-b border-slate-100 bg-white flex-shrink-0">
+            <div className="px-5 py-4 border-b border-[#DDE5E2] bg-white flex-shrink-0">
                 <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                         <h2 className="text-lg font-semibold text-slate-900 leading-snug mb-1">
@@ -514,21 +514,21 @@ export function ThreadView({
                     <div className="flex items-center gap-2">
                         <button
                             onClick={handleReply}
-                            className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-semibold rounded-xl hover:from-indigo-500 hover:to-violet-500 hover:shadow-lg hover:shadow-indigo-500/25 hover:-translate-y-[1px] active:translate-y-0 transition-all duration-200"
+                            className="flex items-center gap-2 px-5 py-2.5 border border-[#E07C00] bg-[#FF9E1B] text-[#15201E] text-sm font-bold rounded-lg hover:bg-[#F09212] active:translate-y-px transition-colors"
                         >
                             <Reply className="w-4 h-4" />
                             Répondre
                         </button>
                         <button
                             onClick={handleReplyAll}
-                            className="flex items-center gap-2 px-4 py-2.5 text-slate-600 text-sm font-medium rounded-xl hover:bg-slate-100 transition-all duration-200"
+                            className="flex items-center gap-2 px-4 py-2.5 border border-[#DDE5E2] bg-white text-slate-700 text-sm font-semibold rounded-lg hover:bg-[#F1F4F3] transition-colors"
                         >
                             <ReplyAll className="w-4 h-4" />
                             <span className="hidden sm:inline">Répondre à tous</span>
                         </button>
                         <button
                             onClick={handleForward}
-                            className="flex items-center gap-2 px-4 py-2.5 text-slate-600 text-sm font-medium rounded-xl hover:bg-slate-100 transition-all duration-200"
+                            className="flex items-center gap-2 px-4 py-2.5 border border-[#DDE5E2] bg-white text-slate-700 text-sm font-semibold rounded-lg hover:bg-[#F1F4F3] transition-colors"
                         >
                             <Forward className="w-4 h-4" />
                             <span className="hidden sm:inline">Transférer</span>
@@ -593,7 +593,7 @@ function EmailMessage({
         <div className={cn(
             "border rounded-2xl overflow-hidden bg-white transition-all duration-200",
             isLast
-                ? "border-indigo-200/60 shadow-sm shadow-indigo-500/5"
+                ? "border-[#C9D9D5] shadow-sm"
                 : "border-slate-200/80",
             isExpanded ? "shadow-sm" : "hover:shadow-sm"
         )}>
@@ -606,7 +606,7 @@ function EmailMessage({
                 <div className={cn(
                     "w-10 h-10 rounded-full flex items-center justify-center text-[13px] font-semibold flex-shrink-0 bg-gradient-to-br text-white shadow-sm",
                     isOutbound
-                        ? "from-indigo-400 to-violet-600"
+                        ? "from-[#2F615A] to-[#1F4D47]"
                         : avatarColor
                 )}>
                     {initials}
@@ -671,23 +671,23 @@ function EmailMessage({
                                         e.stopPropagation();
                                         onRequestRecap();
                                     }}
-                                    className="flex items-center gap-2 px-3 py-2 rounded-xl border border-indigo-100/60 bg-indigo-50/40 hover:bg-indigo-50/80 text-indigo-600 text-[13px] font-medium transition-colors"
+                                    className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#C9D9D5] bg-[#EDF4F2] hover:bg-[#E2ECE9] text-[#1F4D47] text-[13px] font-semibold transition-colors"
                                 >
                                     <Sparkles className="w-3.5 h-3.5" />
                                     Résumer avec l&apos;IA
                                 </button>
                             ) : (
-                                <div className="flex items-start gap-2.5 p-3 rounded-xl bg-gradient-to-r from-indigo-50/80 to-violet-50/80 border border-indigo-100/60">
-                                    <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-indigo-400 to-violet-500 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm">
+                                <div className="flex items-start gap-2.5 p-3 rounded-lg bg-[#EDF4F2] border border-[#C9D9D5]">
+                                    <div className="w-6 h-6 rounded-lg bg-[#1F4D47] flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm">
                                         <Sparkles className="w-3.5 h-3.5 text-white" />
                                     </div>
                                     <div className="min-w-0 flex-1">
-                                        <p className="text-[11px] font-bold text-indigo-600 uppercase tracking-wider mb-1">
+                                        <p className="text-[11px] font-bold text-[#1F4D47] mb-1">
                                             Résumé IA
                                         </p>
                                         {recapLoading && (
                                             <div className="flex items-center gap-2 text-sm text-slate-500">
-                                                <Loader2 className="w-3.5 h-3.5 animate-spin flex-shrink-0 text-indigo-400" />
+                                                <Loader2 className="w-3.5 h-3.5 animate-spin flex-shrink-0 text-[#1F4D47]" />
                                                 <span className="text-[13px]">Analyse en cours...</span>
                                             </div>
                                         )}
@@ -699,7 +699,7 @@ function EmailMessage({
                                                         e.stopPropagation();
                                                         onRequestRecap();
                                                     }}
-                                                    className="text-[12px] text-indigo-500 hover:text-indigo-700 font-medium flex-shrink-0"
+                                                    className="text-[12px] text-[#1F4D47] hover:text-[#153B36] font-bold flex-shrink-0"
                                                 >
                                                     Réessayer
                                                 </button>
@@ -745,7 +745,7 @@ function EmailMessage({
 
                     {/* Email body */}
                     <div className="px-4 py-4">
-                        <div className="prose prose-sm prose-slate max-w-none text-slate-800 [&_a]:text-indigo-600 [&_a]:no-underline hover:[&_a]:underline [&_img]:rounded-lg [&_blockquote]:border-l-indigo-200 [&_blockquote]:text-slate-500">
+                        <div className="prose prose-sm prose-slate max-w-none text-slate-800 [&_a]:text-[#1F4D47] [&_a]:font-semibold [&_a]:no-underline hover:[&_a]:underline [&_img]:rounded-lg [&_blockquote]:border-l-[#C9D9D5] [&_blockquote]:text-slate-500">
                             {email.bodyHtml ? (
                                 <div
                                     dangerouslySetInnerHTML={{ __html: sanitizeHtml(email.bodyHtml) }}

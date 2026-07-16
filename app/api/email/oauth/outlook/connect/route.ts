@@ -27,6 +27,21 @@ export async function GET(req: NextRequest) {
             );
         }
 
+        if (
+            !process.env.MICROSOFT_CLIENT_ID ||
+            !process.env.MICROSOFT_CLIENT_SECRET ||
+            !process.env.ENCRYPTION_KEY ||
+            (!process.env.MICROSOFT_REDIRECT_URI && !process.env.NEXTAUTH_URL)
+        ) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: 'OAuth Microsoft non configur\u00e9: MICROSOFT_CLIENT_ID, MICROSOFT_CLIENT_SECRET, ENCRYPTION_KEY et MICROSOFT_REDIRECT_URI (ou NEXTAUTH_URL) sont requis.',
+                },
+                { status: 503 }
+            );
+        }
+
         const defaultReturn = session.user.role === 'CLIENT' ? '/client/portal/email' : '/manager/email/mailboxes';
 
         // Create state token with user ID for callback verification

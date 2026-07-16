@@ -106,7 +106,7 @@ function StepIndicator({ currentStep, totalSteps }: { currentStep: number; total
                             i < currentStep
                                 ? "bg-emerald-500 text-white"
                                 : i === currentStep
-                                    ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/30"
+                                    ? "bg-[#1F4D47] text-white shadow-sm"
                                     : "bg-slate-100 text-slate-400"
                         )}
                     >
@@ -222,7 +222,7 @@ function ImapConfigForm({
                         required
                         value={formData.email}
                         onChange={(e) => handleEmailChange(e.target.value)}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all text-sm"
+                        className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:border-[#E07C00] focus:ring-2 focus:ring-[#FF9E1B]/20 outline-none transition-all text-sm"
                         placeholder="vous@example.com"
                     />
                 </div>
@@ -235,7 +235,7 @@ function ImapConfigForm({
                         type="text"
                         value={formData.displayName}
                         onChange={(e) => updateField("displayName", e.target.value)}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all text-sm"
+                        className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:border-[#E07C00] focus:ring-2 focus:ring-[#FF9E1B]/20 outline-none transition-all text-sm"
                         placeholder="Prénom Nom"
                     />
                 </div>
@@ -250,7 +250,7 @@ function ImapConfigForm({
                             required
                             value={formData.password}
                             onChange={(e) => updateField("password", e.target.value)}
-                            className="w-full px-3.5 py-2.5 pr-10 rounded-xl border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all text-sm"
+                            className="w-full px-3.5 py-2.5 pr-10 rounded-lg border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:border-[#E07C00] focus:ring-2 focus:ring-[#FF9E1B]/20 outline-none transition-all text-sm"
                             placeholder="••••••••"
                         />
                         <button
@@ -275,7 +275,7 @@ function ImapConfigForm({
                         required
                         value={formData.imapHost}
                         onChange={(e) => updateField("imapHost", e.target.value)}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all text-sm"
+                        className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:border-[#E07C00] focus:ring-2 focus:ring-[#FF9E1B]/20 outline-none transition-all text-sm"
                         placeholder="imap.example.com"
                     />
                 </div>
@@ -285,11 +285,13 @@ function ImapConfigForm({
                         Port IMAP
                     </label>
                     <input
-                        type="text"
+                        type="number"
+                        min="1"
+                        max="65535"
                         required
                         value={formData.imapPort}
                         onChange={(e) => updateField("imapPort", e.target.value)}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all text-sm"
+                        className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:border-[#E07C00] focus:ring-2 focus:ring-[#FF9E1B]/20 outline-none transition-all text-sm"
                         placeholder="993"
                     />
                 </div>
@@ -303,7 +305,7 @@ function ImapConfigForm({
                         required
                         value={formData.smtpHost}
                         onChange={(e) => updateField("smtpHost", e.target.value)}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all text-sm"
+                        className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:border-[#E07C00] focus:ring-2 focus:ring-[#FF9E1B]/20 outline-none transition-all text-sm"
                         placeholder="smtp.example.com"
                     />
                 </div>
@@ -313,11 +315,13 @@ function ImapConfigForm({
                         Port SMTP
                     </label>
                     <input
-                        type="text"
+                        type="number"
+                        min="1"
+                        max="65535"
                         required
                         value={formData.smtpPort}
                         onChange={(e) => updateField("smtpPort", e.target.value)}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all text-sm"
+                        className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:border-[#E07C00] focus:ring-2 focus:ring-[#FF9E1B]/20 outline-none transition-all text-sm"
                         placeholder="587"
                     />
                 </div>
@@ -328,7 +332,7 @@ function ImapConfigForm({
                     type="button"
                     onClick={onBack}
                     disabled={isLoading}
-                    className="flex items-center justify-center gap-2 flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-medium text-sm transition-colors disabled:opacity-50"
+                    className="flex items-center justify-center gap-2 flex-1 px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 hover:bg-[#F1F4F3] font-semibold text-sm transition-colors disabled:opacity-50"
                 >
                     <ArrowLeft className="w-4 h-4" />
                     Retour
@@ -336,7 +340,7 @@ function ImapConfigForm({
                 <button
                     type="submit"
                     disabled={isLoading}
-                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-semibold text-sm hover:from-indigo-500 hover:to-violet-500 hover:shadow-lg hover:shadow-indigo-500/25 transition-all disabled:opacity-50"
+                    className="flex-[1.4] flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-[#E07C00] bg-[#FF9E1B] text-[#15201E] font-bold text-sm hover:bg-[#F09212] transition-colors disabled:opacity-50 active:translate-y-px"
                 >
                     {isLoading ? (
                         <>
@@ -384,29 +388,6 @@ export function EmailOnboarding({ onMailboxConnected }: EmailOnboardingProps) {
         setError(null);
 
         try {
-            const testResponse = await fetch("/api/email/mailboxes/test", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    email: data.email,
-                    password: data.password,
-                    imapHost: data.imapHost,
-                    imapPort: parseInt(data.imapPort),
-                    smtpHost: data.smtpHost,
-                    smtpPort: parseInt(data.smtpPort),
-                }),
-            });
-
-            const testResult = await testResponse.json();
-
-            if (!testResult.success) {
-                let errorMsg = "Échec de la connexion: ";
-                if (!testResult.imapOk) errorMsg += "IMAP échoué. ";
-                if (!testResult.smtpOk) errorMsg += "SMTP échoué. ";
-                if (testResult.error) errorMsg += testResult.error;
-                throw new Error(errorMsg);
-            }
-
             const response = await fetch("/api/email/mailboxes", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -425,7 +406,15 @@ export function EmailOnboarding({ onMailboxConnected }: EmailOnboardingProps) {
             const result = await response.json();
 
             if (!result.success) {
-                throw new Error(result.error || "Erreur lors de la création de la boîte mail");
+                const failedProtocols = [
+                    result.imapOk === false ? "IMAP" : null,
+                    result.smtpOk === false ? "SMTP" : null,
+                ].filter(Boolean).join(" et ");
+                throw new Error(
+                    failedProtocols
+                        ? `${failedProtocols}: ${result.error || "connexion impossible"}`
+                        : (result.error || "Erreur lors de la création de la boîte mail")
+                );
             }
 
             // Show success state briefly
@@ -451,7 +440,7 @@ export function EmailOnboarding({ onMailboxConnected }: EmailOnboardingProps) {
                     <h2 className="text-xl font-bold text-slate-900 mb-2">Boîte mail connectée !</h2>
                     <p className="text-sm text-slate-500">Synchronisation en cours...</p>
                     <div className="mt-4">
-                        <Loader2 className="w-5 h-5 text-indigo-500 animate-spin mx-auto" />
+                        <Loader2 className="w-5 h-5 text-[#1F4D47] animate-spin mx-auto" />
                     </div>
                 </div>
             </div>
@@ -502,7 +491,7 @@ export function EmailOnboarding({ onMailboxConnected }: EmailOnboardingProps) {
 
                 {/* Header */}
                 <div className="text-center mb-8 animate-in fade-in slide-in-from-bottom-3 duration-500">
-                    <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-xl shadow-indigo-500/30">
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-xl bg-[#1F4D47] flex items-center justify-center shadow-[0_12px_30px_rgba(31,77,71,0.18)]">
                         <Mail className="w-8 h-8 text-white" />
                     </div>
                     <h1 className="text-2xl font-bold text-slate-900 mb-2">
@@ -579,8 +568,8 @@ export function EmailOnboarding({ onMailboxConnected }: EmailOnboardingProps) {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         {FEATURES.map((feature, idx) => (
                             <div key={idx} className="text-center p-3 rounded-xl hover:bg-slate-50 transition-colors">
-                                <div className="w-10 h-10 mx-auto mb-2 rounded-xl bg-indigo-50 flex items-center justify-center">
-                                    <feature.icon className="w-5 h-5 text-indigo-600" />
+                                <div className="w-10 h-10 mx-auto mb-2 rounded-xl bg-[#EDF4F2] flex items-center justify-center">
+                                    <feature.icon className="w-5 h-5 text-[#1F4D47]" />
                                 </div>
                                 <h3 className="text-sm font-medium text-slate-900 mb-0.5">
                                     {feature.title}
