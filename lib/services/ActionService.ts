@@ -75,6 +75,13 @@ const ACTION_RESULT_ALIASES: Record<string, ActionResult> = {
     RELANCEE: "RELANCE",
     CALL_BACK_REQUESTED: "CALLBACK_REQUESTED",
     CALLBACK: "CALLBACK_REQUESTED",
+    // Legacy/custom badge codes still present in status configuration.
+    // ActionStatusDefinition accepts free-form codes, while Action.result is a
+    // PostgreSQL enum, so translate those UI codes to their canonical result.
+    MAUVAIS_FAUX: "BAD_CONTACT",
+    REPONDEUR_MESSAGERIE: "NO_RESPONSE",
+    PAS_INTERESSE: "NOT_INTERESTED",
+    MAIL: "ENVOIE_MAIL",
 };
 
 function normalizeActionResultCode(raw: string): string {
