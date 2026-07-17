@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 import {
     Mail,
@@ -13,6 +14,12 @@ import {
     ArrowRight,
     Server,
     X,
+    PenLine,
+    Save,
+    Bold,
+    Italic,
+    Underline,
+    Link2,
 } from "lucide-react";
 
 // ============================================
@@ -30,6 +37,8 @@ interface Mailbox {
     healthScore: number;
     dailySendLimit: number;
     sentToday: number;
+    signature: string | null;
+    signatureHtml: string | null;
     lastSyncAt: string | null;
     lastError: string | null;
     isActive: boolean;
@@ -254,7 +263,7 @@ function AddMailboxView({ onCancel, onSuccess, onMailboxAdded }: AddMailboxViewP
 
                         <div className="sm:col-span-2">
                             <label className="block text-sm font-medium text-slate-700 mb-1">
-                                Nom d'affichage
+                                Nom d&apos;affichage
                             </label>
                             <input
                                 type="text"
@@ -386,6 +395,172 @@ interface MailboxManagerDialogProps {
     variant?: 'dialog' | 'page';
 }
 
+// ============================================
+// SIGNATURE EDITOR
+// ============================================
+
+function SignatureEditorDialog({
+    mailbox,
+    onClose,
+    onSaved,
+}: {
+    mailbox: Mailbox;
+    onClose: () => void;
+    onSaved: (mailbox: Mailbox) => void;
+}) {
+    const editorRef = useRef<HTMLDivElement>(null);
+    const [isSaving, setIsSaving] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [isEmpty, setIsEmpty] = useState(!mailbox.signatureHtml);
+
+    useEffect(() => {
+        if (editorRef.current) {
+            editorRef.current.innerHTML = mailbox.signatureHtml || "";
+        }
+    }, [mailbox.id, mailbox.signatureHtml]);
+
+    const runCommand = (command: string, value?: string) => {
+        editorRef.current?.focus();
+        document.execCommand(command, false, value);
+        setIsEmpty(!editorRef.current?.textContent?.trim());
+    };
+
+    const handleSave = async () => {
+        setIsSaving(true);
+        setError(null);
+        try {
+            const signatureHtml = editorRef.current?.innerHTML.trim() || null;
+            const response = await fetch(`/api/email/mailboxes/${mailbox.id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ signatureHtml }),
+            });
+            const result = await response.json();
+            if (!response.ok || !result.success) {
+                throw new Error(result.error || "Impossible d'enregistrer la signature");
+            }
+            onSaved({ ...mailbox, ...result.data });
+            onClose();
+        } catch (saveError) {
+            setError(saveError instanceof Error ? saveError.message : "Impossible d'enregistrer la signature");
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    return createPortal(
+        <>
+            <div className="fixed inset-0 z-[110] bg-[#15201E]/45 backdrop-blur-[2px]" onClick={onClose} />
+            <div
+                className="fixed left-1/2 top-1/2 z-[111] flex max-h-[calc(100dvh-2rem)] w-[min(720px,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-xl border border-[#DDE5E2] bg-white shadow-[0_24px_70px_rgba(21,32,30,0.24)]"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="signature-editor-title"
+            >
+                <div className="flex items-start justify-between border-b border-[#E1E7E5] px-5 py-4">
+                    <div>
+                        <h2 id="signature-editor-title" className="text-lg font-bold text-[#15201E]">
+                            Signature email
+                        </h2>
+                        <p className="mt-0.5 text-sm text-slate-500">
+                            {mailbox.displayName || mailbox.email} · {mailbox.email}
+                        </p>
+                    </div>
+                    <button onClick={onClose} className="rounded-lg p-2 text-slate-500 hover:bg-[#F1F4F3]" aria-label="Fermer">
+                        <X className="h-5 w-5" />
+                    </button>
+                </div>
+
+                <div className="overflow-y-auto bg-[#F7F9F8] p-5">
+                    <p className="mb-2 text-sm font-semibold text-slate-700">Contenu de la signature</p>
+                    <div className="overflow-hidden rounded-xl border border-[#CBD8D4] bg-white focus-within:border-[#E07C00] focus-within:ring-2 focus-within:ring-[#FF9E1B]/20">
+                        <div className="flex items-center gap-1 border-b border-[#E1E7E5] bg-[#F7F9F8] px-2 py-1.5">
+                            {[
+                                { command: "bold", label: "Gras", icon: Bold },
+                                { command: "italic", label: "Italique", icon: Italic },
+                                { command: "underline", label: "Souligné", icon: Underline },
+                            ].map(({ command, label, icon: Icon }) => (
+                                <button
+                                    key={command}
+                                    type="button"
+                                    onClick={() => runCommand(command)}
+                                    className="rounded-lg p-2 text-slate-500 hover:bg-white hover:text-[#1F4D47]"
+                                    title={label}
+                                    aria-label={label}
+                                >
+                                    <Icon className="h-4 w-4" />
+                                </button>
+                            ))}
+                            <div className="mx-1 h-5 w-px bg-[#DDE5E2]" />
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const url = window.prompt("Adresse du lien (https://, mailto: ou tel:)");
+                                    if (url) runCommand("createLink", url);
+                                }}
+                                className="rounded-lg p-2 text-slate-500 hover:bg-white hover:text-[#1F4D47]"
+                                title="Ajouter un lien"
+                                aria-label="Ajouter un lien"
+                            >
+                                <Link2 className="h-4 w-4" />
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    if (editorRef.current) editorRef.current.innerHTML = "";
+                                    setIsEmpty(true);
+                                }}
+                                className="ml-auto rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-500 hover:bg-red-50 hover:text-red-600"
+                            >
+                                Effacer
+                            </button>
+                        </div>
+                        <div
+                            ref={editorRef}
+                            contentEditable
+                            suppressContentEditableWarning
+                            role="textbox"
+                            aria-multiline="true"
+                            aria-label="Contenu de la signature"
+                            data-placeholder="Nom, fonction, téléphone, site web..."
+                            onInput={() => setIsEmpty(!editorRef.current?.textContent?.trim())}
+                            onPaste={(event) => {
+                                event.preventDefault();
+                                document.execCommand("insertText", false, event.clipboardData.getData("text/plain"));
+                            }}
+                            className="min-h-[180px] px-4 py-4 text-sm leading-relaxed text-slate-800 outline-none empty:before:pointer-events-none empty:before:text-slate-400 empty:before:content-[attr(data-placeholder)] [&_a]:text-[#1F4D47] [&_a]:underline"
+                        />
+                    </div>
+                    <div className="mt-3 flex items-start gap-2 rounded-lg border border-[#D7E1DE] bg-[#EEF3F1] px-3 py-2.5 text-xs leading-relaxed text-[#3F625D]">
+                        <CheckCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                        <p>Cette signature sera ajoutée automatiquement aux nouveaux messages, réponses et transferts envoyés depuis cette boîte.</p>
+                    </div>
+                    {error && (
+                        <div className="mt-3 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700" role="alert">
+                            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                            <span>{error}</span>
+                        </div>
+                    )}
+                </div>
+
+                <div className="flex items-center justify-between gap-3 border-t border-[#E1E7E5] bg-white px-5 py-4">
+                    <span className="text-xs text-slate-400">{isEmpty ? "Aucune signature" : "Aperçu identique dans le composeur"}</span>
+                    <div className="flex gap-2">
+                        <button onClick={onClose} disabled={isSaving} className="h-10 rounded-lg border border-[#CBD8D4] px-4 text-sm font-semibold text-slate-700 hover:bg-[#F1F4F3] disabled:opacity-50">
+                            Annuler
+                        </button>
+                        <button onClick={handleSave} disabled={isSaving} className="inline-flex h-10 items-center gap-2 rounded-lg border border-[#E07C00] bg-[#FF9E1B] px-4 text-sm font-bold text-[#15201E] hover:bg-[#F09212] active:translate-y-px disabled:opacity-50">
+                            {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                            {isSaving ? "Enregistrement..." : "Enregistrer"}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </>,
+        document.body,
+    );
+}
+
 export function MailboxManagerDialog({ isOpen = false, onClose = () => undefined, onMailboxAdded, variant = 'dialog' }: MailboxManagerDialogProps) {
     const isPage = variant === 'page';
     const isVisible = isPage || isOpen;
@@ -394,6 +569,7 @@ export function MailboxManagerDialog({ isOpen = false, onClose = () => undefined
     const [isLoading, setIsLoading] = useState(true);
     const [syncingMailboxes, setSyncingMailboxes] = useState<Set<string>>(new Set());
     const [actionMessage, setActionMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+    const [signatureMailbox, setSignatureMailbox] = useState<Mailbox | null>(null);
 
     const fetchMailboxes = async () => {
         setIsLoading(true);
@@ -705,6 +881,13 @@ export function MailboxManagerDialog({ isOpen = false, onClose = () => undefined
 
                                                 <div className="flex items-center gap-2">
                                                     <button
+                                                        onClick={() => setSignatureMailbox(mailbox)}
+                                                        className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-[#CBD8D4] bg-white px-3 py-2.5 text-sm font-bold text-[#1F4D47] transition-colors hover:bg-[#F1F4F3] active:translate-y-px"
+                                                    >
+                                                        <PenLine className="h-4 w-4" />
+                                                        {mailbox.signatureHtml ? "Modifier la signature" : "Ajouter une signature"}
+                                                    </button>
+                                                    <button
                                                         onClick={() => handleSync(mailbox.id)}
                                                         disabled={syncingMailboxes.has(mailbox.id)}
                                                         className="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 border border-[#CBD8D4] bg-white hover:bg-[#F1F4F3] text-[#1F4D47] text-sm font-bold rounded-lg transition-colors disabled:opacity-50 active:translate-y-px"
@@ -726,6 +909,16 @@ export function MailboxManagerDialog({ isOpen = false, onClose = () => undefined
                     )}
                 </div>
             </div>
+            {signatureMailbox && (
+                <SignatureEditorDialog
+                    mailbox={signatureMailbox}
+                    onClose={() => setSignatureMailbox(null)}
+                    onSaved={(updatedMailbox) => {
+                        setMailboxes((current) => current.map((item) => item.id === updatedMailbox.id ? updatedMailbox : item));
+                        setActionMessage({ type: 'success', text: 'Signature enregistrée' });
+                    }}
+                />
+            )}
         </React.Fragment>
     );
 }

@@ -10,6 +10,12 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { MailboxType } from '@prisma/client';
+import {
+    MAX_EMAIL_SIGNATURE_LENGTH,
+    sanitizeEmailSignatureHtml,
+    signatureHtmlToText,
+    SignatureValidationError,
+} from '@/lib/email/services/signature-service';
 
 // ============================================
 // GET - Get mailbox details
@@ -102,7 +108,12 @@ export async function GET(
 
         return NextResponse.json({
             success: true,
-            data: mailbox,
+            data: {
+                ...mailbox,
+                signatureHtml: sanitizeEmailSignatureHtml(
+                    mailbox.signatureHtml?.slice(0, MAX_EMAIL_SIGNATURE_LENGTH) ?? null
+                ),
+            },
         });
     } catch (error) {
         console.error('GET /api/email/mailboxes/[id] error:', error);
@@ -163,11 +174,19 @@ export async function PATCH(
         if (body.type !== undefined && ['PERSONAL', 'SHARED', 'CLIENT', 'CAMPAIGN'].includes(body.type)) {
             updateData.type = body.type as MailboxType;
         }
-        if (body.signature !== undefined) {
-            updateData.signature = body.signature;
-        }
         if (body.signatureHtml !== undefined) {
-            updateData.signatureHtml = body.signatureHtml;
+            const signatureHtml = sanitizeEmailSignatureHtml(body.signatureHtml);
+            updateData.signatureHtml = signatureHtml;
+            updateData.signature = signatureHtmlToText(signatureHtml);
+        } else if (body.signature !== undefined) {
+            if (body.signature !== null && typeof body.signature !== 'string') {
+                throw new SignatureValidationError('La signature doit être une chaîne de caractères');
+            }
+            const signature = body.signature?.trim() || null;
+            if (signature && signature.length > 20_000) {
+                throw new SignatureValidationError('La signature dépasse la limite de 20 000 caractères');
+            }
+            updateData.signature = signature;
         }
         if (typeof body.dailySendLimit === 'number') {
             updateData.dailySendLimit = Math.max(1, Math.min(500, body.dailySendLimit));
@@ -206,6 +225,12 @@ export async function PATCH(
             data: updated,
         });
     } catch (error) {
+        if (error instanceof SignatureValidationError) {
+            return NextResponse.json(
+                { success: false, error: error.message },
+                { status: 400 }
+            );
+        }
         console.error('PATCH /api/email/mailboxes/[id] error:', error);
         return NextResponse.json(
             { success: false, error: 'Erreur serveur' },

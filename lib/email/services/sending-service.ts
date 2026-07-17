@@ -14,6 +14,13 @@ import {
 } from "../providers";
 import { Mailbox, EmailStatus } from "@prisma/client";
 import { randomUUID } from "crypto";
+import {
+  MAX_EMAIL_SIGNATURE_LENGTH,
+  appendEmailSignatureHtml,
+  appendEmailSignatureText,
+  sanitizeEmailSignatureHtml,
+  signatureHtmlToText,
+} from "./signature-service";
 
 // ============================================
 // TYPES
@@ -96,23 +103,25 @@ export class EmailSendingService {
         ? options.trackingPixelId || options.trackPixelId || randomUUID()
         : undefined;
 
-      // Inject tracking pixel into HTML
-      let bodyHtml = options.bodyHtml;
+      // The server is the single source of truth for signatures. Clients only
+      // render a preview and send the authored message body.
+      const signatureHtml = sanitizeEmailSignatureHtml(
+        mailbox.signatureHtml?.slice(0, MAX_EMAIL_SIGNATURE_LENGTH) ?? null,
+      );
+      const signatureText = mailbox.signature || signatureHtmlToText(signatureHtml);
+      let bodyHtml = appendEmailSignatureHtml(options.bodyHtml, signatureHtml);
+      const bodyText = appendEmailSignatureText(options.bodyText, signatureText);
+
+      // Inject tracking pixel after the signature so the pixel remains last.
       if (bodyHtml && trackingPixelId) {
-        // cast to any to avoid type error until client is regenerated
-        const trackingDomain = (mailbox as any).trackingDomain || undefined;
+        const trackingDomain = "trackingDomain" in mailbox && typeof mailbox.trackingDomain === "string"
+          ? mailbox.trackingDomain
+          : undefined;
         bodyHtml = this.injectTrackingPixel(
           bodyHtml,
           trackingPixelId,
           trackingDomain,
         );
-      }
-
-      // Append signature if set
-      if (mailbox.signatureHtml && bodyHtml) {
-        bodyHtml = `${bodyHtml}<br/><br/>${mailbox.signatureHtml}`;
-      } else if (mailbox.signature && options.bodyText) {
-        options.bodyText = `${options.bodyText}\n\n${mailbox.signature}`;
       }
 
       // Inline CSS for email client compatibility (Gmail, Outlook, etc.)
@@ -127,7 +136,7 @@ export class EmailSendingService {
         bcc: options.bcc,
         subject: options.subject,
         bodyHtml,
-        bodyText: options.bodyText,
+        bodyText,
         attachments: options.attachments?.map((a) => ({
           filename: a.filename,
           mimeType: a.mimeType,
@@ -226,7 +235,7 @@ export class EmailSendingService {
           data: {
             mailboxId,
             subject: options.subject,
-            snippet: options.bodyText?.substring(0, 200),
+            snippet: bodyText?.substring(0, 200),
             participantEmails: options.to.map((t) => t.email),
             providerThreadId: result.threadId,
             lastEmailAt: new Date(),
@@ -246,8 +255,8 @@ export class EmailSendingService {
           bccAddresses: options.bcc?.map((b) => b.email) || [],
           subject: options.subject,
           bodyHtml,
-          bodyText: options.bodyText,
-          snippet: options.bodyText?.substring(0, 200),
+          bodyText,
+          snippet: bodyText?.substring(0, 200),
           direction: "OUTBOUND",
           status: "SENT",
           trackingPixelId,
@@ -264,7 +273,9 @@ export class EmailSendingService {
       // Wrap links in the stored HTML for click tracking
       // We do this after creating the email record so we have the emailId
       if (bodyHtml && shouldTrackOpens) {
-        const trackingDomain = (mailbox as any).trackingDomain || undefined;
+        const trackingDomain = "trackingDomain" in mailbox && typeof mailbox.trackingDomain === "string"
+          ? mailbox.trackingDomain
+          : undefined;
         const wrappedHtml = this.wrapLinksForTracking(bodyHtml, email.id, trackingDomain);
         if (wrappedHtml !== bodyHtml) {
           await prisma.email.update({

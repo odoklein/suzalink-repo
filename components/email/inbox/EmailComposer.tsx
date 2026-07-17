@@ -219,16 +219,6 @@ export function EmailComposer({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // Insert signature on mailbox change
-    useEffect(() => {
-        const mailbox = mailboxes.find(m => m.id === selectedMailboxId);
-        if (mailbox?.signatureHtml && editorRef.current) {
-            if (!editorRef.current.innerHTML.trim()) {
-                editorRef.current.innerHTML = `<br><br>${mailbox.signatureHtml}`;
-            }
-        }
-    }, [selectedMailboxId, mailboxes]);
-
     // Update domain suggestions when typing after @
     const updateDomainSuggestions = useCallback((field: "to" | "cc" | "bcc", value: string) => {
         const atIndex = value.indexOf("@");
@@ -775,6 +765,21 @@ export function EmailComposer({
                             style={{ minHeight: "150px" }}
                             onInput={checkHasContent}
                         />
+
+                        {/* Server-managed signature preview. It is intentionally
+                            outside the editable message body to prevent duplicates. */}
+                        {selectedMailbox?.signatureHtml && (
+                            <div className="mx-4 mb-3 border-t border-dashed border-[#CBD8D4] pt-3">
+                                <div className="mb-1.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                                    <CheckCircle2 className="h-3 w-3 text-[#1F4D47]" />
+                                    Signature ajoutée automatiquement
+                                </div>
+                                <div
+                                    className="pointer-events-none text-[13px] leading-relaxed text-slate-600 [&_a]:text-[#1F4D47] [&_a]:underline"
+                                    dangerouslySetInnerHTML={{ __html: selectedMailbox.signatureHtml }}
+                                />
+                            </div>
+                        )}
 
                         {/* Send Error */}
                         {sendError && (

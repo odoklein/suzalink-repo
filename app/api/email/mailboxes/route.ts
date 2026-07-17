@@ -13,6 +13,10 @@ import { MailboxType } from '@prisma/client';
 import { scheduleEmailSync } from '@/lib/email/queue';
 import { ImapProvider } from '@/lib/email/providers/imap';
 import { emailSyncService } from '@/lib/email/services/sync-service';
+import {
+    MAX_EMAIL_SIGNATURE_LENGTH,
+    sanitizeEmailSignatureHtml,
+} from '@/lib/email/services/signature-service';
 
 // ============================================
 // GET - List user's mailboxes
@@ -53,6 +57,8 @@ export async function GET(req: NextRequest) {
                 healthScore: true,
                 dailySendLimit: true,
                 sentToday: true,
+                signature: true,
+                signatureHtml: true,
                 lastSyncAt: true,
                 lastError: true,
                 isActive: true,
@@ -88,6 +94,8 @@ export async function GET(req: NextRequest) {
                             healthScore: true,
                             dailySendLimit: true,
                             sentToday: true,
+                            signature: true,
+                            signatureHtml: true,
                             lastSyncAt: true,
                             lastError: true,
                             isActive: true,
@@ -118,7 +126,12 @@ export async function GET(req: NextRequest) {
 
         return NextResponse.json({
             success: true,
-            data: allMailboxes,
+            data: allMailboxes.map((mailbox) => ({
+                ...mailbox,
+                signatureHtml: sanitizeEmailSignatureHtml(
+                    mailbox.signatureHtml?.slice(0, MAX_EMAIL_SIGNATURE_LENGTH) ?? null
+                ),
+            })),
         });
     } catch (error) {
         console.error('GET /api/email/mailboxes error:', error);
