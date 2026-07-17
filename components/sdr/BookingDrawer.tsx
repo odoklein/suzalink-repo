@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import { useToast } from "@/components/ui";
+import { useToast } from "@/components/ui/Toast";
 import { DateTimePicker } from "@/components/ui/DateTimePicker";
 import {
     Loader2,
@@ -18,6 +18,8 @@ import {
     User,
     Check,
     CalendarCheck,
+    ArrowLeft,
+    ArrowRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { trackMeetingBooked } from "@/lib/analytics/umami";
@@ -130,61 +132,6 @@ function getEmbedBookingUrl(rawUrl: string): string {
 }
 
 // ── Typewriter hook
-function useTypewriter(text: string, speed = 22, startDelay = 0) {
-    const [displayed, setDisplayed] = useState("");
-    const [done, setDone] = useState(false);
-
-    useEffect(() => {
-        setDisplayed("");
-        setDone(false);
-        if (!text) { setDone(true); return; }
-
-        let i = 0;
-        let timeout: ReturnType<typeof setTimeout>;
-
-        const tick = () => {
-            i++;
-            setDisplayed(text.slice(0, i));
-            if (i < text.length) {
-                timeout = setTimeout(tick, speed);
-            } else {
-                setDone(true);
-            }
-        };
-
-        const start = setTimeout(tick, startDelay);
-        return () => { clearTimeout(start); clearTimeout(timeout); };
-    }, [text, speed, startDelay]);
-
-    return { displayed, done };
-}
-
-// ── Typewriter line component — renders char by char, then shows children after done
-function TypewriterLine({
-    text,
-    speed = 22,
-    delay = 0,
-    className,
-    afterDone,
-}: {
-    text: string;
-    speed?: number;
-    delay?: number;
-    className?: string;
-    afterDone?: React.ReactNode;
-}) {
-    const { displayed, done } = useTypewriter(text, speed, delay);
-    return (
-        <span className={className}>
-            {displayed}
-            {!done && (
-                <span className="inline-block w-[1px] h-[0.85em] bg-current opacity-70 ml-[1px] animate-pulse align-middle" />
-            )}
-            {done && afterDone}
-        </span>
-    );
-}
-
 // ── Copy pill button
 function CopyPill({ text, label }: { text: string; label: string }) {
     const { success } = useToast();
@@ -207,21 +154,6 @@ function CopyPill({ text, label }: { text: string; label: string }) {
 }
 
 // ── Animated fade-in wrapper (appears after a delay)
-function FadeIn({ delay = 0, children, className }: { delay?: number; children: React.ReactNode; className?: string }) {
-    const [visible, setVisible] = useState(false);
-    useEffect(() => {
-        const t = setTimeout(() => setVisible(true), delay);
-        return () => clearTimeout(t);
-    }, [delay]);
-    return (
-        <div
-            className={cn("transition-all duration-500", visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1", className)}
-        >
-            {children}
-        </div>
-    );
-}
-
 // ── Format date for display
 function formatRdvDate(iso: string): string {
     if (!iso) return "";
@@ -303,9 +235,11 @@ export function BookingDrawer({
 }: BookingDrawerProps) {
     const { success, error: showError } = useToast();
     const iframeRef = useRef<HTMLIFrameElement>(null);
+    const bookingHandledRef = useRef(false);
     const [isProcessing, setIsProcessing] = useState(false);
     const [booked, setBooked] = useState(false);
     const [iframeLoading, setIframeLoading] = useState(true);
+    const [step, setStep] = useState<1 | 2>(1);
 
     const [rdvDateLocal, setRdvDateLocal] = useState<string>(rdvDate ?? "");
     const [meetingTypeLocal, setMeetingTypeLocal] = useState<"" | "VISIO" | "PHYSIQUE" | "TELEPHONIQUE">(meetingType ?? "");
@@ -315,11 +249,7 @@ export function BookingDrawer({
     const [meetingPhoneLocal, setMeetingPhoneLocal] = useState<string>(meetingPhone ?? "");
 
     // Calendar-synced state: date extracted from calendar postMessage (eliminates double-typing)
-    const [calendarSyncedDate, setCalendarSyncedDate] = useState<string>("");
     const [showManualDate, setShowManualDate] = useState(false);
-
-    // Typewriter trigger key — reset on open so animation replays
-    const [twKey, setTwKey] = useState(0);
 
     const activeInterlocuteurs = (interlocuteurs || []).filter(
         i => i.isActive && i.bookingLinks.length > 0
@@ -360,9 +290,10 @@ export function BookingDrawer({
         if (!isOpen) return;
         setBooked(false);
         setIsProcessing(false);
+        bookingHandledRef.current = false;
+        setStep(1);
         setIframeLoading(true);
         setSelectedOptionId(bookingOptions[0]?.id ?? null);
-        setTwKey(k => k + 1); // restart typewriter
 
         setRdvDateLocal(rdvDate ?? "");
         setMeetingTypeLocal(meetingType ?? "");
@@ -370,7 +301,6 @@ export function BookingDrawer({
         setMeetingAddressLocal(meetingAddress ?? "");
         setMeetingJoinUrlLocal(meetingJoinUrl ?? "");
         setMeetingPhoneLocal(meetingPhone ?? "");
-        setCalendarSyncedDate("");
         setShowManualDate(false);
     }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -381,7 +311,10 @@ export function BookingDrawer({
     const effectiveMeetingJoinUrl = onMeetingJoinUrlChange ? (meetingJoinUrl ?? "") : meetingJoinUrlLocal;
     const effectiveMeetingPhone = onMeetingPhoneChange ? (meetingPhone ?? "") : meetingPhoneLocal;
 
-    const setEffectiveRdvDate = (v: string) => { onRdvDateChange?.(v); if (!onRdvDateChange) setRdvDateLocal(v); };
+    const setEffectiveRdvDate = useCallback((v: string) => {
+        onRdvDateChange?.(v);
+        if (!onRdvDateChange) setRdvDateLocal(v);
+    }, [onRdvDateChange]);
     const setEffectiveMeetingType = (v: "" | "VISIO" | "PHYSIQUE" | "TELEPHONIQUE") => { onMeetingTypeChange?.(v); if (!onMeetingTypeChange) setMeetingTypeLocal(v); };
     const setEffectiveMeetingCategory = (v: "" | "EXPLORATOIRE" | "BESOIN") => { onMeetingCategoryChange?.(v); if (!onMeetingCategoryChange) setMeetingCategoryLocal(v); };
     const setEffectiveMeetingAddress = (v: string) => { onMeetingAddressChange?.(v); if (!onMeetingAddressChange) setMeetingAddressLocal(v); };
@@ -415,12 +348,12 @@ export function BookingDrawer({
             if (!isAllowed) return;
 
             const processBooking = async (eventData: unknown) => {
+                if (bookingHandledRef.current) return;
                 setIsProcessing(true);
                 try {
                     // Auto-extract date from calendar event → eliminates manual DateTimePicker entry
                     const extractedDate = extractDateFromEventData(eventData);
                     if (extractedDate) {
-                        setCalendarSyncedDate(extractedDate);
                         setEffectiveRdvDate(extractedDate);
                     }
                     // Use extracted date immediately (state hasn't flushed yet)
@@ -430,6 +363,7 @@ export function BookingDrawer({
                         showError("Adresse requise", "Veuillez renseigner une adresse pour un RDV physique.");
                         return;
                     }
+                    bookingHandledRef.current = true;
                     const isoRdvDate = resolvedRdvDate ? new Date(resolvedRdvDate).toISOString() : undefined;
                     const res = await fetch("/api/actions/booking-success", {
                         method: "POST",
@@ -455,9 +389,11 @@ export function BookingDrawer({
                         onBookingSuccess?.();
                         setTimeout(onClose, 1800);
                     } else {
+                        bookingHandledRef.current = false;
                         showError("Erreur", json.error || "Impossible d'enregistrer le rendez-vous");
                     }
                 } catch (err) {
+                    bookingHandledRef.current = false;
                     console.error("Failed to process booking:", err);
                     showError("Erreur", "Impossible d'enregistrer le rendez-vous");
                 } finally {
@@ -471,13 +407,15 @@ export function BookingDrawer({
 
         window.addEventListener("message", handleMessage);
         return () => window.removeEventListener("message", handleMessage);
-    }, [isOpen, contactId, companyId, contactName, effectiveRdvDate, effectiveMeetingType, effectiveMeetingCategory, effectiveMeetingAddress, effectiveMeetingJoinUrl, effectiveMeetingPhone, selectedOption, onBookingSuccess, onClose, success, showError]);
+    }, [isOpen, contactId, companyId, contactName, effectiveRdvDate, effectiveMeetingType, effectiveMeetingCategory, effectiveMeetingAddress, effectiveMeetingJoinUrl, effectiveMeetingPhone, selectedOption, onBookingSuccess, onClose, success, showError, setEffectiveRdvDate]);
 
     const handleConfirmRdv = useCallback(async () => {
+        if (bookingHandledRef.current) return;
         if (effectiveMeetingType === "PHYSIQUE" && !effectiveMeetingAddress.trim()) {
             showError("Adresse requise", "Veuillez renseigner une adresse pour un RDV physique.");
             return;
         }
+        bookingHandledRef.current = true;
         setIsProcessing(true);
         try {
             const isoRdvDate = effectiveRdvDate ? new Date(effectiveRdvDate).toISOString() : undefined;
@@ -506,9 +444,11 @@ export function BookingDrawer({
                 onBookingSuccess?.();
                 setTimeout(onClose, 1800);
             } else {
+                bookingHandledRef.current = false;
                 showError("Erreur", json.error || "Impossible d'enregistrer le rendez-vous");
             }
         } catch (err) {
+            bookingHandledRef.current = false;
             console.error("Failed to process booking:", err);
             showError("Erreur", "Impossible d'enregistrer le rendez-vous");
         } finally {
@@ -518,7 +458,8 @@ export function BookingDrawer({
 
     if (!isOpen) return null;
 
-    // Build display name for typewriter
+    // Contact name shown immediately. Artificial reveal animations were removed
+    // so the operational booking flow is ready as soon as the modal opens.
     const displayName = contactInfo?.firstName || contactInfo?.lastName
         ? `${contactInfo?.firstName ?? ""} ${contactInfo?.lastName ?? ""}`.trim()
         : contactName;
@@ -531,24 +472,24 @@ export function BookingDrawer({
             <div className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm" onClick={onClose} aria-hidden="true" />
 
             {/* Dialog */}
-            <div className="fixed inset-0 z-[61] flex items-center justify-center p-4">
+            <div className="fixed inset-0 z-[61] flex items-center justify-center p-0 sm:p-4">
                 <div
                     role="dialog"
                     aria-modal="true"
                     aria-label={`Planifier un RDV avec ${contactName}`}
-                    className="w-full max-w-5xl h-[88vh] min-h-[560px] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+                    className="flex h-dvh min-h-0 w-full max-w-5xl flex-col overflow-hidden border border-[#DDE5E2] bg-white shadow-[0_24px_70px_rgba(21,32,30,0.24)] sm:h-[min(88dvh,820px)] sm:rounded-xl"
                 >
                     {/* Header */}
-                    <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-indigo-600 text-white">
+                    <div className="flex items-center justify-between border-b border-[#174B45] bg-[#1F4D47] px-5 py-4 text-white sm:px-6">
                         <div className="flex items-center gap-3">
                             <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
                                 <CalendarCheck className="w-5 h-5" />
                             </div>
                             <div>
                                 <h2 className="text-base font-semibold">Planifier un rendez-vous</h2>
-                                <p className="text-xs text-indigo-100 mt-0.5">
+                                <p className="mt-0.5 text-xs text-[#D9E8E4]">
                                     {contactName}
-                                    {contactInfo?.companyName ? ` — ${contactInfo.companyName}` : ""}
+                                    {contactInfo?.companyName ? ` · ${contactInfo.companyName}` : ""}
                                 </p>
                             </div>
                         </div>
@@ -557,9 +498,34 @@ export function BookingDrawer({
                         </button>
                     </div>
 
-                    <div className="flex-1 grid grid-cols-1 md:grid-cols-2 min-h-0 overflow-hidden">
+                    <div className="flex items-center border-b border-[#DDE5E2] bg-[#F7F9F8] px-5 py-3 sm:px-6" aria-label={`Étape ${step} sur 2`}>
+                        {[
+                            { id: 1, label: "Données CRM" },
+                            { id: 2, label: "Créneau calendrier" },
+                        ].map((item, index) => (
+                            <div key={item.id} className="flex min-w-0 flex-1 items-center">
+                                <div className="flex min-w-0 items-center gap-2.5">
+                                    <span className={cn(
+                                        "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border text-xs font-bold",
+                                        step > item.id
+                                            ? "border-[#1F4D47] bg-[#1F4D47] text-white"
+                                            : step === item.id
+                                                ? "border-[#E07C00] bg-[#FF9E1B] text-[#15201E]"
+                                                : "border-[#CBD8D4] bg-white text-slate-400"
+                                    )}>
+                                        {step > item.id ? <Check className="h-3.5 w-3.5" /> : item.id}
+                                    </span>
+                                    <span className={cn("truncate text-xs font-semibold sm:text-sm", step === item.id ? "text-[#15201E]" : "text-slate-500")}>{item.label}</span>
+                                </div>
+                                {index === 0 && <div className={cn("mx-3 h-px flex-1 sm:mx-5", step === 2 ? "bg-[#1F4D47]" : "bg-[#CBD8D4]")} />}
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="flex min-h-0 flex-1 overflow-hidden">
                         {/* ── LEFT PANEL ── */}
-                        <div className="p-4 border-r border-slate-200 flex flex-col gap-4 overflow-y-auto min-h-0">
+                        {step === 1 && (
+                        <div className="mx-auto flex min-h-0 w-full max-w-3xl flex-col gap-4 overflow-y-auto p-5 sm:p-6">
 
                             {/* ── Contact card with typewriter ── */}
                             <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-3.5 space-y-2 text-xs text-slate-700">
@@ -570,17 +536,17 @@ export function BookingDrawer({
                                     <div className="space-y-0.5 min-w-0">
                                         {/* Typewriter on name */}
                                         <p className="font-semibold text-slate-900 text-sm">
-                                            <TypewriterLine key={`name-${twKey}`} text={displayName} speed={20} delay={80} />
+                                            {displayName}
                                         </p>
                                         {/* Title fades in after name */}
                                         {contactInfo?.title && (
-                                            <FadeIn delay={displayName.length * 20 + 200}>
+                                            <div>
                                                 <p className="text-[11px] text-slate-500">{contactInfo.title}</p>
-                                            </FadeIn>
+                                            </div>
                                         )}
                                         {/* Email */}
                                         {contactInfo?.email && (
-                                            <FadeIn delay={displayName.length * 20 + 320}>
+                                            <div>
                                                 <p className="flex items-center gap-1">
                                                     <Mail className="w-3 h-3 text-indigo-500 shrink-0" />
                                                     <a href={`mailto:${contactInfo.email}`} className="truncate hover:text-indigo-600">
@@ -588,11 +554,11 @@ export function BookingDrawer({
                                                     </a>
                                                     <CopyPill text={contactInfo.email} label="email" />
                                                 </p>
-                                            </FadeIn>
+                                            </div>
                                         )}
                                         {/* Phone */}
                                         {contactInfo?.phone && (
-                                            <FadeIn delay={displayName.length * 20 + 440}>
+                                            <div>
                                                 <p className="flex items-center gap-1">
                                                     <Phone className="w-3 h-3 text-emerald-500 shrink-0" />
                                                     <a href={`tel:${contactInfo.phone}`} className="truncate hover:text-emerald-600">
@@ -600,14 +566,14 @@ export function BookingDrawer({
                                                     </a>
                                                     <CopyPill text={contactInfo.phone} label="téléphone" />
                                                 </p>
-                                            </FadeIn>
+                                            </div>
                                         )}
                                     </div>
                                 </div>
 
                                 {/* Company section */}
                                 {contactInfo?.companyName && (
-                                    <FadeIn delay={displayName.length * 20 + 560}>
+                                    <div>
                                         <div className="pt-2 border-t border-slate-200/70 space-y-0.5">
                                             <div className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wide">
                                                 <Building2 className="w-3 h-3 text-slate-400" />
@@ -633,7 +599,7 @@ export function BookingDrawer({
                                                 </p>
                                             )}
                                         </div>
-                                    </FadeIn>
+                                    </div>
                                 )}
 
                                 {/* ── Live RDV summary — updates as user fills form ── */}
@@ -688,36 +654,10 @@ export function BookingDrawer({
                                 Détails du rendez-vous
                             </p>
 
-                            {/* Date: auto-synced from calendar, or manual fallback */}
-                            {calendarSyncedDate ? (
-                                <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-sm">
-                                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                                    <span className="text-emerald-800 font-medium capitalize">
-                                        {formatRdvDate(calendarSyncedDate)}
-                                    </span>
-                                    <span className="text-emerald-500 text-xs ml-auto">via calendrier</span>
-                                </div>
-                            ) : showManualDate ? (
-                                <DateTimePicker
-                                    label="Date et heure (saisie manuelle)"
-                                    value={effectiveRdvDate}
-                                    onChange={setEffectiveRdvDate}
-                                    placeholder="Choisir date et heure…"
-                                    triggerClassName="border-slate-200 focus:ring-indigo-400/30 focus:border-indigo-400 bg-white"
-                                />
-                            ) : (
-                                <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-indigo-50/60 border border-indigo-100 text-xs text-indigo-600">
-                                    <Calendar className="w-3.5 h-3.5 shrink-0" />
-                                    <span>Le créneau sera récupéré depuis le calendrier</span>
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowManualDate(true)}
-                                        className="ml-auto text-[11px] text-indigo-500 hover:text-indigo-700 underline underline-offset-2 whitespace-nowrap"
-                                    >
-                                        Saisie manuelle
-                                    </button>
-                                </div>
-                            )}
+                            <div className="flex items-start gap-2.5 rounded-lg border border-[#D7E1DE] bg-[#EEF3F1] px-3 py-2.5 text-xs leading-relaxed text-[#3F625D]">
+                                <Calendar className="mt-0.5 h-4 w-4 shrink-0" />
+                                <span>La date et l&apos;heure seront choisies à l&apos;étape suivante dans le calendrier. Aucune double saisie.</span>
+                            </div>
 
                             <div className="space-y-2 text-xs text-slate-600">
                                 <p className="font-semibold">Type de réunion</p>
@@ -803,33 +743,43 @@ export function BookingDrawer({
                                 </div>
                             </div>
 
-                            {/* Confirm button */}
+                            {/* Continue to the calendar without creating the CRM action yet. */}
                             <div className="mt-auto pt-4 border-t border-slate-200">
                                 <button
                                     type="button"
-                                    onClick={handleConfirmRdv}
-                                    disabled={isProcessing || (effectiveMeetingType === "PHYSIQUE" && !effectiveMeetingAddress.trim())}
+                                    onClick={() => {
+                                        if (!effectiveMeetingType) {
+                                            showError("Type requis", "Choisissez le type de rendez-vous avant de continuer.");
+                                            return;
+                                        }
+                                        if (effectiveMeetingType === "PHYSIQUE" && !effectiveMeetingAddress.trim()) {
+                                            showError("Adresse requise", "Renseignez l'adresse du rendez-vous physique.");
+                                            return;
+                                        }
+                                        setIframeLoading(true);
+                                        setStep(2);
+                                    }}
+                                    disabled={!effectiveMeetingType || (effectiveMeetingType === "PHYSIQUE" && !effectiveMeetingAddress.trim())}
                                     className={cn(
-                                        "w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold text-white transition-all",
-                                        isProcessing || (effectiveMeetingType === "PHYSIQUE" && !effectiveMeetingAddress.trim())
-                                            ? "bg-indigo-300 cursor-not-allowed"
-                                            : "bg-indigo-600 hover:bg-indigo-700 shadow-md hover:shadow-lg"
+                                        "flex w-full items-center justify-center gap-2 rounded-lg border px-4 py-3 text-sm font-bold transition-colors active:translate-y-px",
+                                        !effectiveMeetingType || (effectiveMeetingType === "PHYSIQUE" && !effectiveMeetingAddress.trim())
+                                            ? "cursor-not-allowed border-slate-200 bg-slate-200 text-slate-400"
+                                            : "border-[#E07C00] bg-[#FF9E1B] text-[#15201E] hover:bg-[#F09212]"
                                     )}
                                 >
-                                    {isProcessing ? (
-                                        <><Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />Enregistrement…</>
-                                    ) : (
-                                        <><CheckCircle2 className="w-4 h-4" aria-hidden="true" />Confirmer le RDV</>
-                                    )}
+                                    Choisir le créneau
+                                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
                                 </button>
                                 <p className="text-[11px] text-slate-400 mt-2 text-center">
-                                    Choisissez un créneau dans le calendrier — la date et l&apos;heure seront récupérées automatiquement.
+                                    Les données CRM seront enregistrées après confirmation du calendrier.
                                 </p>
                             </div>
                         </div>
+                        )}
 
                         {/* ── RIGHT PANEL: calendar selector + iframe ── */}
-                        <div className="relative bg-white min-h-0 flex-1 flex flex-col">
+                        {step === 2 && (
+                        <div className="relative flex min-h-0 flex-1 flex-col bg-white">
                             {!selectedOption ? (
                                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-slate-50">
                                     <Calendar className="w-8 h-8 text-slate-300" />
@@ -901,14 +851,64 @@ export function BookingDrawer({
                                             src={embedUrl}
                                             key={selectedOption.id}
                                             onLoad={() => setIframeLoading(false)}
-                                            className="w-full h-full min-h-[320px] border-0"
+                                            className="h-full min-h-[320px] w-full border-0"
                                             title={selectedOption.label}
                                             allow="camera; microphone; geolocation"
+                                            loading="eager"
                                         />
                                     </div>
+
+                                    {!booked && (
+                                        <div className="flex shrink-0 flex-col gap-3 border-t border-[#DDE5E2] bg-[#F7F9F8] px-4 py-3 sm:flex-row sm:items-end sm:justify-between">
+                                            <button
+                                                type="button"
+                                                onClick={() => setStep(1)}
+                                                disabled={isProcessing}
+                                                className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-[#CBD8D4] bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-[#EEF3F1] disabled:opacity-50"
+                                            >
+                                                <ArrowLeft className="h-4 w-4" />
+                                                Modifier les données CRM
+                                            </button>
+
+                                            <div className="flex flex-col items-stretch gap-2 sm:items-end">
+                                                {!showManualDate ? (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setShowManualDate(true)}
+                                                        className="text-xs font-medium text-slate-500 underline underline-offset-2 hover:text-[#1F4D47]"
+                                                    >
+                                                        Le calendrier ne remonte pas le créneau ? Saisie manuelle
+                                                    </button>
+                                                ) : (
+                                                    <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+                                                        <div className="min-w-[260px]">
+                                                            <DateTimePicker
+                                                                label="Date et heure du RDV"
+                                                                value={effectiveRdvDate}
+                                                                onChange={setEffectiveRdvDate}
+                                                                placeholder="Choisir date et heure…"
+                                                                min={new Date().toISOString().slice(0, 16)}
+                                                                triggerClassName="border-[#CBD8D4] bg-white focus:border-[#E07C00] focus:ring-[#FF9E1B]/20"
+                                                            />
+                                                        </div>
+                                                        <button
+                                                            type="button"
+                                                            onClick={handleConfirmRdv}
+                                                            disabled={!effectiveRdvDate || isProcessing}
+                                                            className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-[#E07C00] bg-[#FF9E1B] px-4 text-sm font-bold text-[#15201E] hover:bg-[#F09212] disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-200 disabled:text-slate-400"
+                                                        >
+                                                            {isProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+                                                            Confirmer manuellement
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
                                 </>
                             )}
                         </div>
+                        )}
                     </div>
                 </div>
             </div>

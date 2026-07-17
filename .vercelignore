@@ -5,6 +5,7 @@
 .windsurf/
 docs/
 designsystemfinal/
+inspo/
 openclaw/
 uploads/
 private/queue/failed/
@@ -29,3 +30,14 @@ cloudbackground.png
 company-phone-enricher (1).html
 communication-inspo
 cards
+*.md
+*.sql
+*.py
+debug_*.js
+test_*.js
+check_*.js
+extract_*.js
+replace_*.js
+activate_mission.js
+fix_rdv.ts
+unified-dashboard-page.tsx

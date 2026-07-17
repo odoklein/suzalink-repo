@@ -558,6 +558,11 @@ export function UnifiedActionDrawer({
     const [meetingJoinUrl, setMeetingJoinUrl] = useState("");
     const [meetingAddress, setMeetingAddress] = useState("");
     const [meetingPhone, setMeetingPhone] = useState("");
+    const hasBookingCalendar = Boolean(
+        clientBookingUrl || clientInterlocuteurs?.some((interlocuteur) => (interlocuteur.bookingLinks?.length ?? 0) > 0)
+    );
+    const hasBookingTarget = Boolean((contactId && contact) || (companyId && company));
+    const canOpenBookingFlow = hasBookingCalendar && hasBookingTarget;
     useEffect(() => {
         onBookingDialogOpenChange?.(showBookingDrawer);
     }, [showBookingDrawer, onBookingDialogOpenChange]);
@@ -2668,6 +2673,9 @@ export function UnifiedActionDrawer({
                                                         aria-checked={isSelected}
                                                         onClick={() => {
                                                             setNewActionResult(opt.value);
+                                                            if (opt.value === "MEETING_BOOKED" && canOpenBookingFlow) {
+                                                                setShowBookingDrawer(true);
+                                                            }
                                                         }}
                                                         className={cn(
                                                             "flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium border transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1",
@@ -2891,20 +2899,32 @@ export function UnifiedActionDrawer({
 
                                     {/* Contextual: meeting booking — always shown for MEETING_BOOKED */}
                                     {newActionResult === "MEETING_BOOKED" && (
-                                        <div className="rounded-xl border border-indigo-200 bg-indigo-50/50 p-3.5 space-y-3">
-                                            {/* Calendar button — only when a booking URL or at least one interlocuteur calendar exists */}
-                                            {(clientBookingUrl || clientInterlocuteurs?.some(i => (i.bookingLinks?.length ?? 0) > 0)) && (contactId && contact || companyId && company) && (
+                                        <div className="rounded-xl border border-[#B9D0CB] bg-[#F3F7F6] p-3.5 space-y-3">
+                                            {canOpenBookingFlow ? (
                                                 <>
+                                                    <div className="flex items-start gap-2.5">
+                                                        <Calendar className="mt-0.5 h-4 w-4 shrink-0 text-[#1F4D47]" aria-hidden="true" />
+                                                        <div>
+                                                            <p className="text-sm font-semibold text-[#173C37]">Rendez-vous en 2 étapes</p>
+                                                            <p className="mt-0.5 text-xs leading-relaxed text-slate-600">
+                                                                1. Données CRM&nbsp;&nbsp;·&nbsp;&nbsp;2. Créneau dans le calendrier
+                                                            </p>
+                                                        </div>
+                                                    </div>
                                                     <Button
                                                         type="button"
                                                         variant="secondary"
                                                         onClick={() => setShowBookingDrawer(true)}
-                                                        className="gap-2 w-full"
+                                                        className="w-full gap-2 border-[#8FB2AA] text-[#1F4D47] hover:bg-white"
                                                     >
                                                         <Calendar className="w-4 h-4" aria-hidden="true" />
-                                                        Ouvrir le calendrier client
+                                                        Reprendre la planification
                                                     </Button>
                                                 </>
+                                            ) : (
+                                                <p className="text-xs leading-relaxed text-amber-800">
+                                                    Aucun calendrier de réservation n’est configuré pour ce client.
+                                                </p>
                                             )}
                                         </div>
                                     )}
@@ -2984,7 +3004,7 @@ export function UnifiedActionDrawer({
                                     )}
 
                                     {/* Note */}
-                                    {newActionResult !== "ENVOIE_MAIL" && (
+                                    {newActionResult !== "ENVOIE_MAIL" && !(newActionResult === "MEETING_BOOKED" && canOpenBookingFlow) && (
                                     <div>
                                         <label
                                             htmlFor="action-note"
@@ -3086,8 +3106,8 @@ export function UnifiedActionDrawer({
                                     </div>
                                     )}
 
-                                    {/* Submit — hidden when ENVOIE_MAIL (email panel has its own send) */}
-                                    {newActionResult !== "ENVOIE_MAIL" && (
+                                    {/* BookingDrawer owns the final CRM write for meeting bookings. */}
+                                    {newActionResult !== "ENVOIE_MAIL" && !(newActionResult === "MEETING_BOOKED" && canOpenBookingFlow) && (
                                     <div className="flex flex-col sm:flex-row gap-2 pt-3 mt-1 border-t border-indigo-100">
                                         <Button
                                             type="button"

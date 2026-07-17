@@ -22,10 +22,9 @@ const nextConfig: NextConfig = {
   output: process.env.BUILD_STANDALONE === "1" ? "standalone" : undefined,
   allowedDevOrigins: [process.env.REPLIT_DEV_DOMAIN || "*.replit.dev"],
   // Prevent bundling pdfkit so its font data files (.afm) resolve correctly at runtime
-  // puppeteer + @sparticuz/chromium: keep external for PDF generation (Chrome binary)
+  // Optional analytics PDF runtime stays external and downloads a hosted Chromium pack on demand.
   serverExternalPackages: [
     "pdfkit",
-    "puppeteer",
     "puppeteer-core",
     "@sparticuz/chromium-min",
     "googleapis",

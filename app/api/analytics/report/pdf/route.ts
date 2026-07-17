@@ -19,6 +19,16 @@ const MISTRAL_MODEL = "mistral-large-latest";
 export const GET = withErrorHandler(async (request: NextRequest) => {
     await requireRole(["MANAGER", "DEVELOPER"], request);
 
+    if (process.env.ENABLE_ANALYTICS_PDF !== "1" || !process.env.CHROMIUM_PACK_URL) {
+        return NextResponse.json(
+            {
+                success: false,
+                error: "L’export PDF analytique est désactivé pour accélérer les déploiements.",
+            },
+            { status: 503 }
+        );
+    }
+
     const { searchParams } = new URL(request.url);
     const from = searchParams.get("from")?.trim();
     const to = searchParams.get("to")?.trim();
@@ -118,13 +128,12 @@ ${notesText ? `\nNotes d'appel (échantillon) :\n${notesText}` : ""}
     };
     const html = getAnalyticsReportHtml(templateData);
 
-    const isVercel = !!process.env.VERCEL;
-    const puppeteer = isVercel ? await import("puppeteer-core") : await import("puppeteer");
-    const chromium = isVercel ? (await import("@sparticuz/chromium-min")).default : null;
+    const puppeteer = await import("puppeteer-core");
+    const chromium = (await import("@sparticuz/chromium-min")).default;
     const browser = await puppeteer.default.launch({
         headless: true,
-        args: isVercel ? chromium!.args : ["--no-sandbox", "--disable-setuid-sandbox"],
-        executablePath: isVercel ? await getChromiumExecutablePath() : undefined,
+        args: chromium.args,
+        executablePath: await getChromiumExecutablePath(),
     });
     try {
         const page = await browser.newPage();

@@ -2771,28 +2771,13 @@ export default function SDRActionPage() {
                                     })()}
                                     {(currentAction.clientBookingUrl || (currentAction.clientInterlocuteurs?.some(i => (i.bookingLinks?.length ?? 0) > 0))) && (
                                         <div className="space-y-2">
-                                            <div>
-                                                <DateTimePicker
-                                                    label={
-                                                        <>
-                                                            Date du RDV <span className="text-red-500">*</span>
-                                                        </>
-                                                    }
-                                                    value={rdvDate}
-                                                    onChange={setRdvDate}
-                                                    placeholder="Choisir date et heure du RDV…"
-                                                    min={new Date().toISOString().slice(0, 16)}
-                                                    triggerClassName="border-[rgba(224,124,0,0.22)] focus:ring-[rgba(255,158,27,0.35)] focus:border-[var(--elan-amber-deep)]"
-                                                />
-                                            </div>
                                             <Button
                                                 variant="primary"
                                                 onClick={() => setShowBookingDrawer(true)}
-                                                disabled={!rdvDate}
                                                 className="w-full gap-2"
                                             >
                                                 <Calendar className="w-4 h-4" />
-                                                Planifier un RDV
+                                                Planifier le RDV en 2 étapes
                                             </Button>
                                         </div>
                                     )}

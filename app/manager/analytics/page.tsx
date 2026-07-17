@@ -21,6 +21,7 @@ const SDR_COLORS: Record<string, string> = {
     'Anaïs': '#ff9e1b',
 };
 const getSdrColor = (name: string) => SDR_COLORS[name] || '#94A3B8';
+const analyticsPdfEnabled = process.env.NEXT_PUBLIC_ENABLE_ANALYTICS_PDF === "1";
 
 type AiAnalysis = {
     executiveSummary: string;
@@ -629,12 +630,14 @@ export default function AnalyticsPage() {
                         />
                     </div>
 
-                    <button
-                        onClick={() => setShowReportModal(true)}
-                        className="flex items-center gap-2 px-3.5 py-2 text-[12px] font-semibold text-[#1F4D47] bg-white border border-[#CBD8D4] rounded-lg hover:bg-[#EEF3F1] active:translate-y-px transition-colors shadow-sm"
-                    >
-                        <FileText className="w-3.5 h-3.5 text-slate-400" /> Générer un rapport
-                    </button>
+                    {analyticsPdfEnabled && (
+                        <button
+                            onClick={() => setShowReportModal(true)}
+                            className="flex items-center gap-2 px-3.5 py-2 text-[12px] font-semibold text-[#1F4D47] bg-white border border-[#CBD8D4] rounded-lg hover:bg-[#EEF3F1] active:translate-y-px transition-colors shadow-sm"
+                        >
+                            <FileText className="w-3.5 h-3.5 text-slate-400" /> Générer un rapport
+                        </button>
+                    )}
                     <button onClick={fetchStats} aria-label="Actualiser les performances" className="w-9 h-9 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-[#1F4D47] hover:border-[#AFC5BF] active:translate-y-px transition-colors shadow-sm">
                         <RefreshCw className={cn("w-3.5 h-3.5", isRefreshing && "animate-spin")} />
                     </button>
@@ -1683,7 +1686,7 @@ export default function AnalyticsPage() {
             </div>
 
             {/* Report Modal */}
-            <Modal
+            {analyticsPdfEnabled && <Modal
                 isOpen={showReportModal}
                 onClose={() => !isGeneratingReport && setShowReportModal(false)}
                 title="Générer un rapport PDF"
@@ -1793,7 +1796,7 @@ export default function AnalyticsPage() {
                         </button>
                     </div>
                 </div>
-            </Modal>
+            </Modal>}
 
         </div>
     );

@@ -5,18 +5,16 @@
 let cachedExecutablePath: string | null = null;
 let downloadPromise: Promise<string> | null = null;
 
-const CHROMIUM_PACK_URL =
-    process.env.CHROMIUM_PACK_URL ||
-    (process.env.VERCEL_URL
-        ? `https://${process.env.VERCEL_URL}/chromium-pack.tar`
-        : "https://github.com/gabenunez/puppeteer-on-vercel/raw/refs/heads/main/example/chromium-dont-use-in-prod.tar");
-
 export async function getChromiumExecutablePath(): Promise<string> {
     if (cachedExecutablePath) return cachedExecutablePath;
+    const chromiumPackUrl = process.env.CHROMIUM_PACK_URL;
+    if (!chromiumPackUrl) {
+        throw new Error("CHROMIUM_PACK_URL is required when analytics PDF export is enabled");
+    }
     if (!downloadPromise) {
         const chromium = (await import("@sparticuz/chromium-min")).default;
         downloadPromise = chromium
-            .executablePath(CHROMIUM_PACK_URL)
+            .executablePath(chromiumPackUrl)
             .then((path) => {
                 cachedExecutablePath = path;
                 return path;
