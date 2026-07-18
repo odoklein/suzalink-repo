@@ -20,16 +20,16 @@ function HistoryEntry({
   color: string;
 }) {
   return (
-    <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 0 }}>
-        <div style={{ width: 10, height: 10, borderRadius: "50%", background: color, flexShrink: 0 }} />
-        <div style={{ width: 1, flex: 1, background: "var(--border)", minHeight: 20 }} />
+    <div className="rdv-history-entry">
+      <div className="rdv-history-rail">
+        <div style={{ background: color }} />
+        <div />
       </div>
-      <div style={{ paddingBottom: 12 }}>
-        <div style={{ fontSize: 13, color: "var(--ink2)" }}>
-          <strong style={{ color: "var(--ink)" }}>{actor}</strong> — {description}
+      <div className="rdv-history-content">
+        <div>
+          <strong style={{ color: "var(--ink)" }}>{actor}</strong> : {description}
         </div>
-        <div style={{ fontSize: 12, color: "var(--ink3)", marginTop: 2 }}>
+        <time>
           {new Date(time).toLocaleDateString("fr-FR", {
             day: "numeric",
             month: "short",
@@ -37,7 +37,7 @@ function HistoryEntry({
             hour: "2-digit",
             minute: "2-digit",
           })}
-        </div>
+        </time>
       </div>
     </div>
   );
@@ -66,7 +66,7 @@ export function HistoryTab({ meeting }: HistoryTabProps) {
     entries.push({
       time: meeting.confirmedAt,
       actor: meeting.confirmedById ? "Manager" : "Auto (24h)",
-      description: `Confirmé — ${confirmationLabel(meeting.confirmationStatus as ConfirmationFilter)}`,
+      description: `Confirmé : ${confirmationLabel(meeting.confirmationStatus as ConfirmationFilter)}`,
       color: "var(--green)",
     });
   }
@@ -93,7 +93,7 @@ export function HistoryTab({ meeting }: HistoryTabProps) {
     entries.push({
       time: meeting.feedback.note ? meeting.createdAt : meeting.createdAt,
       actor: "Commercial / Client",
-      description: `Feedback : ${outcomeLabel(meeting.feedback.outcome)}${meeting.feedback.recontact ? ` — Recontact : ${meeting.feedback.recontact}` : ""}`,
+      description: `Feedback : ${outcomeLabel(meeting.feedback.outcome)}${meeting.feedback.recontact ? `, recontact : ${meeting.feedback.recontact}` : ""}`,
       color: "var(--amber)",
     });
   }
@@ -101,7 +101,7 @@ export function HistoryTab({ meeting }: HistoryTabProps) {
   if (meeting.result === "MEETING_CANCELLED") {
     entries.push({
       time: meeting.confirmationUpdatedAt || meeting.createdAt,
-      actor: "—",
+      actor: "Système",
       description: `Annulé${meeting.cancellationReason ? ` : ${meeting.cancellationReason}` : ""}`,
       color: "var(--red)",
     });
@@ -110,9 +110,15 @@ export function HistoryTab({ meeting }: HistoryTabProps) {
   entries.sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime());
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+    <div className="rdv-history-tab">
+      <div className="rdv-tab-section-header">
+        <div>
+          <strong>Chronologie du rendez-vous</strong>
+          <span>Les changements qui expliquent son état actuel.</span>
+        </div>
+      </div>
       {entries.length === 0 ? (
-        <div style={{ fontSize: 13, color: "var(--ink3)", fontStyle: "italic" }}>Aucun historique disponible.</div>
+        <div className="rdv-tab-empty">Aucun historique disponible.</div>
       ) : (
         entries.map((entry, i) => (
           <HistoryEntry key={`${entry.time}-${i}`} {...entry} />

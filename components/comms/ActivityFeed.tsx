@@ -146,7 +146,7 @@ export function ActivityFeed({
                         </p>
                         {item.details.contentPreview && (
                             <p className="text-xs text-slate-600 line-clamp-1 italic bg-slate-50/50 p-1.5 rounded border border-slate-100">
-                                "{item.details.contentPreview}"
+                                « {item.details.contentPreview} »
                             </p>
                         )}
                         <div className="flex items-center gap-2 mt-1.5">

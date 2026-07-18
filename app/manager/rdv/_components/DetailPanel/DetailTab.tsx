@@ -45,9 +45,9 @@ interface DetailTabProps {
 
 function DetailRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16 }}>
-      <span style={{ fontSize: 13, color: "var(--ink3)", minWidth: 110, flexShrink: 0, paddingTop: 1 }}>{label}</span>
-      <div style={{ fontSize: 13, color: "var(--ink)", textAlign: "right", flex: 1, minWidth: 0 }}>{children}</div>
+    <div className="rdv-detail-row">
+      <span>{label}</span>
+      <div>{children}</div>
     </div>
   );
 }
@@ -204,8 +204,12 @@ export function DetailTab({
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+    <div className="rdv-detail-tab">
+      <div className="rdv-detail-editbar">
+        <div>
+          <strong>Informations opérationnelles</strong>
+          <span>Créneau, canal et responsables</span>
+        </div>
         {!editMode ? (
           <button className="rdv-btn rdv-btn-ghost" style={{ fontSize: 12, padding: "6px 12px" }} onClick={() => setEditMode(true)}>
             <Pencil size={13} /> Éditer
@@ -248,7 +252,7 @@ export function DetailTab({
                     hour: "2-digit",
                     minute: "2-digit",
                   })
-                : "—"}
+                : "Non planifié"}
             </span>
             {meeting.callbackDate && (() => {
               const prox = proximityLabel(meeting.callbackDate);
@@ -276,10 +280,10 @@ export function DetailTab({
             value={detailForm.meetingType}
             onChange={(e) => setDetailForm((f) => ({ ...f, meetingType: e.target.value }))}
           >
-            <option value="">— Sélectionner —</option>
-            <option value="VISIO">📹 Visio</option>
-            <option value="PHYSIQUE">📍 Physique</option>
-            <option value="TELEPHONIQUE">📞 Téléphonique</option>
+            <option value="">Sélectionner</option>
+            <option value="VISIO">Visio</option>
+            <option value="PHYSIQUE">Physique</option>
+            <option value="TELEPHONIQUE">Téléphonique</option>
           </select>
         ) : (
           <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -558,13 +562,13 @@ export function DetailTab({
         </div>
       </DetailRow>
 
-      <DetailRow label="Client">{meeting.client?.name || "—"}</DetailRow>
+      <DetailRow label="Client">{meeting.client?.name || "Non renseigné"}</DetailRow>
       <DetailRow label="Mission">{meeting.mission.name}</DetailRow>
       <DetailRow label="Campagne">{meeting.campaign.name}</DetailRow>
 
       {/* Company card */}
-      <div style={{ border: "1px solid var(--border)", borderRadius: 14, padding: "14px 16px", background: "var(--surface)" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+      <div className="rdv-entity-card">
+        <div className="rdv-entity-card-header">
           <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.07em", color: "var(--ink3)", textTransform: "uppercase" }}>Entreprise</span>
           {meeting.company ? (
             <button type="button" className="rdv-btn rdv-btn-ghost" style={{ fontSize: 12, padding: "5px 10px" }} onClick={onOpenEditCompany}>
@@ -580,10 +584,10 @@ export function DetailTab({
           <div>
             <div style={{ color: "var(--ink)", fontWeight: 600, fontSize: 14 }}>{meeting.company.name}</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 3, marginTop: 6 }}>
-              {meeting.company.industry && <div style={{ fontSize: 12, color: "var(--ink3)" }}>🏭 {meeting.company.industry}</div>}
-              {meeting.company.country && <div style={{ fontSize: 12, color: "var(--ink3)" }}>🌍 {meeting.company.country}</div>}
-              {meeting.company.size && <div style={{ fontSize: 12, color: "var(--ink3)" }}>👥 {meeting.company.size} salariés</div>}
-              {meeting.company.phone && <div style={{ fontSize: 12, color: "var(--ink3)" }}>📞 {meeting.company.phone}</div>}
+              {meeting.company.industry && <div style={{ fontSize: 12, color: "var(--ink3)" }}>{meeting.company.industry}</div>}
+              {meeting.company.country && <div style={{ fontSize: 12, color: "var(--ink3)" }}>{meeting.company.country}</div>}
+              {meeting.company.size && <div style={{ fontSize: 12, color: "var(--ink3)" }}>{meeting.company.size} salariés</div>}
+              {meeting.company.phone && <div style={{ fontSize: 12, color: "var(--ink3)" }}>{meeting.company.phone}</div>}
               {meeting.company.website && (
                 <a
                   href={meeting.company.website.startsWith("http") ? meeting.company.website : `https://${meeting.company.website}`}
@@ -598,14 +602,14 @@ export function DetailTab({
           </div>
         ) : (
           <div style={{ fontSize: 13, color: "var(--ink3)", fontStyle: "italic" }}>
-            Aucune entreprise liée — liez un contact pour associer son entreprise.
+            Aucune entreprise liée. Liez un contact pour associer son entreprise.
           </div>
         )}
       </div>
 
       {/* Contact card */}
-      <div style={{ border: "1px solid var(--border)", borderRadius: 14, padding: "14px 16px", background: "var(--surface)" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+      <div className="rdv-entity-card">
+        <div className="rdv-entity-card-header">
           <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.07em", color: "var(--ink3)", textTransform: "uppercase" }}>Contact</span>
           {meeting.contact ? (
             <button type="button" className="rdv-btn rdv-btn-ghost" style={{ fontSize: 12, padding: "5px 10px" }} onClick={onOpenEditContact}>

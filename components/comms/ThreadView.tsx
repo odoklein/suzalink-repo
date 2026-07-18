@@ -6,22 +6,18 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
     X,
+    ArrowLeft,
     MoreVertical,
     CheckCircle,
     Archive,
-    Users,
     Send,
     Paperclip,
-    ChevronDown,
-    Clock,
-    Sparkles,
     Loader2,
-    Phone,
-    Calendar,
-    UserPlus,
     CheckCheck,
     Maximize2,
     Minimize2,
+    ArrowDown,
+    RotateCcw,
 } from "lucide-react";
 import { RichTextEditor } from "./RichTextEditor";
 import { MessageContent } from "./MessageContent";
@@ -35,11 +31,11 @@ import type { CommsThreadView, CommsMessageView } from "@/lib/comms/types";
 interface ThreadViewProps {
     thread: CommsThreadView;
     onClose: () => void;
-    onStatusChange: (status: "RESOLVED" | "ARCHIVED") => void;
+    onStatusChange: (status: "OPEN" | "RESOLVED" | "ARCHIVED") => void;
     onSendMessage: (
         content: string,
         opts?: { mentionIds?: string[]; files?: File[] }
-    ) => Promise<void>;
+    ) => Promise<boolean | void>;
     onReactionToggle?: (messageId: string, emoji: string) => Promise<void>;
     currentUserId: string;
     typingUserName?: string;
@@ -63,12 +59,19 @@ export function ThreadView({
     isRecipientOnline,
     onTyping,
 }: ThreadViewProps) {
-    const [messageContent, setMessageContent] = useState("");
+    const [messageContent, setMessageContent] = useState(() => {
+        if (typeof window === "undefined") return "";
+        return window.sessionStorage.getItem(`comms-draft:${thread.id}`) ?? "";
+    });
     const [mentionIds, setMentionIds] = useState<string[]>([]);
     const [files, setFiles] = useState<File[]>([]);
     const [isSending, setIsSending] = useState(false);
     const [showMenu, setShowMenu] = useState(false);
+    const [showJumpToLatest, setShowJumpToLatest] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const messagesContainerRef = useRef<HTMLDivElement>(null);
+    const isNearBottomRef = useRef(true);
+    const previousMessageCountRef = useRef(0);
     const typingDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const typingStopRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -114,8 +117,42 @@ export function ThreadView({
     }, [thread.id, onTyping]);
 
     useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, [thread.messages]);
+        if (messageContent.trim()) {
+            window.sessionStorage.setItem(`comms-draft:${thread.id}`, messageContent);
+        } else {
+            window.sessionStorage.removeItem(`comms-draft:${thread.id}`);
+        }
+    }, [messageContent, thread.id]);
+
+    const scrollToLatest = useCallback((behavior: ScrollBehavior = "smooth") => {
+        const container = messagesContainerRef.current;
+        if (!container) return;
+        container.scrollTo({ top: container.scrollHeight, behavior });
+        isNearBottomRef.current = true;
+        setShowJumpToLatest(false);
+    }, []);
+
+    useEffect(() => {
+        const previousCount = previousMessageCountRef.current;
+        const nextCount = thread.messages.length;
+        const latestMessage = thread.messages[nextCount - 1];
+        let frame: number | undefined;
+
+        if (previousCount === 0) {
+            frame = requestAnimationFrame(() => scrollToLatest("auto"));
+        } else if (nextCount > previousCount) {
+            if (isNearBottomRef.current || latestMessage?.author.id === currentUserId) {
+                frame = requestAnimationFrame(() => scrollToLatest("smooth"));
+            } else {
+                setShowJumpToLatest(true);
+            }
+        }
+
+        previousMessageCountRef.current = nextCount;
+        return () => {
+            if (frame !== undefined) cancelAnimationFrame(frame);
+        };
+    }, [thread.messages, currentUserId, scrollToLatest]);
 
     const handleSend = async () => {
         const trimmed = messageContent.trim();
@@ -124,13 +161,16 @@ export function ThreadView({
         notifyTyping(false);
         setIsSending(true);
         try {
-            await onSendMessage(trimmed, {
+            const sent = await onSendMessage(trimmed, {
                 mentionIds: mentionIds.length > 0 ? mentionIds : undefined,
                 files: files.length > 0 ? files : undefined,
             });
-            setMessageContent("");
-            setMentionIds([]);
-            setFiles([]);
+            if (sent !== false) {
+                setMessageContent("");
+                setMentionIds([]);
+                setFiles([]);
+                window.sessionStorage.removeItem(`comms-draft:${thread.id}`);
+            }
         } finally {
             setIsSending(false);
         }
@@ -150,13 +190,20 @@ export function ThreadView({
         return thread.subject;
     };
 
-    const isDirectMessage = thread.channelType === "DIRECT";
     const threadTitle = getThreadTitle();
 
     return (
-        <div className="flex flex-col h-full bg-white dark:bg-[#151c2a]">
-            <header className="h-14 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between px-5 bg-white dark:bg-[#151c2a] z-10 shrink-0">
+        <div className="flex h-full w-full min-w-0 flex-col bg-white dark:bg-[#151c2a]">
+            <header className="h-14 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between px-3 sm:px-5 bg-white dark:bg-[#151c2a] z-10 shrink-0">
                 <div className="flex items-center gap-3 min-w-0">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0C3B38]/25 dark:hover:bg-slate-800 dark:hover:text-white md:hidden"
+                        aria-label="Retour aux discussions"
+                    >
+                        <ArrowLeft className="size-4" />
+                    </button>
                     <div className="size-9 rounded-full bg-gradient-to-br from-[#0C3B38] to-[#25745f] flex items-center justify-center text-xs font-bold text-white shrink-0 shadow-sm">
                         {threadTitle.charAt(0).toUpperCase()}
                     </div>
@@ -170,15 +217,22 @@ export function ThreadView({
                                 </span>
                             )}
                         </div>
-                        {thread.participants.length > 2 && (
-                            <p className="text-[11px] text-[#8B8BA7] truncate">{thread.participants.length} participants</p>
-                        )}
+                        <p className="text-[11px] text-[#8B8BA7] truncate">
+                            {thread.participants.length > 2
+                                ? `${thread.participants.length} participants`
+                                : isRecipientOnline
+                                    ? "En ligne"
+                                    : thread.channelType === "DIRECT"
+                                        ? "Hors ligne"
+                                        : thread.channelName}
+                        </p>
                     </div>
                 </div>
 
                 <div className="flex items-center gap-0.5 shrink-0">
                     {onFocusModeChange && (
                         <button
+                            type="button"
                             onClick={() => onFocusModeChange(!focusMode)}
                             className={cn(
                                 "p-2 rounded-lg transition-all duration-200",
@@ -186,16 +240,15 @@ export function ThreadView({
                                     ? "text-[#0C3B38] bg-[#0C3B38]/10"
                                     : "text-slate-400 hover:text-[#0C3B38] hover:bg-[#0C3B38]/5"
                             )}
-                            title={focusMode ? "Quitter le mode focus" : "Mode focus (plein écran chat)"}
+                            title={focusMode ? "Quitter le mode focus" : "Ouvrir le mode focus"}
+                            aria-label={focusMode ? "Quitter le mode focus" : "Ouvrir le mode focus"}
                         >
                             {focusMode ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
                         </button>
                     )}
-                    <button className="p-2 text-slate-400 hover:text-[#0C3B38] hover:bg-[#0C3B38]/5 rounded-lg transition-all duration-200">
-                        <Phone className="w-4 h-4" />
-                    </button>
                     <div className="relative">
                         <button
+                            type="button"
                             onClick={() => setShowMenu(!showMenu)}
                             className={cn(
                                 "p-2 rounded-lg transition-all duration-200",
@@ -203,58 +256,64 @@ export function ThreadView({
                                     ? "bg-slate-100 dark:bg-slate-800 text-[#12122A] dark:text-slate-300"
                                     : "text-slate-400 hover:text-[#12122A] dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800"
                             )}
+                            aria-label="Actions de la discussion"
+                            aria-expanded={showMenu}
+                            aria-haspopup="menu"
                         >
                             <MoreVertical className="w-4 h-4" />
                         </button>
                         {showMenu && (
                             <>
-                                <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
-                                <div className="absolute right-0 top-full mt-1.5 w-52 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200/80 dark:border-slate-700 py-1.5 z-20">
-                                    <button className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] font-medium text-[#12122A] hover:bg-[#F4F0E8]/60 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors">
-                                        <Calendar className="w-4 h-4 text-[#8B8BA7]" />
-                                        <span>Planifier un RDV</span>
-                                    </button>
-                                    <button className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] font-medium text-[#12122A] hover:bg-[#F4F0E8]/60 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors">
-                                        <UserPlus className="w-4 h-4 text-[#8B8BA7]" />
-                                        <span>Assigner</span>
-                                    </button>
-                                    {(thread.status === "OPEN" || thread.status === "RESOLVED") && (
-                                        <>
-                                            <div className="my-1 border-t border-slate-100 dark:border-slate-700" />
-                                            {thread.status === "OPEN" && (
-                                                <button
-                                                    onClick={() => { onStatusChange("RESOLVED"); setShowMenu(false); }}
-                                                    className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] font-medium text-[#12122A] hover:bg-emerald-50 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors"
-                                                >
-                                                    <CheckCircle className="w-4 h-4 text-emerald-500" />
-                                                    <span>Marquer comme résolu</span>
-                                                </button>
-                                            )}
-                                            <button
-                                                onClick={() => { onStatusChange("ARCHIVED"); setShowMenu(false); }}
-                                                className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] font-medium text-[#12122A] hover:bg-[#F4F0E8]/60 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors"
-                                            >
-                                                <Archive className="w-4 h-4 text-[#8B8BA7]" />
-                                                <span>Archiver</span>
-                                            </button>
-                                        </>
+                                <button type="button" className="fixed inset-0 z-10 cursor-default" onClick={() => setShowMenu(false)} aria-label="Fermer le menu" />
+                                <div className="absolute right-0 top-full z-20 mt-1.5 w-56 rounded-xl border border-slate-200/80 bg-white py-1.5 shadow-xl dark:border-slate-700 dark:bg-slate-800" role="menu">
+                                    {thread.status === "OPEN" ? (
+                                        <button
+                                            type="button"
+                                            role="menuitem"
+                                            onClick={() => { onStatusChange("RESOLVED"); setShowMenu(false); }}
+                                            className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] font-medium text-[#12122A] hover:bg-emerald-50 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors"
+                                        >
+                                            <CheckCircle className="w-4 h-4 text-emerald-600" />
+                                            <span>Marquer comme résolue</span>
+                                        </button>
+                                    ) : (
+                                        <button
+                                            type="button"
+                                            role="menuitem"
+                                            onClick={() => { onStatusChange("OPEN"); setShowMenu(false); }}
+                                            className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] font-medium text-[#12122A] hover:bg-emerald-50 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors"
+                                        >
+                                            <RotateCcw className="w-4 h-4 text-emerald-600" />
+                                            <span>Rouvrir la discussion</span>
+                                        </button>
+                                    )}
+                                    {thread.status !== "ARCHIVED" && (
+                                        <button
+                                            type="button"
+                                            role="menuitem"
+                                            onClick={() => { onStatusChange("ARCHIVED"); setShowMenu(false); }}
+                                            className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] font-medium text-[#12122A] hover:bg-[#F4F0E8]/60 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors"
+                                        >
+                                            <Archive className="w-4 h-4 text-[#8B8BA7]" />
+                                            <span>Archiver</span>
+                                        </button>
                                     )}
                                 </div>
                             </>
                         )}
                     </div>
-                    <button onClick={onClose} className="p-2 text-slate-400 hover:text-[#12122A] dark:hover:text-white hover:bg-slate-50 rounded-lg transition-all duration-200">
+                    <button type="button" onClick={onClose} className="hidden p-2 text-slate-400 hover:text-[#12122A] dark:hover:text-white hover:bg-slate-50 rounded-lg transition-all duration-200 md:inline-flex" aria-label="Fermer la discussion" title="Fermer">
                         <X className="w-4 h-4" />
                     </button>
                 </div>
             </header>
 
             {typingUserName && (
-                <div className="flex items-center gap-2 px-5 py-2 bg-[#F4F0E8]/50 dark:bg-slate-800/50 border-b border-[#ECE5D8]/60 dark:border-slate-800">
+                <div className="flex items-center gap-2 px-5 py-2 bg-[#F4F0E8]/50 dark:bg-slate-800/50 border-b border-[#ECE5D8]/60 dark:border-slate-800" role="status" aria-live="polite">
                     <div className="flex gap-0.5">
-                        <span className="w-1.5 h-1.5 bg-[#0C3B38] rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                        <span className="w-1.5 h-1.5 bg-[#0C3B38] rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                        <span className="w-1.5 h-1.5 bg-[#0C3B38] rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                        <span className="w-1.5 h-1.5 bg-[#0C3B38] rounded-full animate-bounce motion-reduce:animate-none" style={{ animationDelay: "0ms" }} />
+                        <span className="w-1.5 h-1.5 bg-[#0C3B38] rounded-full animate-bounce motion-reduce:animate-none" style={{ animationDelay: "150ms" }} />
+                        <span className="w-1.5 h-1.5 bg-[#0C3B38] rounded-full animate-bounce motion-reduce:animate-none" style={{ animationDelay: "300ms" }} />
                     </div>
                     <p className="text-[12px] text-[#0C3B38] dark:text-emerald-400 font-semibold">{typingUserName} écrit…</p>
                 </div>
@@ -262,7 +321,20 @@ export function ThreadView({
 
             {thread.messages.length >= 5 && <ThreadSummary threadId={thread.id} />}
 
-            <div className="flex-1 min-h-0 overflow-y-auto px-5 py-5 space-y-1 bg-[#FAFAF8] dark:bg-slate-900/50" style={{ scrollbarWidth: "thin", scrollbarColor: "#D4D0C8 transparent" }}>
+            <div className="relative flex-1 min-h-0 bg-[#FAFAF8] dark:bg-slate-900/50">
+            <div
+                ref={messagesContainerRef}
+                onScroll={(event) => {
+                    const element = event.currentTarget;
+                    const distanceFromBottom = element.scrollHeight - element.scrollTop - element.clientHeight;
+                    const isNearBottom = distanceFromBottom < 96;
+                    isNearBottomRef.current = isNearBottom;
+                    if (isNearBottom && showJumpToLatest) setShowJumpToLatest(false);
+                }}
+                className="h-full overflow-y-auto px-3 py-5 space-y-1 sm:px-5"
+                style={{ scrollbarWidth: "thin", scrollbarColor: "#D4D0C8 transparent" }}
+                aria-live="polite"
+            >
                 {thread.messages.length > 0 && (
                     <div className="flex justify-center py-2">
                         <span className="text-[11px] font-semibold text-[#8B8BA7] bg-[#ECE5D8]/60 dark:bg-slate-800 px-3 py-1 rounded-full">
@@ -301,6 +373,16 @@ export function ThreadView({
                 })}
                 <div ref={messagesEndRef} />
             </div>
+            {showJumpToLatest && (
+                <button
+                    type="button"
+                    onClick={() => scrollToLatest()}
+                    className="absolute bottom-4 left-1/2 inline-flex -translate-x-1/2 items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-[#0C3B38] shadow-lg transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0C3B38]/25 dark:border-slate-700 dark:bg-slate-800 dark:text-emerald-300"
+                >
+                    <ArrowDown className="size-3.5" /> Nouveaux messages
+                </button>
+            )}
+            </div>
 
             {thread.status === "OPEN" && !thread.isBroadcast && (
                 <div className="p-4 bg-white dark:bg-[#151c2a] border-t border-slate-100 dark:border-slate-800 shrink-0">
@@ -330,7 +412,7 @@ export function ThreadView({
                             />
                             <div className="flex justify-between items-center px-3 pb-2 pt-1.5 border-t border-slate-100/80 dark:border-slate-800">
                                 <div className="flex items-center gap-2 text-[11px] text-[#8B8BA7]">
-                                    <span>Visible par : Tous les participants</span>
+                                    <span className="hidden sm:inline">Visible par tous les participants</span>
                                 </div>
                                 <div className="flex gap-2">
                                     <button
@@ -338,13 +420,17 @@ export function ThreadView({
                                         onClick={handleSend}
                                         disabled={(!messageContent.trim() && files.length === 0) || isSending}
                                         className={cn(
-                                            "flex items-center gap-2 px-4 py-2 rounded-lg text-[13px] font-semibold transition-all duration-200 shadow-sm",
+                                            "flex items-center gap-2 px-4 py-2 rounded-lg text-[13px] font-semibold transition-all duration-200 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0C3B38]/30 focus-visible:ring-offset-2 active:translate-y-px",
                                             (messageContent.trim() || files.length > 0)
                                                 ? "bg-[#0C3B38] hover:bg-[#0A322F] text-white shadow-[#0C3B38]/20"
                                                 : "bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed"
                                         )}
                                     >
-                                        Envoyer <Send className="w-3.5 h-3.5" />
+                                        {isSending ? (
+                                            <><Loader2 className="w-3.5 h-3.5 animate-spin motion-reduce:animate-none" /> Envoi...</>
+                                        ) : (
+                                            <>Envoyer <Send className="w-3.5 h-3.5" /></>
+                                        )}
                                     </button>
                                 </div>
                             </div>
@@ -353,12 +439,19 @@ export function ThreadView({
                 </div>
             )}
             {thread.status !== "OPEN" && (
-                <div className="px-6 py-4 bg-gradient-to-r from-slate-50 to-slate-100 border-t border-slate-200">
-                    <div className="flex items-center justify-center gap-3">
+                <div className="px-4 py-3 bg-slate-50 border-t border-slate-200 dark:border-slate-800 dark:bg-slate-900">
+                    <div className="flex flex-wrap items-center justify-center gap-3">
                         {thread.status === "RESOLVED" ? <CheckCircle className="w-5 h-5 text-emerald-500" /> : <Archive className="w-5 h-5 text-slate-400" />}
-                        <span className="text-sm font-medium text-slate-600">
+                        <span className="text-sm font-medium text-slate-600 dark:text-slate-300">
                             Cette discussion est {thread.status === "RESOLVED" ? "résolue" : "archivée"}
                         </span>
+                        <button
+                            type="button"
+                            onClick={() => onStatusChange("OPEN")}
+                            className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-bold text-[#0C3B38] transition-colors hover:bg-[#0C3B38]/8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0C3B38]/25 dark:text-emerald-300"
+                        >
+                            <RotateCcw className="size-3.5" /> Rouvrir
+                        </button>
                     </div>
                 </div>
             )}
@@ -432,7 +525,10 @@ function MessageBubble({
                         reactions={message.reactions ?? []}
                         currentUserId={currentUserId}
                         onToggle={(msgId, emoji) => onReactionToggle?.(msgId, emoji) ?? Promise.resolve()}
-                        isOwn={isOwn}
+                        className={cn(
+                            "transition-opacity",
+                            (message.reactions?.length ?? 0) === 0 && "opacity-50 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100"
+                        )}
                     />
                 )}
                 {message.attachments.length > 0 && (

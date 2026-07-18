@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Modal } from "@/components/ui/Modal";
+import { RdvDialog, RdvStepRail } from "../shared/RdvFormKit";
 
 interface RdvImportMappings {
   dateColumn: string;
@@ -213,7 +213,16 @@ export function ImportRdvModal({ isOpen, onClose, onSuccess }: ImportRdvModalPro
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={() => !uploading && onClose()} title="Importer des RDV" size="lg">
+    <RdvDialog
+      isOpen={isOpen}
+      onClose={() => !uploading && onClose()}
+      title="Importer des RDV"
+      description="Transformez un fichier CSV en rendez-vous vérifiés, sans perdre le contrôle sur les correspondances."
+      size="lg"
+      className="rdv-import-dialog"
+    >
+
+        {result === null && <RdvStepRail steps={["Source", "Correspondances", "Vérification"]} current={step} />}
 
         {result !== null ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -330,7 +339,7 @@ export function ImportRdvModal({ isOpen, onClose, onSuccess }: ImportRdvModalPro
                       value={mappings[key] ?? ""}
                       onChange={(e) => setMappings((m) => ({ ...m, [key]: e.target.value || undefined }))}
                     >
-                      <option value="">—</option>
+                      <option value="">Non mappé</option>
                       {csvHeaders.map((h) => (
                         <option key={h} value={h}>{h}</option>
                       ))}
@@ -393,9 +402,9 @@ export function ImportRdvModal({ isOpen, onClose, onSuccess }: ImportRdvModalPro
                     <tbody>
                       {previewRows.slice(0, 5).map((row, i) => (
                         <tr key={i} style={{ borderTop: "1px solid var(--border)" }}>
-                          <td style={{ padding: "8px 10px" }}>{row[mappings.dateColumn] ?? "—"}</td>
+                          <td style={{ padding: "8px 10px" }}>{row[mappings.dateColumn] ?? "Non renseigné"}</td>
                           <td style={{ padding: "8px 10px" }}>
-                            {row[mappings.contactEmailColumn ?? ""] || row[mappings.companyNameColumn ?? ""] || "—"}
+                            {row[mappings.contactEmailColumn ?? ""] || row[mappings.companyNameColumn ?? ""] || "Non renseigné"}
                           </td>
                           <td style={{ padding: "8px 10px" }}>{row[mappings.meetingTypeColumn ?? ""] || "VISIO"}</td>
                         </tr>
@@ -423,7 +432,7 @@ export function ImportRdvModal({ isOpen, onClose, onSuccess }: ImportRdvModalPro
                         }}
                       >
                         <p style={{ fontSize: 12, color: "var(--ink2)" }}>
-                          Cette mission n&apos;a aucune liste. Creez une liste maintenant pour continuer l&apos;import.
+                          Cette mission n&apos;a aucune liste. Créez une liste maintenant pour continuer l&apos;import.
                         </p>
                         <input
                           className="rdv-input"
@@ -469,7 +478,7 @@ export function ImportRdvModal({ isOpen, onClose, onSuccess }: ImportRdvModalPro
                             }
                           }}
                         >
-                          {uploading ? "Creation + import…" : "Creer la liste maintenant et importer"}
+                          {uploading ? "Création + import..." : "Créer la liste maintenant et importer"}
                         </button>
                       </div>
                     )}
@@ -488,7 +497,7 @@ export function ImportRdvModal({ isOpen, onClose, onSuccess }: ImportRdvModalPro
                         }}
                       >
                         <p style={{ fontSize: 12, color: "var(--ink2)" }}>
-                          Aucune campagne active trouvee pour cette mission. Creez une campagne maintenant pour continuer l&apos;import.
+                          Aucune campagne active trouvée pour cette mission. Créez une campagne maintenant pour continuer l&apos;import.
                         </p>
                         <input
                           className="rdv-input"
@@ -551,6 +560,6 @@ export function ImportRdvModal({ isOpen, onClose, onSuccess }: ImportRdvModalPro
             )}
           </>
         )}
-    </Modal>
+    </RdvDialog>
   );
 }

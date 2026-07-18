@@ -6,7 +6,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { cn } from "@/lib/utils";
-import { Bold, Italic, Code, AtSign, Smile } from "lucide-react";
+import { Bold, Italic, Code, AtSign } from "lucide-react";
 
 export interface MentionOption {
     id: string;
@@ -58,7 +58,6 @@ export function RichTextEditor({
     minRows = 1,
     maxRows = 8,
 }: RichTextEditorProps) {
-    const [mentionQuery, setMentionQuery] = useState("");
     const [mentionResults, setMentionResults] = useState<MentionOption[]>([]);
     const [showMentionList, setShowMentionList] = useState(false);
     const [mentionAnchor, setMentionAnchor] = useState(0);
@@ -176,7 +175,6 @@ export function RichTextEditor({
             const match = /\@([^\s]*)$/.exec(v.slice(0, pos));
             if (match) {
                 setMentionAnchor(pos - match[0].length);
-                setMentionQuery(match[1]);
                 runMentionSearch(match[1]);
             } else {
                 setShowMentionList(false);
@@ -307,7 +305,7 @@ export function RichTextEditor({
                     >
                         <div className="px-3 py-1.5 border-b border-slate-100 mb-1">
                             <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">
-                                Mentionner quelqu'un
+                                Mentionner quelqu&apos;un
                             </span>
                         </div>
                         {mentionResults.map((u, i) => (

@@ -57,15 +57,18 @@ export function useCommsRealtime(
   const onPresenceChangeRef = useRef(onPresenceChange);
   const getRecipientIdsRef = useRef(getRecipientIdsForThread);
   const disconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  onEventRef.current = onEvent;
-  onPresenceChangeRef.current = onPresenceChange;
-  getRecipientIdsRef.current = getRecipientIdsForThread;
+  const onlineUsersRef = useRef<Set<string>>(EMPTY_SET);
+
+  useEffect(() => {
+    onEventRef.current = onEvent;
+    onPresenceChangeRef.current = onPresenceChange;
+    getRecipientIdsRef.current = getRecipientIdsForThread;
+  }, [onEvent, onPresenceChange, getRecipientIdsForThread]);
 
   useEffect(() => {
     if (!enabled || !userId) {
       disconnectCommsSocket();
-      setIsConnected(false);
-      setOnlineUsers(EMPTY_SET);
+      onlineUsersRef.current = EMPTY_SET;
       return;
     }
 
@@ -76,6 +79,14 @@ export function useCommsRealtime(
 
     connectCommsSocket(userId, {
       onOnlineUsers: (userIds) => {
+        const previous = onlineUsersRef.current;
+        userIds.forEach((id) => {
+          if (!previous.has(id)) onPresenceChangeRef.current?.(id, true);
+        });
+        previous.forEach((id) => {
+          if (!userIds.has(id)) onPresenceChangeRef.current?.(id, false);
+        });
+        onlineUsersRef.current = userIds;
         setOnlineUsers(userIds);
       },
       onTyping: (payload) => {
@@ -111,7 +122,7 @@ export function useCommsRealtime(
     if (socket) {
       const onConnect = () => setIsConnected(true);
       socket.on("connect", onConnect);
-      if (socket.connected) setIsConnected(true);
+      if (socket.connected) queueMicrotask(onConnect);
       return () => {
         socket.off("connect", onConnect);
         disconnectTimerRef.current = setTimeout(() => {
@@ -129,22 +140,22 @@ export function useCommsRealtime(
     };
   }, [enabled, userId]);
 
-  const joinThread = useCallback((_threadId: string) => {
+  const joinThread = useCallback(() => {
     // No-op unless VPS supports rooms per thread
   }, []);
 
-  const leaveThread = useCallback((_threadId: string) => {
+  const leaveThread = useCallback(() => {
     // No-op unless VPS supports rooms per thread
   }, []);
 
-  const startTyping = useCallback((threadId: string, _userName: string) => {
+  const startTyping = useCallback((threadId: string) => {
     const recipientIds = getRecipientIdsRef.current?.(threadId) ?? [];
     recipientIds.forEach((recipientId) => {
       emitTypingSocket(recipientId, true);
     });
   }, []);
 
-  const stopTyping = useCallback((threadId: string, _userName: string) => {
+  const stopTyping = useCallback((threadId: string) => {
     const recipientIds = getRecipientIdsRef.current?.(threadId) ?? [];
     recipientIds.forEach((recipientId) => {
       emitTypingSocket(recipientId, false);
@@ -152,10 +163,10 @@ export function useCommsRealtime(
   }, []);
 
   return {
-    isConnected,
+    isConnected: enabled ? isConnected : false,
     lastEvent,
     socket: getCommsSocketInstance(),
-    onlineUsers,
+    onlineUsers: enabled ? onlineUsers : EMPTY_SET,
     joinThread,
     leaveThread,
     startTyping,

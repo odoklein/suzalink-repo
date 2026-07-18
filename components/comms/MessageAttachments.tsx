@@ -7,7 +7,7 @@
 import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { cn } from "@/lib/utils";
-import { Paperclip, X, FileText, Image } from "lucide-react";
+import { Paperclip, X, FileText, Image as ImageIcon } from "lucide-react";
 
 const MAX_FILES = 5;
 const MAX_SIZE = 15 * 1024 * 1024; // 15MB
@@ -77,7 +77,7 @@ export function MessageAttachments({
                             className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5 text-sm"
                         >
                             {isImage(f) ? (
-                                <Image className="h-4 w-4 text-slate-500" />
+                                <ImageIcon className="h-4 w-4 text-slate-500" />
                             ) : (
                                 <FileText className="h-4 w-4 text-slate-500" />
                             )}

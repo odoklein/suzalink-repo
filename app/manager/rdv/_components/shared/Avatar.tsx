@@ -19,17 +19,14 @@ export const Avatar = memo(function Avatar({
     .toUpperCase() || "?";
   return (
     <div
+      className="rdv-avatar"
+      role="img"
+      aria-label={name ? `Avatar de ${name}` : "Avatar sans nom"}
       style={{
         width: size,
         height: size,
-        borderRadius: "50%",
         background: color,
-        display: "grid",
-        placeContent: "center",
         fontSize: size * 0.36,
-        fontWeight: 700,
-        color: "white",
-        flexShrink: 0,
       }}
     >
       {first}

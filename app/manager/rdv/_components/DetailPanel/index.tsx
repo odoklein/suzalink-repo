@@ -1,6 +1,6 @@
 "use client";
 
-import type { Meeting, PanelTab } from "../../_types";
+import type { Meeting, PanelTab, ConfirmationFilter } from "../../_types";
 import {
   statusBg,
   statusColor,
@@ -9,16 +9,30 @@ import {
   confirmationBg,
   confirmationColor,
   confirmationLabel,
-  meetingTypeIcon,
   meetingTypeLabel,
   categoryBg,
   categoryColor,
   categoryLabel,
+  downloadICS,
+  proximityLabel,
+  contactName,
 } from "../../_lib/formatters";
-import type { ConfirmationFilter } from "../../_types";
 import { Avatar } from "../shared/Avatar";
-import { X, Check, Mail, Phone, Linkedin, FileText, ThumbsUp, Mic, History, CalendarPlus } from "lucide-react";
-import { downloadICS, proximityLabel } from "../../_lib/formatters";
+import {
+  X,
+  Check,
+  Mail,
+  Phone,
+  Linkedin,
+  FileText,
+  ThumbsUp,
+  Mic,
+  History,
+  CalendarPlus,
+  CalendarClock,
+  MapPin,
+  Video,
+} from "lucide-react";
 import { DetailTab } from "./DetailTab";
 import { FicheTab } from "./FicheTab";
 import { FeedbackTab } from "./FeedbackTab";
@@ -27,7 +41,6 @@ import { HistoryTab } from "./HistoryTab";
 import type { UseDetailPanelReturn } from "../../_hooks/useDetailPanel";
 import type { UseFicheRdvReturn } from "../../_hooks/useFicheRdv";
 import type { UseFeedbackReturn } from "../../_hooks/useFeedback";
-import { contactName } from "../../_lib/formatters";
 
 interface DetailPanelProps {
   panelState: UseDetailPanelReturn;
@@ -40,13 +53,23 @@ interface DetailPanelProps {
   updateLocalMeeting: (id: string, patch: Partial<Meeting>) => void;
 }
 
-const TABS: { key: PanelTab; label: string; Icon: typeof FileText }[] = [
-  { key: "detail", label: "Détail", Icon: FileText },
-  { key: "fiche", label: "Fiche RDV", Icon: FileText },
-  { key: "feedback", label: "Feedback", Icon: ThumbsUp },
-  { key: "audio", label: "Audio + transcription", Icon: Mic },
-  { key: "history", label: "Historique", Icon: History },
+const TABS: { key: PanelTab; label: string; shortLabel: string; Icon: typeof FileText }[] = [
+  { key: "detail", label: "Vue d'ensemble", shortLabel: "Détail", Icon: FileText },
+  { key: "fiche", label: "Fiche RDV", shortLabel: "Fiche", Icon: FileText },
+  { key: "feedback", label: "Feedback", shortLabel: "Feedback", Icon: ThumbsUp },
+  { key: "audio", label: "Audio et transcription", shortLabel: "Audio", Icon: Mic },
+  { key: "history", label: "Historique", shortLabel: "Historique", Icon: History },
 ];
+
+function formatAppointment(date: string | null | undefined) {
+  if (!date) return { day: "Date à définir", time: "Non planifié" };
+  const parsed = new Date(date);
+  if (Number.isNaN(parsed.getTime())) return { day: "Date à vérifier", time: "Horaire invalide" };
+  return {
+    day: parsed.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" }),
+    time: parsed.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }),
+  };
+}
 
 export function DetailPanel({
   panelState,
@@ -63,6 +86,10 @@ export function DetailPanel({
   if (!selectedMeeting) return null;
 
   const status = meetingStatus(selectedMeeting);
+  const appointment = formatAppointment(selectedMeeting.callbackDate);
+  const confirmation = selectedMeeting.confirmationStatus as ConfirmationFilter | null;
+  const isConfirmed = confirmation === "CONFIRMED";
+  const isCancelled = confirmation === "CANCELLED";
 
   const handleConfirm = () => {
     updateMeeting(selectedMeeting.id, { confirmationStatus: "CONFIRMED" });
@@ -82,134 +109,110 @@ export function DetailPanel({
   };
 
   return (
-    <div className={`rdv-panel rdv-scrollbar ${panelOpen ? "open" : ""}`}>
-      <div style={{ padding: "28px 28px 0", borderBottom: "1px solid var(--border)" }}>
-        {/* Header */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
-          <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
-            <Avatar name={contactName(selectedMeeting.contact)} size={60} />
-            <div>
-              <div className="rdv-serif" style={{ fontSize: 22, color: "var(--ink)" }}>
-                {contactName(selectedMeeting.contact)}
-              </div>
-              <div style={{ fontSize: 14, color: "var(--ink2)", marginTop: 2 }}>
-                {selectedMeeting.contact?.title || "—"} · {selectedMeeting.company?.name || "—"}
-              </div>
-            </div>
-          </div>
-          <button
-            onClick={closePanel}
-            style={{ background: "var(--surface2)", border: "none", color: "var(--ink3)", cursor: "pointer", padding: 6, borderRadius: 8 }}
-          >
-            <X size={16} />
+    <aside
+      className={`rdv-panel rdv-scrollbar ${panelOpen ? "open" : ""}`}
+      aria-label={`Détail du rendez-vous avec ${contactName(selectedMeeting.contact)}`}
+      aria-hidden={!panelOpen}
+    >
+      <header className="rdv-detail-header">
+        <div className="rdv-detail-kicker">
+          <span>Dossier rendez-vous</span>
+          {selectedMeeting.callbackDate && (() => {
+            const proximity = proximityLabel(selectedMeeting.callbackDate);
+            return <small style={{ color: proximity.color }}>{proximity.text}</small>;
+          })()}
+          <button type="button" className="rdv-icon-button" onClick={closePanel} aria-label="Fermer le panneau">
+            <X size={17} />
           </button>
         </div>
 
-        {/* Status pills */}
-        <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
+        <div className="rdv-detail-identity">
+          <Avatar name={contactName(selectedMeeting.contact)} size={56} />
+          <div className="rdv-detail-person">
+            <h2>{contactName(selectedMeeting.contact)}</h2>
+            <p>
+              {selectedMeeting.contact?.title || "Fonction non renseignée"}
+              <span aria-hidden="true"> · </span>
+              {selectedMeeting.company?.name || "Entreprise non renseignée"}
+            </p>
+          </div>
+          <div className="rdv-appointment-card">
+            <CalendarClock size={16} />
+            <div>
+              <strong>{appointment.day}</strong>
+              <span>{appointment.time}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="rdv-detail-metadata" aria-label="Statuts du rendez-vous">
           <span className="status-badge" style={{ background: statusBg(status), color: statusColor(status) }}>
             {statusLabel(status)}
           </span>
-          {selectedMeeting.confirmationStatus && (
-            <span
-              className="status-badge"
-              style={{
-                background: confirmationBg(selectedMeeting.confirmationStatus as ConfirmationFilter),
-                color: confirmationColor(selectedMeeting.confirmationStatus as ConfirmationFilter),
-              }}
-            >
-              {confirmationLabel(selectedMeeting.confirmationStatus as ConfirmationFilter)}
+          {confirmation && (
+            <span className="status-badge" style={{ background: confirmationBg(confirmation), color: confirmationColor(confirmation) }}>
+              {confirmationLabel(confirmation)}
             </span>
           )}
-          <span className="rdv-pill" style={{ background: "var(--surface2)", color: "var(--ink2)", padding: "4px 14px" }}>
-            {meetingTypeIcon(selectedMeeting.meetingType)} {meetingTypeLabel(selectedMeeting.meetingType)}
+          <span className="rdv-pill is-neutral">
+            {selectedMeeting.meetingType === "PHYSIQUE" ? <MapPin size={11} /> : selectedMeeting.meetingType === "TELEPHONIQUE" ? <Phone size={11} /> : <Video size={11} />}
+            {meetingTypeLabel(selectedMeeting.meetingType)}
           </span>
           {selectedMeeting.meetingCategory ? (
-            <span className="rdv-pill" style={{ background: categoryBg(selectedMeeting.meetingCategory), color: categoryColor(selectedMeeting.meetingCategory), padding: "4px 14px" }}>
+            <span className="rdv-pill" style={{ background: categoryBg(selectedMeeting.meetingCategory), color: categoryColor(selectedMeeting.meetingCategory) }}>
               {categoryLabel(selectedMeeting.meetingCategory)}
             </span>
           ) : (
-            <span className="rdv-pill" style={{ background: "var(--surface2)", color: "var(--ink3)", padding: "4px 14px", opacity: 0.6 }}>
-              Non classé
-            </span>
+            <span className="rdv-pill is-muted">Non classé</span>
           )}
         </div>
 
-        {/* Proximity indicator */}
-        {selectedMeeting.callbackDate && (() => {
-          const prox = proximityLabel(selectedMeeting.callbackDate);
-          return (
-            <div style={{ marginBottom: 12 }}>
-              <span style={{ fontSize: 12, fontWeight: 600, color: prox.color, background: `${prox.color}12`, borderRadius: 6, padding: "3px 10px" }}>
-                {prox.text}
-              </span>
-            </div>
-          );
-        })()}
-
-        {/* Quick actions */}
-        <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
-          {selectedMeeting.confirmationStatus !== "CONFIRMED" && (
-            <button
-              className="rdv-btn"
-              style={{ fontSize: 12, padding: "6px 12px", background: "var(--greenLight)", color: "var(--green)", border: "1px solid rgba(5,150,105,0.2)" }}
-              onClick={handleConfirm}
-            >
-              <Check size={13} /> Confirmer
-            </button>
-          )}
-          {selectedMeeting.confirmationStatus !== "CANCELLED" && (
-            <button
-              className="rdv-btn"
-              style={{ fontSize: 12, padding: "6px 12px", background: "var(--redLight)", color: "var(--red)", border: "1px solid rgba(220,38,38,0.2)" }}
-              onClick={handleCancel}
-            >
-              <X size={13} /> Annuler
-            </button>
-          )}
-          {selectedMeeting.contact?.email && (
-            <a href={`mailto:${selectedMeeting.contact.email}`} className="rdv-btn rdv-btn-ghost" style={{ fontSize: 12, padding: "6px 12px", textDecoration: "none" }}>
-              <Mail size={13} /> Email
-            </a>
-          )}
-          {selectedMeeting.contact?.phone && (
-            <a href={`tel:${selectedMeeting.contact.phone}`} className="rdv-btn rdv-btn-ghost" style={{ fontSize: 12, padding: "6px 12px", textDecoration: "none" }}>
-              <Phone size={13} /> Appeler
-            </a>
-          )}
-          {selectedMeeting.contact?.linkedin && (
-            <a href={selectedMeeting.contact.linkedin} target="_blank" rel="noreferrer" className="rdv-btn rdv-btn-ghost" style={{ fontSize: 12, padding: "6px 12px", textDecoration: "none" }}>
-              <Linkedin size={13} /> LinkedIn
-            </a>
-          )}
-          {selectedMeeting.callbackDate && (
-            <button
-              className="rdv-btn rdv-btn-ghost"
-              style={{ fontSize: 12, padding: "6px 12px" }}
-              onClick={() => downloadICS(selectedMeeting)}
-            >
-              <CalendarPlus size={13} /> Exporter .ics
-            </button>
-          )}
+        <div className={`rdv-decision-card ${isConfirmed ? "is-confirmed" : isCancelled ? "is-cancelled" : "is-pending"}`}>
+          <div>
+            <span>Décision manager</span>
+            <strong>{isConfirmed ? "Rendez-vous confirmé" : isCancelled ? "Rendez-vous annulé" : "Confirmation attendue"}</strong>
+            <small>{isConfirmed ? "L'équipe peut préparer l'échange." : isCancelled ? "Le créneau ne doit plus être traité." : "Validez le créneau ou signalez son annulation."}</small>
+          </div>
+          <div className="rdv-decision-actions">
+            {!isConfirmed && (
+              <button type="button" className="rdv-btn rdv-btn-success" onClick={handleConfirm}>
+                <Check size={14} /> Confirmer
+              </button>
+            )}
+            {!isCancelled && (
+              <button type="button" className="rdv-btn rdv-btn-danger-quiet" onClick={handleCancel}>
+                <X size={14} /> Annuler
+              </button>
+            )}
+          </div>
         </div>
 
-        {/* Tabs */}
-        <div style={{ display: "flex", gap: 0, borderBottom: "none" }}>
-          {TABS.map(({ key, label, Icon }) => (
+        <div className="rdv-contact-actions" aria-label="Actions rapides">
+          {selectedMeeting.contact?.email && <a href={`mailto:${selectedMeeting.contact.email}`}><Mail size={14} /> Email</a>}
+          {selectedMeeting.contact?.phone && <a href={`tel:${selectedMeeting.contact.phone}`}><Phone size={14} /> Appeler</a>}
+          {selectedMeeting.contact?.linkedin && <a href={selectedMeeting.contact.linkedin} target="_blank" rel="noreferrer"><Linkedin size={14} /> LinkedIn</a>}
+          {selectedMeeting.callbackDate && <button type="button" onClick={() => downloadICS(selectedMeeting)} aria-label="Ajouter au calendrier" title="Ajouter au calendrier"><CalendarPlus size={14} /> Calendrier</button>}
+        </div>
+
+        <nav className="rdv-detail-tabs" aria-label="Sections du rendez-vous" role="tablist">
+          {TABS.map(({ key, label, shortLabel, Icon }) => (
             <button
               key={key}
-              className={`rdv-tab ${panelTab === key ? "active" : ""}`}
+              type="button"
+              role="tab"
+              aria-selected={panelTab === key}
+              className={panelTab === key ? "is-active" : ""}
               onClick={() => setPanelTab(key)}
+              title={label}
             >
-              <Icon size={13} style={{ display: "inline", marginRight: 5, verticalAlign: -2 }} />
-              {label}
+              <Icon size={14} />
+              <span>{shortLabel}</span>
             </button>
           ))}
-        </div>
-      </div>
+        </nav>
+      </header>
 
-      {/* Tab content */}
-      <div style={{ padding: 28 }}>
+      <div className="rdv-detail-content" role="tabpanel">
         {panelTab === "detail" && (
           <DetailTab
             meeting={selectedMeeting}
@@ -227,32 +230,11 @@ export function DetailPanel({
             onOpenLinkContact={onOpenLinkContact}
           />
         )}
-        {panelTab === "fiche" && (
-          <FicheTab
-            meeting={selectedMeeting}
-            setSelectedMeeting={setSelectedMeeting}
-            ficheState={ficheState}
-          />
-        )}
-        {panelTab === "feedback" && (
-          <FeedbackTab
-            meeting={selectedMeeting}
-            feedbackState={feedbackState}
-            updateMeeting={updateMeeting}
-          />
-        )}
-        {panelTab === "audio" && (
-          <AudioTab
-            meeting={selectedMeeting}
-            updateMeeting={updateMeeting}
-            setSelectedMeeting={setSelectedMeeting}
-            ficheState={ficheState}
-          />
-        )}
-        {panelTab === "history" && (
-          <HistoryTab meeting={selectedMeeting} />
-        )}
+        {panelTab === "fiche" && <FicheTab meeting={selectedMeeting} setSelectedMeeting={setSelectedMeeting} ficheState={ficheState} />}
+        {panelTab === "feedback" && <FeedbackTab meeting={selectedMeeting} feedbackState={feedbackState} updateMeeting={updateMeeting} />}
+        {panelTab === "audio" && <AudioTab meeting={selectedMeeting} updateMeeting={updateMeeting} setSelectedMeeting={setSelectedMeeting} ficheState={ficheState} />}
+        {panelTab === "history" && <HistoryTab meeting={selectedMeeting} />}
       </div>
-    </div>
+    </aside>
   );
 }

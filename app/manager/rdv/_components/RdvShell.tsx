@@ -24,7 +24,7 @@ import "./rdv-shell.css";
 
 export function RdvShell() {
   const [view, setView] = useState<ViewMode>("list");
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeModal, setActiveModal] = useState<RdvModalType>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [syncAudiosOpen, setSyncAudiosOpen] = useState(false);
@@ -103,17 +103,17 @@ export function RdvShell() {
         setView={setView}
         filters={filters}
         meetings={meetings}
+        totalCount={aggregates?.totalCount ?? meetings.length}
+        onOpenFilters={() => setSidebarOpen(true)}
         onRefresh={() => fetchMeetings()}
         onOpenSyncAudios={() => setSyncAudiosOpen(true)}
       />
 
       <IntelligenceStrip
         aggregates={aggregates}
+        meetings={meetings}
         loading={loading}
-        statusFilter={filters.statusFilter}
-        datePreset={filters.datePreset}
-        onSetStatusFilter={filters.setStatusFilter}
-        onSetDatePreset={filters.setDatePreset}
+        onApplyQuickPreset={filters.applyQuickPreset}
       />
 
       <div className={`rdv-content-layout ${panelState.panelOpen ? "panel-open" : ""}`}>
@@ -121,7 +121,6 @@ export function RdvShell() {
           filters={filters}
           sidebarOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
-          onOpen={() => setSidebarOpen(true)}
         />
 
         <div className="rdv-main-column">
@@ -147,8 +146,6 @@ export function RdvShell() {
             <CalendarView
               meetings={meetings}
               openPanel={handleOpenPanel}
-              updateMeeting={updateMeeting}
-              updateLocalMeeting={updateLocalMeeting}
             />
           )}
         </div>
@@ -164,6 +161,15 @@ export function RdvShell() {
           updateLocalMeeting={updateLocalMeeting}
         />
       </div>
+
+      {panelState.panelOpen && (
+        <button
+          type="button"
+          className="rdv-panel-backdrop"
+          aria-label="Fermer le détail du rendez-vous"
+          onClick={panelState.closePanel}
+        />
+      )}
 
       <RdvBulkActions
         selectedMeetings={selectedMeetings}

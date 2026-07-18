@@ -757,7 +757,11 @@ export async function updateThreadStatus(
             threadId,
             authorId: userId,
             type: "SYSTEM",
-            content: `Discussion marquée comme ${status === "RESOLVED" ? "résolue" : "archivée"}`,
+            content: {
+                OPEN: "Discussion rouverte",
+                RESOLVED: "Discussion marquée comme résolue",
+                ARCHIVED: "Discussion archivée",
+            }[status],
         },
     });
 }

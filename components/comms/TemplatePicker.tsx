@@ -4,15 +4,13 @@
 // TemplatePicker - Quick insert message templates
 // ============================================
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import {
     FileText,
     Plus,
     Trash2,
     Loader2,
-    ChevronDown,
-    X,
     Star,
     Globe,
 } from "lucide-react";
@@ -60,13 +58,7 @@ export function TemplatePicker({ onSelect, className }: TemplatePickerProps) {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    useEffect(() => {
-        if (isOpen && templates.length === 0) {
-            fetchTemplates();
-        }
-    }, [isOpen]);
-
-    const fetchTemplates = async () => {
+    const fetchTemplates = useCallback(async () => {
         setIsLoading(true);
         try {
             const res = await fetch("/api/comms/templates");
@@ -79,7 +71,13 @@ export function TemplatePicker({ onSelect, className }: TemplatePickerProps) {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        if (isOpen && templates.length === 0) {
+            void fetchTemplates();
+        }
+    }, [isOpen, templates.length, fetchTemplates]);
 
     const handleSelect = async (template: MessageTemplate) => {
         onSelect(template.content, template.id);

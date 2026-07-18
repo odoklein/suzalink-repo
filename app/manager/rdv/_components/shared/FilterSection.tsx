@@ -14,22 +14,10 @@ export function FilterSection({
   return (
     <div>
       <button
+        type="button"
+        className="rdv-filter-section-toggle"
         onClick={() => setOpen(!open)}
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          width: "100%",
-          background: "none",
-          border: "none",
-          color: "var(--ink)",
-          fontSize: 13,
-          fontWeight: 600,
-          cursor: "pointer",
-          padding: 0,
-          marginBottom: open ? 10 : 0,
-          fontFamily: "'DM Sans', sans-serif",
-        }}
+        aria-expanded={open}
       >
         {title}
         {open ? (
@@ -39,7 +27,7 @@ export function FilterSection({
         )}
       </button>
       {open && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        <div className="rdv-filter-section-content">
           {children}
         </div>
       )}

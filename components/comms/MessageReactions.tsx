@@ -15,7 +15,6 @@ interface MessageReactionsProps {
     reactions: CommsMessageReactionView[];
     currentUserId: string;
     onToggle: (messageId: string, emoji: string) => Promise<void>;
-    isOwn: boolean;
     className?: string;
 }
 
@@ -24,7 +23,6 @@ export function MessageReactions({
     reactions,
     currentUserId,
     onToggle,
-    isOwn,
     className,
 }: MessageReactionsProps) {
     const [showPicker, setShowPicker] = useState(false);
@@ -65,9 +63,10 @@ export function MessageReactions({
                     className={cn(
                         "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs border transition-colors",
                         hasReacted(r)
-                            ? "bg-indigo-50 border-indigo-200 text-indigo-700"
-                            : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
+                            ? "bg-[#0C3B38]/8 border-[#0C3B38]/20 text-[#0C3B38] dark:text-emerald-300"
+                            : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
                     )}
+                    aria-label={`${hasReacted(r) ? "Retirer" : "Ajouter"} la réaction ${r.emoji}, ${r.count}`}
                 >
                     <span>{r.emoji}</span>
                     <span>{r.count}</span>
@@ -77,20 +76,22 @@ export function MessageReactions({
                 <button
                     type="button"
                     onClick={() => setShowPicker(!showPicker)}
-                    className="rounded-full p-0.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 text-xs w-6 h-6 flex items-center justify-center"
+                    className="rounded-full p-0.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 text-xs w-6 h-6 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0C3B38]/25"
                     aria-label="Ajouter une réaction"
+                    aria-expanded={showPicker}
                 >
                     +
                 </button>
                 {showPicker && (
-                    <div className="absolute bottom-full left-0 mb-1 flex gap-0.5 p-1 bg-white rounded-xl shadow-lg border border-slate-200 z-50">
+                    <div className="absolute bottom-full left-0 mb-1 flex gap-0.5 p-1 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 z-50" role="menu" aria-label="Choisir une réaction">
                         {EMOJI_LIST.map((e) => (
                             <button
                                 key={e}
                                 type="button"
                                 onClick={() => handleClick(e)}
                                 disabled={!!loading}
-                                className="p-1.5 rounded-lg hover:bg-slate-100 text-lg"
+                                className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0C3B38]/25"
+                                aria-label={`Réagir avec ${e}`}
                             >
                                 {e}
                             </button>

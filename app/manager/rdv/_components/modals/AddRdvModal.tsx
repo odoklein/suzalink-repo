@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Loader2, Calendar } from "lucide-react";
-import { Modal, ModalFooter } from "@/components/ui/Modal";
 import { DateTimePicker } from "@/components/ui";
 import { BookingDrawer } from "@/components/sdr/BookingDrawer";
+import { RdvDialog, RdvDialogFooter, RdvNotice } from "../shared/RdvFormKit";
 
 interface Mission {
   id: string;
@@ -347,15 +347,17 @@ export function AddRdvModal({ isOpen, onClose, onSuccess }: AddRdvModalProps) {
 
   return (
     <>
-    <Modal
+    <RdvDialog
       isOpen={isOpen}
       onClose={() => !saving && onClose()}
       title="Ajouter un RDV"
+      description="Créez un rendez-vous exploitable par l'équipe, avec les bonnes personnes et le bon contexte."
       size="lg"
       closeOnOverlay={false}
       closeOnEscape={false}
+      className="rdv-add-dialog"
     >
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <div className="rdv-add-form">
           <div>
             <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--ink3)", marginBottom: 6 }}>Mission *</label>
             <select
@@ -399,7 +401,7 @@ export function AddRdvModal({ isOpen, onClose, onSuccess }: AddRdvModalProps) {
                 }}
               >
                 <p style={{ fontSize: 12, color: "var(--ink2)" }}>
-                  Cette mission n&apos;a aucune liste. Creez-en une maintenant pour ajouter le RDV.
+                  Cette mission n&apos;a aucune liste. Créez-en une maintenant pour ajouter le RDV.
                 </p>
                 <div style={{ display: "flex", gap: 8 }}>
                   <input
@@ -417,7 +419,7 @@ export function AddRdvModal({ isOpen, onClose, onSuccess }: AddRdvModalProps) {
                     disabled={creatingList || !quickListName.trim()}
                     onClick={handleQuickCreateList}
                   >
-                    {creatingList ? "Creation…" : "Creer"}
+                    {creatingList ? "Création..." : "Créer"}
                   </button>
                 </div>
               </div>
@@ -564,7 +566,7 @@ export function AddRdvModal({ isOpen, onClose, onSuccess }: AddRdvModalProps) {
                   style={{
                     padding: "8px 14px",
                     background: meetingType === t ? "var(--accent)" : "var(--surface2)",
-                    color: meetingType === t ? "white" : "var(--ink2)",
+                    color: meetingType === t ? "var(--ink)" : "var(--ink2)",
                     border: "none",
                     borderRadius: 8,
                     cursor: "pointer",
@@ -584,10 +586,10 @@ export function AddRdvModal({ isOpen, onClose, onSuccess }: AddRdvModalProps) {
               padding: "14px 16px",
               borderRadius: 12,
               background: "var(--accentLight)",
-              border: "1px solid rgba(79,70,229,0.15)",
+              border: "1px solid rgba(141,75,4,0.15)",
             }}>
               <p style={{ fontSize: 12, fontWeight: 600, color: "var(--accent)", marginBottom: 10 }}>
-                📅 Calendrier client disponible
+                Calendrier client disponible
               </p>
               {clientInterlocuteurs.filter(i => i.isActive && i.bookingLinks?.length > 0).length > 1 && (
                 <div style={{ marginBottom: 10 }}>
@@ -603,7 +605,7 @@ export function AddRdvModal({ isOpen, onClose, onSuccess }: AddRdvModalProps) {
                       .filter(i => i.isActive && i.bookingLinks?.length > 0)
                       .map(i => (
                         <option key={i.id} value={i.id}>
-                          {i.firstName} {i.lastName}{i.title ? ` — ${i.title}` : ""}
+                          {i.firstName} {i.lastName}{i.title ? `, ${i.title}` : ""}
                         </option>
                       ))}
                   </select>
@@ -682,7 +684,7 @@ export function AddRdvModal({ isOpen, onClose, onSuccess }: AddRdvModalProps) {
                   style={{
                     padding: "8px 14px",
                     background: duration === d ? "var(--accent)" : "var(--surface2)",
-                    color: duration === d ? "white" : "var(--ink2)",
+                    color: duration === d ? "var(--ink)" : "var(--ink2)",
                     border: "none",
                     borderRadius: 8,
                     cursor: "pointer",
@@ -705,7 +707,7 @@ export function AddRdvModal({ isOpen, onClose, onSuccess }: AddRdvModalProps) {
               value={meetingCategory}
               onChange={(e) => setMeetingCategory(e.target.value as "" | "EXPLORATOIRE" | "BESOIN")}
             >
-              <option value="">—</option>
+              <option value="">Non renseignée</option>
               <option value="EXPLORATOIRE">Exploratoire</option>
               <option value="BESOIN">Analyse de besoin</option>
             </select>
@@ -725,21 +727,24 @@ export function AddRdvModal({ isOpen, onClose, onSuccess }: AddRdvModalProps) {
         </div>
 
         {error && (
-          <p style={{ marginTop: 12, fontSize: 13, color: "var(--red)" }}>{error}</p>
+          <div style={{ marginTop: 12 }}><RdvNotice tone="danger">{error}</RdvNotice></div>
         )}
 
-        <ModalFooter>
+        <RdvDialogFooter>
+          <button type="button" className="rdv-btn rdv-btn-ghost" onClick={onClose} disabled={saving}>
+            Annuler
+          </button>
           <button
             disabled={!canSubmit || saving}
             onClick={handleSubmit}
-            className="px-4 py-2 text-sm font-medium bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors disabled:opacity-50 inline-flex items-center gap-2"
+            className="rdv-btn rdv-btn-primary"
             style={{ minWidth: 160 }}
           >
             {saving && <Loader2 size={18} className="animate-spin" style={{ flexShrink: 0 }} />}
             {saving ? "Enregistrement…" : "Créer le RDV"}
           </button>
-        </ModalFooter>
-    </Modal>
+        </RdvDialogFooter>
+    </RdvDialog>
 
     {showBookingDrawer && 
      contactMode === "existing" && contactId &&

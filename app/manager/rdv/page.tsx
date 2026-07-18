@@ -3,7 +3,7 @@ import { RdvShell } from "./_components/RdvShell";
 
 export const metadata: Metadata = {
   title: "RDV | élan",
-  description: "Gestion des rendez-vous — suivi, confirmation, fiche RDV et feedback.",
+  description: "Gestion des rendez-vous : suivi, confirmation, fiche RDV et feedback.",
 };
 
 export default function RdvPage() {

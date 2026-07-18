@@ -35,14 +35,17 @@ export function FicheTab({ meeting, setSelectedMeeting, ficheState }: FicheTabPr
   } = ficheState;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: "var(--ink)" }}>Fiche RDV</div>
-        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          {ficheAutoSaveStatus === "saving" && <span style={{ fontSize: 11, color: "var(--ink3)", fontWeight: 500 }}>Enregistrement…</span>}
-          {ficheAutoSaveStatus === "saved" && <span style={{ fontSize: 11, color: "var(--green)", fontWeight: 500 }}>Sauvegardé ✓</span>}
+    <div className="rdv-fiche-tab">
+      <div className="rdv-tab-section-header">
+        <div>
+          <strong>Mémoire du rendez-vous</strong>
+          <span>Structurez les signaux utiles pour la suite.</span>
+        </div>
+        <div className="rdv-tab-actions">
+          {ficheAutoSaveStatus === "saving" && <span className="rdv-save-state">Enregistrement...</span>}
+          {ficheAutoSaveStatus === "saved" && <span className="rdv-save-state is-saved">Sauvegardé</span>}
           {ficheAutoSaveStatus === "error" && <span style={{ fontSize: 11, color: "var(--red)", fontWeight: 500 }}>Erreur</span>}
-          {ficheSaved && ficheAutoSaveStatus === "idle" && <span style={{ fontSize: 12, color: "var(--green)", fontWeight: 500 }}>Sauvegardé ✓</span>}
+          {ficheSaved && ficheAutoSaveStatus === "idle" && <span className="rdv-save-state is-saved">Sauvegardé</span>}
           <button
             className="rdv-btn rdv-btn-ghost"
             style={{ fontSize: 12, padding: "6px 12px" }}
@@ -79,9 +82,10 @@ export function FicheTab({ meeting, setSelectedMeeting, ficheState }: FicheTabPr
         </div>
       )}
 
-      <div>
-        <div style={{ fontSize: 12, color: "var(--ink3)", fontWeight: 600, marginBottom: 8 }}>
-          Transcription (à coller pour génération IA)
+      <div className="rdv-transcript-field">
+        <div>
+          <strong>Source de génération</strong>
+          <span>Collez une transcription brute. Elle reste modifiable avant génération.</span>
         </div>
         <textarea
           className="rdv-input"
@@ -102,15 +106,13 @@ export function FicheTab({ meeting, setSelectedMeeting, ficheState }: FicheTabPr
         />
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <div className="rdv-fiche-grid">
         {FICHE_FIELDS.map(([field, label]) => (
-          <div key={field} style={{ border: "1px solid var(--border)", borderRadius: 14, padding: 12, background: "var(--surface)" }}>
-            <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.08em", color: "var(--ink3)", textTransform: "uppercase", marginBottom: 8 }}>
-              {label}
-            </div>
+          <div key={field} className="rdv-fiche-field">
+            <div>{label}</div>
             <textarea
               className="rdv-input"
-              style={{ width: "100%", minHeight: 80, resize: "vertical", border: "1px solid var(--border2)", borderRadius: 8, fontSize: 13, lineHeight: 1.6, padding: "8px 10px", background: "var(--surface2)" }}
+              style={{ width: "100%", minHeight: 80, resize: "vertical" }}
               value={ficheForm[field]}
               onChange={(e) => {
                 const updated = { ...ficheForm, [field]: e.target.value };

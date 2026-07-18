@@ -4,7 +4,7 @@ import { useState, useCallback, useRef } from "react";
 import type { Meeting, LinkContactResult } from "../../_types";
 import { Avatar } from "../shared/Avatar";
 import { Search, Building2, UserPlus, Loader2, AlertCircle, ArrowRight } from "lucide-react";
-import { Modal, ModalFooter } from "@/components/ui/Modal";
+import { RdvDialog, RdvDialogFooter } from "../shared/RdvFormKit";
 import { cn } from "@/lib/utils";
 
 interface LinkContactModalProps {
@@ -279,11 +279,13 @@ export function LinkContactModal({ meeting, onClose, onLinked }: LinkContactModa
   const isBusy = saving || creating;
 
   return (
-    <Modal
+    <RdvDialog
       isOpen
       onClose={() => !isBusy && onClose()}
-      title="Lier un contact au RDV"
+      title="Lier un contact"
+      description="Recherchez un contact existant avant d'en créer un nouveau pour éviter les doublons."
       size="lg"
+      className="rdv-link-dialog"
     >
       <div className="flex flex-col gap-5">
 
@@ -476,7 +478,7 @@ export function LinkContactModal({ meeting, onClose, onLinked }: LinkContactModa
         </div>
 
         {/* ── Footer ─────────────────────────────────────────────────────── */}
-        <ModalFooter>
+        <RdvDialogFooter>
           <button
             type="button"
             onClick={onClose}
@@ -490,9 +492,9 @@ export function LinkContactModal({ meeting, onClose, onLinked }: LinkContactModa
           >
             Annuler
           </button>
-        </ModalFooter>
+        </RdvDialogFooter>
 
       </div>
-    </Modal>
+    </RdvDialog>
   );
 }

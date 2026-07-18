@@ -2,8 +2,8 @@
 
 import { useMemo, useState } from "react";
 import type { Meeting } from "../../_types";
-import { Modal } from "@/components/ui";
 import { Loader2, Mic, RefreshCw } from "lucide-react";
+import { RdvDialog } from "../shared/RdvFormKit";
 
 interface SyncRdvAudiosModalProps {
   isOpen: boolean;
@@ -175,12 +175,13 @@ export function SyncRdvAudiosModal({
   };
 
   return (
-    <Modal
+    <RdvDialog
       isOpen={isOpen}
       onClose={onClose}
-      title="Sync audios RDV"
-      description="Affiche seulement trouvé / non trouvé + les stratégies de recherche essayées."
+      title="Synchroniser les audios Allo"
+      description="Prévisualisez les correspondances avant d'enrichir les rendez-vous. Aucune donnée n'est écrite sans confirmation."
       size="xl"
+      className="rdv-sync-dialog"
     >
       <div style={{ display: "grid", gap: 14 }}>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -275,7 +276,7 @@ export function SyncRdvAudiosModal({
                     <div style={{ color: "var(--ink3)" }}>{row.companyName}</div>
                   </td>
                   <td style={{ padding: 10, fontSize: 11, color: "var(--ink3)" }}>
-                    {row.phonesTried.join(" · ") || "—"}
+                    {row.phonesTried.join(" · ") || "Aucun numéro"}
                   </td>
                   <td style={{ padding: 10, fontSize: 11 }}>
                     {row.match ? (
@@ -295,7 +296,7 @@ export function SyncRdvAudiosModal({
                           Sources testées: {row.searchWays.join(" · ")}
                         </div>
                         <div style={{ color: "var(--ink3)" }}>
-                          Fenêtres testées: {row.windowAttempts.map((w) => w.label).join(" · ") || "—"}
+                          Fenêtres testées: {row.windowAttempts.map((w) => w.label).join(" · ") || "Aucune"}
                         </div>
                       </div>
                     )}
@@ -322,7 +323,7 @@ export function SyncRdvAudiosModal({
           </button>
         </div>
       </div>
-    </Modal>
+    </RdvDialog>
   );
 }
 

@@ -4,7 +4,7 @@
 // SuggestionChips - AI-powered reply suggestions
 // ============================================
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import { Sparkles, Loader2 } from "lucide-react";
 
@@ -29,11 +29,7 @@ export function SuggestionChips({
     const [isLoading, setIsLoading] = useState(false);
     const [isVisible, setIsVisible] = useState(true);
 
-    useEffect(() => {
-        fetchSuggestions();
-    }, [threadId]);
-
-    const fetchSuggestions = async () => {
+    const fetchSuggestions = useCallback(async () => {
         setIsLoading(true);
         try {
             const res = await fetch(`/api/comms/threads/${threadId}/suggestions`);
@@ -46,7 +42,11 @@ export function SuggestionChips({
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [threadId]);
+
+    useEffect(() => {
+        void fetchSuggestions();
+    }, [fetchSuggestions]);
 
     const handleSelect = (suggestion: MessageSuggestion) => {
         onSelect(suggestion.content);

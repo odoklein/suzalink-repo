@@ -216,7 +216,7 @@ function InlineCallPicker({
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 rdv-audio-tab">
       {/* Phone source tabs */}
       {phoneSources.length > 1 && (
         <div className="flex flex-wrap gap-1.5">
@@ -363,9 +363,9 @@ function InlineCallPicker({
                               )}
                             </div>
                             <div className="flex items-center gap-1 text-[10px] text-slate-500 font-mono">
-                              <span>{call.displayFrom || "—"}</span>
+                              <span>{call.displayFrom || "Non renseigné"}</span>
                               <span className="text-slate-300">→</span>
-                              <span>{call.displayTo || "—"}</span>
+                              <span>{call.displayTo || "Non renseigné"}</span>
                             </div>
                             {call.summaryText && (
                               <p className="text-[10px] text-slate-600 leading-snug line-clamp-1 bg-slate-50 rounded px-1.5 py-1">

@@ -13,8 +13,8 @@ export function hashColor(str: string): string {
 }
 
 export function contactName(c: Meeting["contact"]): string {
-  if (!c) return "—";
-  return `${c.firstName || ""} ${c.lastName || ""}`.trim() || "—";
+  if (!c) return "Non renseigné";
+  return `${c.firstName || ""} ${c.lastName || ""}`.trim() || "Non renseigné";
 }
 
 export function meetingStatus(m: Meeting): "upcoming" | "past" | "cancelled" {
@@ -76,7 +76,7 @@ export function meetingTypeLabel(t: string | null): string {
     case "VISIO": return "Visio";
     case "PHYSIQUE": return "Physique";
     case "TELEPHONIQUE": return "Téléphonique";
-    default: return "—";
+    default: return "Non renseigné";
   }
 }
 
@@ -119,7 +119,7 @@ export function outcomeLabel(o: string | null): string {
 }
 
 export function formatDateShort(d: string | null): { day: string; month: string; time: string } {
-  if (!d) return { day: "—", month: "", time: "" };
+  if (!d) return { day: "-", month: "", time: "" };
   const date = new Date(d);
   return {
     day: date.getDate().toString(),
@@ -137,7 +137,7 @@ export function dateProximityColor(d: string | null): string {
 }
 
 export function proximityLabel(d: string | null): { text: string; color: string } {
-  if (!d) return { text: "—", color: "var(--ink3)" };
+  if (!d) return { text: "Non planifié", color: "var(--ink3)" };
   const diff = new Date(d).getTime() - Date.now();
   if (diff < 0) {
     const absDiff = Math.abs(diff);

@@ -105,16 +105,15 @@ export type ChannelFilter = "CALL" | "EMAIL" | "LINKEDIN";
 export interface QuickPreset {
   id: string;
   label: string;
-  icon: string;
   description: string;
 }
 
 export const QUICK_PRESETS: QuickPreset[] = [
-  { id: "to_confirm", label: "À confirmer", icon: "⏳", description: "RDV à venir en attente de confirmation" },
-  { id: "past_no_feedback", label: "Sans feedback", icon: "💬", description: "RDV passés sans retour renseigné" },
-  { id: "no_audio", label: "Sans audio", icon: "🎙️", description: "RDV sans enregistrement Allo lié" },
-  { id: "this_week", label: "Cette semaine", icon: "📅", description: "RDV créés cette semaine" },
-  { id: "positive", label: "Positifs", icon: "✅", description: "RDV avec feedback positif" },
+  { id: "to_confirm", label: "À confirmer", description: "RDV à venir en attente de confirmation" },
+  { id: "past_no_feedback", label: "Sans feedback", description: "RDV passés sans retour renseigné" },
+  { id: "no_audio", label: "Sans audio", description: "RDV sans enregistrement Allo lié" },
+  { id: "this_week", label: "Cette semaine", description: "RDV créés cette semaine" },
+  { id: "positive", label: "Positifs", description: "RDV avec feedback positif" },
 ];
 
 export interface MeetingFilters {

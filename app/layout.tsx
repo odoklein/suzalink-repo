@@ -6,6 +6,8 @@ import Providers from "@/components/providers/Providers";
 import { Analytics } from "@vercel/analytics/next"
 import { UmamiScript } from "@/components/providers/UmamiScript";
 
+const vercelAnalyticsEnabled = process.env.NEXT_PUBLIC_VERCEL_ANALYTICS_ENABLED === "true";
+
 const displayFont = Bricolage_Grotesque({
   variable: "--font-elan-display",
   subsets: ["latin"],
@@ -46,7 +48,7 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <Providers>{children}</Providers>
-        <Analytics />
+        {vercelAnalyticsEnabled ? <Analytics /> : null}
         <UmamiScript />
       </body>
     </html>

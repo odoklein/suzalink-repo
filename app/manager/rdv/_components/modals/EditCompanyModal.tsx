@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import type { Meeting } from "../../_types";
-import { Modal, ModalFooter } from "@/components/ui/Modal";
+import { Building2, Loader2, Save } from "lucide-react";
+import { RdvDialog, RdvDialogFooter, RdvField, RdvFormSection } from "../shared/RdvFormKit";
 
 interface EditCompanyModalProps {
   meeting: Meeting;
@@ -66,37 +67,48 @@ export function EditCompanyModal({ meeting, onClose, onSaved }: EditCompanyModal
   ];
 
   return (
-    <Modal isOpen onClose={() => !saving && onClose()} title="Modifier l'entreprise" size="sm">
-      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        {fields.map(([key, label, placeholder]) => (
-          <div key={key}>
-            <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--ink3)", marginBottom: 4 }}>{label}</label>
+    <RdvDialog
+      isOpen
+      onClose={() => !saving && onClose()}
+      title="Modifier l'entreprise"
+      description="Ces données donnent du contexte au manager avant l'échange."
+      size="sm"
+      className="rdv-edit-dialog"
+    >
+      <RdvFormSection title="Profil entreprise" description="Identité, taille et moyens de contact." icon={Building2}>
+        <div className="rdv-form-grid two-columns">
+          {fields.map(([key, label, placeholder]) => (
+            <RdvField
+              key={key}
+              label={label}
+              required={key === "name"}
+              htmlFor={`company-${key}`}
+              className={key === "name" || key === "website" ? "span-two" : undefined}
+            >
             <input
+              id={`company-${key}`}
               className="rdv-input"
-              style={{ width: "100%" }}
               value={form[key]}
               placeholder={placeholder}
               onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
             />
-          </div>
-        ))}
-      </div>
-      <ModalFooter>
-        <button
-          onClick={onClose}
-          disabled={saving}
-          className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors disabled:opacity-50"
-        >
+            </RdvField>
+          ))}
+        </div>
+      </RdvFormSection>
+      <RdvDialogFooter>
+        <button onClick={onClose} disabled={saving} className="rdv-btn rdv-btn-ghost">
           Annuler
         </button>
         <button
           disabled={saving || !form.name.trim()}
           onClick={handleSave}
-          className="px-4 py-2 text-sm font-medium bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors disabled:opacity-50"
+          className="rdv-btn rdv-btn-primary"
         >
-          {saving ? "Enregistrement…" : "Enregistrer"}
+          {saving ? <Loader2 size={14} className="rdv-spin" /> : <Save size={14} />}
+          {saving ? "Enregistrement..." : "Enregistrer l'entreprise"}
         </button>
-      </ModalFooter>
-    </Modal>
+      </RdvDialogFooter>
+    </RdvDialog>
   );
 }

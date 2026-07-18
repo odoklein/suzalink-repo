@@ -13,14 +13,17 @@ export function NoteTab({ meeting, noteState, updateMeeting }: NoteTabProps) {
   const { managerNote, setManagerNote, noteStatus, triggerSave } = noteState;
 
   return (
-    <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-        <span style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>Note interne manager</span>
+    <div className="rdv-note-tab">
+      <div className="rdv-tab-section-header">
+        <div>
+          <strong>Note interne manager</strong>
+          <span>Visible uniquement par l&apos;équipe interne.</span>
+        </div>
         {noteStatus === "saving" && (
-          <span style={{ fontSize: 12, color: "var(--amber)", fontWeight: 500 }}>Enregistrement…</span>
+          <span className="rdv-save-state">Enregistrement...</span>
         )}
         {noteStatus === "saved" && (
-          <span style={{ fontSize: 12, color: "var(--green)", fontWeight: 500 }}>Sauvegardé ✓</span>
+          <span className="rdv-save-state is-saved">Sauvegardé</span>
         )}
         {noteStatus === "error" && (
           <span style={{ fontSize: 12, color: "var(--red)", fontWeight: 500 }}>Erreur de sauvegarde</span>

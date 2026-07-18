@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { filterRdvList } from "@/lib/utils/meetingFilters";
+import type { Prisma } from "@prisma/client";
 
 // ============================================
 // GET /api/sdr/meetings
@@ -27,21 +28,36 @@ export async function GET(request: NextRequest) {
         const startDateParam = searchParams.get("startDate")?.trim() || null;
         const endDateParam = searchParams.get("endDate")?.trim() || null;
 
+        const parseDate = (value: string, endOfDay = false) => {
+            const date = new Date(`${value}T${endOfDay ? "23:59:59.999" : "00:00:00.000"}Z`);
+            return Number.isNaN(date.getTime()) ? null : date;
+        };
+
         // Build where clause with filters (include MEETING_BOOKED and MEETING_CANCELLED)
-        const where: any = {
+        const where: Prisma.ActionWhereInput = {
             sdrId: session.user.id,
             result: { in: ["MEETING_BOOKED", "MEETING_CANCELLED"] },
         };
         if (startDateParam || endDateParam) {
             const dateFilter: { gte?: Date; lte?: Date } = {};
             if (startDateParam) {
-                const from = new Date(startDateParam);
-                from.setHours(0, 0, 0, 0);
+                const from = parseDate(startDateParam);
+                if (!from) {
+                    return NextResponse.json(
+                        { success: false, error: "Date de début invalide" },
+                        { status: 400 }
+                    );
+                }
                 dateFilter.gte = from;
             }
             if (endDateParam) {
-                const to = new Date(endDateParam);
-                to.setHours(23, 59, 59, 999);
+                const to = parseDate(endDateParam, true);
+                if (!to) {
+                    return NextResponse.json(
+                        { success: false, error: "Date de fin invalide" },
+                        { status: 400 }
+                    );
+                }
                 dateFilter.lte = to;
             }
             where.OR = [
@@ -58,7 +74,7 @@ export async function GET(request: NextRequest) {
         }
 
         // Filter by List and/or search (Contact)
-        const contactConditions: any[] = [];
+        const contactConditions: Prisma.ContactWhereInput[] = [];
         if (listId) {
             contactConditions.push({ company: { listId } });
         }
@@ -141,7 +157,16 @@ export async function GET(request: NextRequest) {
         // Exclude RDV cancelled with less than 10 min before scheduled time
         const meetings = filterRdvList(rawMeetings);
 
-        const transformedMeetings = meetings.map((meeting) => ({
+        // Action.contact is optional in the schema (company-level actions), so old or
+        // imported meeting actions can legitimately have no contact. Do not let one
+        // inconsistent row turn the entire list response into a 500.
+        const transformedMeetings = meetings.flatMap((meeting) => {
+            if (!meeting.contact) {
+                console.warn(`Skipping meeting ${meeting.id}: no contact attached`);
+                return [];
+            }
+
+            return [{
             id: meeting.id,
             createdAt: meeting.createdAt,
             result: meeting.result,
@@ -169,7 +194,8 @@ export async function GET(request: NextRequest) {
                       name: meeting.contact.company.list.name,
                   }
                 : null,
-        }));
+            }];
+        });
 
         return NextResponse.json({
             success: true,

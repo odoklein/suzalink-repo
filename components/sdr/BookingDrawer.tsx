@@ -117,7 +117,12 @@ function hashStr(s: string) {
 function getEmbedBookingUrl(rawUrl: string): string {
     try {
         const url = new URL(rawUrl);
-        if (url.hostname.endsWith("cal.com") || url.hostname === "cal.com") {
+        if (
+            url.hostname === "cal.com" ||
+            url.hostname.endsWith(".cal.com") ||
+            url.hostname === "cal.eu" ||
+            url.hostname.endsWith(".cal.eu")
+        ) {
             url.searchParams.set("embed", "true");
         }
         if (url.hostname.endsWith("calendly.com") || url.hostname === "calendly.com") {
@@ -344,7 +349,9 @@ export function BookingDrawer({
                 origin.endsWith(".calendly.com") ||
                 origin === "https://calendly.com" ||
                 origin.endsWith(".cal.com") ||
-                origin === "https://cal.com";
+                origin === "https://cal.com" ||
+                origin.endsWith(".cal.eu") ||
+                origin === "https://cal.eu";
             if (!isAllowed) return;
 
             const processBooking = async (eventData: unknown) => {

@@ -31,7 +31,6 @@ interface FilterSidebarProps {
   filters: MeetingFiltersState;
   sidebarOpen: boolean;
   onClose: () => void;
-  onOpen: () => void;
 }
 
 const SORT_OPTIONS: { value: SortField; label: string }[] = [
@@ -86,7 +85,7 @@ function ToggleFilter({ label, value, onChange }: {
   );
 }
 
-export const FilterSidebar = memo(function FilterSidebar({ filters, sidebarOpen, onClose, onOpen }: FilterSidebarProps) {
+export const FilterSidebar = memo(function FilterSidebar({ filters, sidebarOpen, onClose }: FilterSidebarProps) {
   const {
     datePreset, setDatePreset, dateFrom, setDateFrom, dateTo, setDateTo,
     clientOptions, selectedClients, setSelectedClients,
@@ -108,35 +107,24 @@ export const FilterSidebar = memo(function FilterSidebar({ filters, sidebarOpen,
 
   const [sortOpen, setSortOpen] = useState(false);
 
-  if (!sidebarOpen) {
-    return (
-      <button
-        onClick={onOpen}
-        style={{
-          position: "absolute", left: 0, top: 16, zIndex: 10,
-          background: "var(--surface)", border: "1px solid var(--border)", borderLeft: "none",
-          borderRadius: "0 10px 10px 0", padding: "10px 8px", color: "var(--ink3)", cursor: "pointer",
-          boxShadow: "2px 0 8px rgba(0,0,0,0.04)",
-        }}
-      >
-        <Filter size={14} />
-        {activeFilterCount > 0 && (
-          <span style={{ position: "absolute", top: -4, right: -4, background: "var(--accent)", color: "white", borderRadius: "50%", width: 16, height: 16, fontSize: 9, fontWeight: 700, display: "grid", placeContent: "center" }}>
-            {activeFilterCount}
-          </span>
-        )}
-      </button>
-    );
-  }
+  if (!sidebarOpen) return null;
 
   return (
-    <div
+    <>
+      <button
+        type="button"
+        className="rdv-drawer-backdrop"
+        onClick={onClose}
+        aria-label="Fermer les filtres"
+      />
+    <aside
       className="rdv-scrollbar"
       style={{
-        width: 290, flexShrink: 0, borderRight: "1px solid var(--border)",
-        background: "var(--surface)", overflowY: "auto", padding: "20px",
+        width: 360, borderLeft: "1px solid var(--border)",
+        background: "var(--surface)", overflowY: "auto", padding: "24px",
         display: "flex", flexDirection: "column", gap: 20,
       }}
+      aria-label="Filtres des rendez-vous"
     >
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -149,7 +137,7 @@ export const FilterSidebar = memo(function FilterSidebar({ filters, sidebarOpen,
             </span>
           )}
         </span>
-        <button style={{ background: "none", border: "none", color: "var(--ink3)", cursor: "pointer" }} onClick={onClose}>
+        <button className="rdv-icon-button" onClick={onClose} aria-label="Fermer les filtres">
           <ChevronLeft size={16} />
         </button>
       </div>
@@ -172,7 +160,6 @@ export const FilterSidebar = memo(function FilterSidebar({ filters, sidebarOpen,
               }}
               className="rdv-btn"
             >
-              <span style={{ fontSize: 14 }}>{preset.icon}</span>
               <div>
                 <div style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)" }}>{preset.label}</div>
                 <div style={{ fontSize: 10, color: "var(--ink3)", lineHeight: 1.3 }}>{preset.description}</div>
@@ -292,14 +279,14 @@ export const FilterSidebar = memo(function FilterSidebar({ filters, sidebarOpen,
 
       {/* ─── Smart filters ─── */}
       <FilterSection title="Données liées">
-        <ToggleFilter label="🎙 Audio lié" value={hasAudio} onChange={setHasAudio} />
-        <ToggleFilter label="💬 Feedback renseigné" value={hasFeedback} onChange={setHasFeedback} />
+        <ToggleFilter label="Audio lié" value={hasAudio} onChange={setHasAudio} />
+        <ToggleFilter label="Feedback renseigné" value={hasFeedback} onChange={setHasFeedback} />
       </FilterSection>
 
       {/* ─── Channel ─── */}
       <FilterSection title="Canal">
         <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
-          {([["CALL", "📞 Appel"], ["EMAIL", "📧 Email"], ["LINKEDIN", "🔗 LinkedIn"]] as [ChannelFilter, string][]).map(([key, label]) => (
+          {([["CALL", "Appel"], ["EMAIL", "Email"], ["LINKEDIN", "LinkedIn"]] as [ChannelFilter, string][]).map(([key, label]) => (
             <button
               key={key}
               className="rdv-pill"
@@ -381,7 +368,7 @@ export const FilterSidebar = memo(function FilterSidebar({ filters, sidebarOpen,
       {/* ─── Type + Category ─── */}
       <FilterSection title="Type & Catégorie">
         <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 6 }}>
-          {([["VISIO", "📹 Visio"], ["PHYSIQUE", "📍 Physique"], ["TELEPHONIQUE", "📞 Tel"]] as [MeetingTypeFilter, string][]).map(([key, label]) => (
+          {([["VISIO", "Visio"], ["PHYSIQUE", "Physique"], ["TELEPHONIQUE", "Téléphone"]] as [MeetingTypeFilter, string][]).map(([key, label]) => (
             <button
               key={key}
               className="rdv-pill"
@@ -419,7 +406,7 @@ export const FilterSidebar = memo(function FilterSidebar({ filters, sidebarOpen,
       {/* ─── Feedback outcome ─── */}
       <FilterSection title="Feedback">
         <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
-          {([["POSITIVE", "✅ Positif"], ["NEUTRAL", "➖ Neutre"], ["NEGATIVE", "❌ Négatif"], ["NO_SHOW", "👻 Absent"], ["NONE", "💬 Sans retour"]] as [OutcomeFilter, string][]).map(([key, label]) => (
+          {([["POSITIVE", "Positif"], ["NEUTRAL", "Neutre"], ["NEGATIVE", "Négatif"], ["NO_SHOW", "Absent"], ["NONE", "Sans retour"]] as [OutcomeFilter, string][]).map(([key, label]) => (
             <button
               key={key}
               className="rdv-pill"
@@ -479,6 +466,7 @@ export const FilterSidebar = memo(function FilterSidebar({ filters, sidebarOpen,
           </div>
         </div>
       )}
-    </div>
+    </aside>
+    </>
   );
 });

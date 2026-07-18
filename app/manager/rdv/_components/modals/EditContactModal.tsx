@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import type { Meeting } from "../../_types";
-import { Modal, ModalFooter } from "@/components/ui/Modal";
+import { Loader2, Mail, Save, UserRound } from "lucide-react";
+import { RdvDialog, RdvDialogFooter, RdvField, RdvFormSection } from "../shared/RdvFormKit";
 
 interface EditContactModalProps {
   meeting: Meeting;
@@ -65,37 +66,56 @@ export function EditContactModal({ meeting, onClose, onSaved }: EditContactModal
   ];
 
   return (
-    <Modal isOpen onClose={() => !saving && onClose()} title="Modifier le contact" size="sm">
-      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        {fields.map(([key, label, placeholder]) => (
-          <div key={key}>
-            <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--ink3)", marginBottom: 4 }}>{label}</label>
+    <RdvDialog
+      isOpen
+      onClose={() => !saving && onClose()}
+      title="Modifier le contact"
+      description="Gardez uniquement les informations utiles pour préparer et joindre le prospect."
+      size="sm"
+      className="rdv-edit-dialog"
+    >
+      <div className="rdv-dialog-stack">
+        <RdvFormSection title="Identité" description="Ce qui permet à l'équipe de reconnaître le bon interlocuteur." icon={UserRound}>
+          <div className="rdv-form-grid two-columns">
+            {fields.slice(0, 3).map(([key, label, placeholder]) => (
+              <RdvField key={key} label={label} htmlFor={`contact-${key}`} className={key === "title" ? "span-two" : undefined}>
+                <input
+                  id={`contact-${key}`}
+                  className="rdv-input"
+                  value={form[key]}
+                  placeholder={placeholder}
+                  onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
+                />
+              </RdvField>
+            ))}
+          </div>
+        </RdvFormSection>
+
+        <RdvFormSection title="Coordonnées" description="Utilisées par les actions rapides du rendez-vous." icon={Mail}>
+          <div className="rdv-form-grid">
+            {fields.slice(3).map(([key, label, placeholder]) => (
+              <RdvField key={key} label={label} htmlFor={`contact-${key}`}>
             <input
+              id={`contact-${key}`}
               className="rdv-input"
-              style={{ width: "100%" }}
               value={form[key]}
               placeholder={placeholder}
               onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
             />
+              </RdvField>
+            ))}
           </div>
-        ))}
+        </RdvFormSection>
       </div>
-      <ModalFooter>
-        <button
-          onClick={onClose}
-          disabled={saving}
-          className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors disabled:opacity-50"
-        >
+      <RdvDialogFooter>
+        <button onClick={onClose} disabled={saving} className="rdv-btn rdv-btn-ghost">
           Annuler
         </button>
-        <button
-          disabled={saving}
-          onClick={handleSave}
-          className="px-4 py-2 text-sm font-medium bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors disabled:opacity-50"
-        >
-          {saving ? "Enregistrement…" : "Enregistrer"}
+        <button disabled={saving} onClick={handleSave} className="rdv-btn rdv-btn-primary">
+          {saving ? <Loader2 size={14} className="rdv-spin" /> : <Save size={14} />}
+          {saving ? "Enregistrement..." : "Enregistrer le contact"}
         </button>
-      </ModalFooter>
-    </Modal>
+      </RdvDialogFooter>
+    </RdvDialog>
   );
 }

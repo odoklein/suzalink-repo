@@ -12,7 +12,6 @@ import {
     Search,
     X,
     Filter,
-    Star,
     Loader2,
     MessageSquare,
     FileText,
@@ -479,7 +478,7 @@ export function SearchPanel({
                     {results.length === 0 && query.length >= 2 && !isLoading ? (
                         <div className="p-8 text-center text-slate-400">
                             <Search className="w-12 h-12 mx-auto mb-3 opacity-40" />
-                            <p>Aucun résultat pour "{query}"</p>
+                            <p>Aucun résultat pour « {query} »</p>
                         </div>
                     ) : results.length === 0 && query.length < 2 ? (
                         <div className="p-8 text-center text-slate-400">

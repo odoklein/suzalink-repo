@@ -9,7 +9,6 @@ import type { CommsRealtimePayload } from "@/lib/comms/events";
 import {
     MessageSquare,
     Plus,
-    Filter,
     Search,
     RefreshCw,
     Target,
@@ -21,7 +20,10 @@ import {
     X,
     AlertCircle,
 } from "lucide-react";
-import { Button, Input, EmptyState, Skeleton } from "@/components/ui";
+import Button from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
+import EmptyState from "@/components/ui/EmptyState";
+import Skeleton from "@/components/ui/Skeleton";
 import { ThreadList } from "./ThreadList";
 import { ThreadView } from "./ThreadView";
 import { NewThreadModal } from "./NewThreadModal";
@@ -66,11 +68,9 @@ export function CommsInbox({ className, restrictToChannelTypes }: CommsInboxProp
     const [isLoadingThreadDetails, setIsLoadingThreadDetails] = useState(false);
     const [stats, setStats] = useState<CommsInboxStats | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [isRefreshing, setIsRefreshing] = useState(false);
     const [isSyncing, setIsSyncing] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [showNewThreadModal, setShowNewThreadModal] = useState(false);
-    const [showFilters, setShowFilters] = useState(false);
     const [showSearchPanel, setShowSearchPanel] = useState(false);
 
     // Filters
@@ -87,8 +87,7 @@ export function CommsInbox({ className, restrictToChannelTypes }: CommsInboxProp
 
     // Fetch threads
     const fetchThreads = useCallback(async (refresh = false) => {
-        if (refresh) setIsRefreshing(true);
-        else setIsLoading(true);
+        if (!refresh) setIsLoading(true);
 
         try {
             const params = new URLSearchParams();
@@ -111,7 +110,6 @@ export function CommsInbox({ className, restrictToChannelTypes }: CommsInboxProp
             setError("Erreur de connexion à la base de données");
         } finally {
             setIsLoading(false);
-            setIsRefreshing(false);
         }
     }, [filters, searchQuery]);
 
@@ -675,7 +673,7 @@ export function CommsInbox({ className, restrictToChannelTypes }: CommsInboxProp
             <SearchPanel
                 isOpen={showSearchPanel}
                 onClose={() => setShowSearchPanel(false)}
-                onResultClick={(threadId, _messageId) => {
+                onResultClick={(threadId) => {
                     setShowSearchPanel(false);
                     selectedThreadIdRef.current = threadId;
                     setSelectedThreadId(threadId);

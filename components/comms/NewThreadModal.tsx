@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { X, Target, Building2, FileText, Users, MessageCircle, Megaphone, Search, Loader2, Send, ArrowLeft } from "lucide-react";
-import { Modal, Input, Button } from "@/components/ui";
+import { X, Target, Building2, Users, MessageCircle, Megaphone, Search, Loader2, Send, ArrowLeft } from "lucide-react";
+import { Modal } from "@/components/ui/Modal";
+import Input from "@/components/ui/Input";
+import Button from "@/components/ui/Button";
 import type { CommsChannelType, CreateThreadRequest } from "@/lib/comms/types";
 
 interface NewThreadModalProps {
@@ -21,6 +23,22 @@ interface SelectableItem {
     id: string;
     name: string;
     subtitle?: string;
+}
+
+interface SearchApiItem extends SelectableItem {
+    email?: string;
+    clientName?: string;
+    client?: { name: string };
+}
+
+interface SearchApiResponse {
+    success?: boolean;
+    data?: SearchApiItem[] | SearchApiResponse;
+    missions?: SearchApiItem[];
+    campaigns?: SearchApiItem[];
+    users?: SearchApiItem[];
+    clients?: SearchApiItem[];
+    groups?: SearchApiItem[];
 }
 
 const CLIENT_SUPPORT_TEAM_ITEM_ID = "__client_support_team__";
@@ -173,7 +191,7 @@ export function NewThreadModal({
                         );
                     }
                 }
-            } catch (e) {
+            } catch {
                 if (!cancelled) setSearchResults([]);
             } finally {
                 if (!cancelled) setIsSearching(false);
@@ -220,17 +238,17 @@ export function NewThreadModal({
 
                 const res = await fetch(endpoint);
                 if (res.ok) {
-                    const response = await res.json();
+                    const response = await res.json() as SearchApiResponse | SearchApiItem[];
 
                     // Handle different response formats
-                    let items: any[] = [];
+                    let items: SearchApiItem[] = [];
 
-                    if (response.success === true) {
+                    if (!Array.isArray(response) && response.success === true) {
                         const responseData = response.data;
 
                         if (Array.isArray(responseData)) {
                             items = responseData;
-                        } else if (responseData?.users) {
+                        } else if (responseData && responseData.users) {
                             items = responseData.users || [];
                         } else if (responseData?.campaigns) {
                             items = responseData.campaigns || [];
@@ -241,15 +259,15 @@ export function NewThreadModal({
                         } else if (responseData?.groups) {
                             items = responseData.groups || [];
                         }
-                    } else if (response.missions) {
+                    } else if (!Array.isArray(response) && response.missions) {
                         items = response.missions || [];
-                    } else if (response.campaigns) {
+                    } else if (!Array.isArray(response) && response.campaigns) {
                         items = response.campaigns || [];
-                    } else if (response.users) {
+                    } else if (!Array.isArray(response) && response.users) {
                         items = response.users || [];
-                    } else if (response.clients) {
+                    } else if (!Array.isArray(response) && response.clients) {
                         items = response.clients || [];
-                    } else if (response.groups) {
+                    } else if (!Array.isArray(response) && response.groups) {
                         items = response.groups || [];
                     } else if (Array.isArray(response)) {
                         items = response;
@@ -257,7 +275,7 @@ export function NewThreadModal({
 
                     // Normalize results
                     const normalizedItems: SelectableItem[] = items.map(
-                        (item: { id: string; name: string; email?: string; clientName?: string; client?: { name: string } }) => ({
+                        (item) => ({
                             id: item.id,
                             name: item.name,
                             subtitle: item.email || item.clientName || item.client?.name,
@@ -442,7 +460,7 @@ export function NewThreadModal({
                             )}
                             {!isSearching && searchResults.length === 0 && searchQuery && userRole !== "CLIENT" && (
                                 <p className="text-sm text-slate-500 text-center py-8">
-                                    Aucun résultat pour "{searchQuery}"
+                                    Aucun résultat pour « {searchQuery} »
                                 </p>
                             )}
                             {!isSearching && searchResults.length === 0 && (userRole === "CLIENT" || !searchQuery) && (

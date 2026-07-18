@@ -51,7 +51,7 @@ const CHANNEL_TAGS: Record<CommsChannelType, string> = {
     BROADCAST: "Annonce",
 };
 
-function getThreadDisplayName(thread: CommsThreadListItem, _currentUserId?: string): string {
+function getThreadDisplayName(thread: CommsThreadListItem): string {
     if (thread.channelType === "DIRECT") {
         if (thread.otherParticipantName) return thread.otherParticipantName;
         if (thread.subject.startsWith("Message avec ")) {
@@ -85,7 +85,6 @@ export function ThreadList({
     selectedId,
     onSelect,
     isLoading,
-    currentUserId,
 }: ThreadListProps) {
     if (isLoading) {
         return (
@@ -95,10 +94,10 @@ export function ThreadList({
                         key={i}
                         className="flex items-start gap-3 p-3.5 rounded-xl animate-pulse"
                     >
-                        <div className="size-10 rounded-full bg-slate-100 shrink-0" />
+                        <div className="size-10 rounded-full bg-slate-100 dark:bg-slate-800 shrink-0" />
                         <div className="flex-1 space-y-2 pt-1">
-                            <div className="h-3.5 bg-slate-100 rounded-md w-3/4" />
-                            <div className="h-3 bg-slate-50 rounded-md w-1/2" />
+                            <div className="h-3.5 bg-slate-100 dark:bg-slate-800 rounded-md w-3/4" />
+                            <div className="h-3 bg-slate-50 dark:bg-slate-800/70 rounded-md w-1/2" />
                         </div>
                     </div>
                 ))}
@@ -128,7 +127,7 @@ export function ThreadList({
                 const ChannelIcon = CHANNEL_ICONS[thread.channelType];
                 const isSelected = selectedId === thread.id;
                 const hasUnread = thread.unreadCount > 0;
-                const displayName = getThreadDisplayName(thread, currentUserId);
+                const displayName = getThreadDisplayName(thread);
                 const lastPreview = thread.lastMessage
                     ? thread.channelType === "DIRECT"
                         ? thread.lastMessage.content
@@ -139,13 +138,16 @@ export function ThreadList({
                 return (
                     <button
                         key={thread.id}
+                        type="button"
                         onClick={() => onSelect(thread)}
+                        aria-current={isSelected ? "true" : undefined}
+                        aria-label={`${displayName}${hasUnread ? `, ${thread.unreadCount} non lu${thread.unreadCount > 1 ? "s" : ""}` : ""}`}
                         className={cn(
-                            "w-full text-left flex items-start gap-3 p-3 rounded-xl relative group transition-all duration-200",
+                            "w-full text-left flex items-start gap-3 p-3 rounded-xl relative group transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#0C3B38]/30",
                             isSelected
-                                ? "bg-[#0C3B38]/[0.06] shadow-sm"
-                                : "hover:bg-[#F4F0E8]/60",
-                            hasUnread && !isSelected && "bg-[#FFF9F0]/50"
+                                ? "bg-[#0C3B38]/[0.07] dark:bg-emerald-950/30"
+                                : "hover:bg-[#F4F0E8]/60 dark:hover:bg-slate-800/70",
+                            hasUnread && !isSelected && "bg-[#FFF9F0]/50 dark:bg-slate-800/35"
                         )}
                     >
                         {isSelected && (
@@ -173,8 +175,8 @@ export function ThreadList({
                                     className={cn(
                                         "text-[13px] truncate",
                                         hasUnread
-                                            ? "font-bold text-[#12122A]"
-                                            : "font-semibold text-[#12122A]"
+                                            ? "font-bold text-[#12122A] dark:text-white"
+                                            : "font-semibold text-[#12122A] dark:text-slate-200"
                                     )}
                                 >
                                     {displayName}
@@ -192,7 +194,7 @@ export function ThreadList({
                             </div>
 
                             {thread.subject && thread.channelType !== "DIRECT" && (
-                                <p className="text-[12px] text-[#5A5A7A] font-medium truncate mb-0.5">
+                                <p className="text-[12px] text-[#5A5A7A] dark:text-slate-400 font-medium truncate mb-0.5">
                                     {thread.subject}
                                 </p>
                             )}
@@ -202,8 +204,8 @@ export function ThreadList({
                                     className={cn(
                                         "text-[12px] truncate leading-relaxed",
                                         hasUnread
-                                            ? "text-[#3A3A5A] font-medium"
-                                            : "text-[#8B8BA7]"
+                                            ? "text-[#3A3A5A] dark:text-slate-300 font-medium"
+                                            : "text-[#8B8BA7] dark:text-slate-500"
                                     )}
                                 >
                                     {lastPreview}

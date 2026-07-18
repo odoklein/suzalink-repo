@@ -72,7 +72,7 @@ export function WeekView({ calendarDate, calendarMeetings, openPanel }: WeekView
                       {contactName(m.contact)}
                     </div>
                     <div style={{ color: "var(--ink3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: 11 }}>
-                      {m.company?.name || "—"}
+                      {m.company?.name || "Entreprise non renseignée"}
                     </div>
                   </div>
                 );

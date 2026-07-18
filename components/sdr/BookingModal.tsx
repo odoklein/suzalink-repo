@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Modal, Button, useToast } from "@/components/ui";
-import { Loader2, Calendar, CheckCircle2 } from "lucide-react";
+import { Modal, useToast } from "@/components/ui";
+import { Loader2, Calendar } from "lucide-react";
 
 // ============================================
 // BOOKING MODAL PROPS
@@ -44,6 +44,8 @@ export function BookingModal({
                 "https://*.calendly.com",
                 "https://cal.com",
                 "https://*.cal.com",
+                "https://cal.eu",
+                "https://*.cal.eu",
                 window.location.origin,
             ];
 

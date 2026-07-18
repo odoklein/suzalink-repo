@@ -37,25 +37,25 @@ export function FeedbackTab({ meeting, feedbackState, updateMeeting }: FeedbackT
   } = feedbackState;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-      <div>
-        <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", marginBottom: 12 }}>Résultat du RDV</div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+    <div className="rdv-feedback-tab">
+      <div className="rdv-tab-section-header">
+        <div>
+          <strong>Décision après rendez-vous</strong>
+          <span>Qualifiez le signal, puis documentez la prochaine action.</span>
+        </div>
+      </div>
+      <section className="rdv-feedback-section">
+        <div className="rdv-section-label">Résultat du RDV</div>
+        <div className="rdv-outcome-grid">
           {OUTCOMES.map(([key, label, Icon, color, bg]) => (
             <button
               key={key}
+              type="button"
+              className={`rdv-outcome-card ${feedbackOutcome === key ? "is-selected" : ""}`}
               onClick={() => setFeedbackOutcome(key)}
               style={{
-                padding: 20,
-                borderRadius: 12,
-                border: `2px solid ${feedbackOutcome === key ? color : "var(--border)"}`,
+                borderColor: feedbackOutcome === key ? color : "var(--border)",
                 background: feedbackOutcome === key ? bg : "var(--surface)",
-                cursor: "pointer",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: 8,
-                transition: "all 0.15s",
               }}
             >
               <Icon size={22} style={{ color }} />
@@ -63,11 +63,11 @@ export function FeedbackTab({ meeting, feedbackState, updateMeeting }: FeedbackT
             </button>
           ))}
         </div>
-      </div>
+      </section>
 
-      <div>
-        <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", marginBottom: 10 }}>Recontact</div>
-        <div style={{ display: "flex", gap: 8 }}>
+      <section className="rdv-feedback-section">
+        <div className="rdv-section-label">Faut-il recontacter ce prospect ?</div>
+        <div className="rdv-choice-row">
           {RECONTACT.map(([key, label]) => (
             <button
               key={key}
@@ -86,10 +86,10 @@ export function FeedbackTab({ meeting, feedbackState, updateMeeting }: FeedbackT
             </button>
           ))}
         </div>
-      </div>
+      </section>
 
-      <div>
-        <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", marginBottom: 10 }}>Commentaire</div>
+      <section className="rdv-feedback-section">
+        <div className="rdv-section-label">Commentaire de passation</div>
         <textarea
           className="rdv-input"
           style={{ width: "100%", minHeight: 120, resize: "vertical" }}
@@ -97,7 +97,7 @@ export function FeedbackTab({ meeting, feedbackState, updateMeeting }: FeedbackT
           onChange={(e) => setFeedbackNote(e.target.value)}
           placeholder="Ajouter un commentaire sur le RDV…"
         />
-      </div>
+      </section>
 
       <button
         className="rdv-btn rdv-btn-primary"

@@ -1,28 +1,22 @@
 "use client";
 
-import { memo, useEffect, useState } from "react";
-import type { Meeting } from "../_types";
+import { memo, useEffect } from "react";
+import {
+  ArrowDown,
+  ArrowUp,
+  Check,
+  ChevronRight,
+  FileText,
+  MessageSquareText,
+  Mic,
+  RefreshCw,
+  X,
+} from "lucide-react";
+import type { Meeting, SortDir, SortField } from "../_types";
+import { confirmationBg, confirmationColor, confirmationLabel, contactName, meetingStatus } from "../_lib/formatters";
 import { Skeleton } from "./shared/Skeleton";
 import { EmptyState } from "./shared/EmptyState";
 import { Avatar } from "./shared/Avatar";
-import {
-  contactName,
-  meetingStatus,
-  statusBg,
-  statusColor,
-  statusLabel,
-  formatDateShort,
-  meetingTypeIcon,
-  confirmationBg,
-  confirmationColor,
-  confirmationLabel,
-  hashColor,
-  proximityLabel,
-  formatDuration,
-} from "../_lib/formatters";
-import type { ConfirmationFilter } from "../_types";
-import { Copy, Linkedin, RefreshCw, Check, X, Mic, ChevronUp, ChevronDown } from "lucide-react";
-import type { SortField, SortDir } from "../_types";
 
 interface MeetingListProps {
   meetings: Meeting[];
@@ -32,13 +26,46 @@ interface MeetingListProps {
   selectedIds: Set<string>;
   onToggleSelect: (id: string) => void;
   onToggleSelectAll: () => void;
-  onOpen: (m: Meeting) => void;
+  onOpen: (meeting: Meeting) => void;
   onLoadMore: () => void;
   updateMeeting: (id: string, data: Record<string, unknown>) => Promise<void>;
   updateLocalMeeting: (id: string, patch: Partial<Meeting>) => void;
   sortBy?: SortField;
   sortDir?: SortDir;
   onSort?: (field: SortField) => void;
+}
+
+const SORT_LABELS: Array<{ value: SortField; label: string }> = [
+  { value: "callbackDate", label: "Date du RDV" },
+  { value: "createdAt", label: "Date de création" },
+  { value: "contactName", label: "Contact" },
+  { value: "companyName", label: "Entreprise" },
+  { value: "sdrName", label: "SDR" },
+  { value: "duration", label: "Durée" },
+];
+
+function agendaDate(value: string | null) {
+  if (!value) return { label: "Date à définir", time: "", proximity: "Planification requise", isNear: false };
+
+  const date = new Date(value);
+  const today = new Date();
+  const startToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const startDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const dayDiff = Math.round((startDate.getTime() - startToday.getTime()) / 86_400_000);
+  const label = dayDiff === 0
+    ? "Aujourd’hui"
+    : dayDiff === 1
+      ? "Demain"
+      : dayDiff === -1
+        ? "Hier"
+        : date.toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "short" });
+
+  return {
+    label,
+    time: date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }),
+    proximity: dayDiff < 0 ? "Passé" : dayDiff <= 1 ? "Bientôt" : "Planifié",
+    isNear: dayDiff >= 0 && dayDiff <= 1,
+  };
 }
 
 const MeetingRow = memo(function MeetingRow({
@@ -52,309 +79,119 @@ const MeetingRow = memo(function MeetingRow({
   meeting: Meeting;
   selected: boolean;
   onToggleSelect: (id: string) => void;
-  onOpen: (m: Meeting) => void;
+  onOpen: (meeting: Meeting) => void;
   updateMeeting: (id: string, data: Record<string, unknown>) => Promise<void>;
   updateLocalMeeting: (id: string, patch: Partial<Meeting>) => void;
 }) {
-  const status = meetingStatus(meeting);
-  const date = formatDateShort(meeting.createdAt);
-  const rdvDate = formatDateShort(meeting.callbackDate);
-  const proximity = proximityLabel(meeting.callbackDate);
+  const schedule = agendaDate(meeting.callbackDate);
+  const name = meeting.contact ? contactName(meeting.contact) : meeting.company?.name ?? "Contact à renseigner";
   const isPending = meeting.confirmationStatus === "PENDING";
-  const [audioPopupOpen, setAudioPopupOpen] = useState(false);
-  const hasAudio = !!meeting.callRecordingUrl?.trim();
-  const transcription = meeting.callTranscription?.trim() ?? "";
+  const status = meetingStatus(meeting);
 
-  const handleInlineConfirm = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    updateMeeting(meeting.id, { confirmationStatus: "CONFIRMED" });
-    updateLocalMeeting(meeting.id, {
-      confirmationStatus: "CONFIRMED",
-      confirmedAt: new Date().toISOString(),
-    });
+  const confirm = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    void updateMeeting(meeting.id, { confirmationStatus: "CONFIRMED" });
+    updateLocalMeeting(meeting.id, { confirmationStatus: "CONFIRMED", confirmedAt: new Date().toISOString() });
   };
 
-  const handleInlineCancel = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    updateMeeting(meeting.id, { confirmationStatus: "CANCELLED" });
-    updateLocalMeeting(meeting.id, {
-      confirmationStatus: "CANCELLED",
-      confirmedAt: null,
-      confirmedById: null,
-    });
+  const cancel = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    void updateMeeting(meeting.id, { confirmationStatus: "CANCELLED" });
+    updateLocalMeeting(meeting.id, { confirmationStatus: "CANCELLED", confirmedAt: null, confirmedById: null });
   };
 
   return (
-    <div
-      className="rdv-row"
+    <article
+      className={`rdv-agenda-row ${selected ? "is-selected" : ""} ${status === "cancelled" ? "is-cancelled" : ""}`}
       onClick={() => onOpen(meeting)}
-      style={{
-        display: "flex", alignItems: "center", padding: "0 24px", height: 80,
-        borderBottom: "1px solid var(--border)", cursor: "pointer", transition: "background 0.15s",
-        gap: 12, borderLeft: selected ? "3px solid var(--accent)" : "3px solid transparent",
-        background: selected ? "rgba(108,99,255,0.04)" : "transparent",
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") onOpen(meeting);
       }}
+      tabIndex={0}
     >
-      <div style={{ width: 36 }} onClick={(e) => e.stopPropagation()}>
-        <input type="checkbox" className="rdv-checkbox" checked={selected} onChange={() => onToggleSelect(meeting.id)} />
+      <div className="rdv-agenda-select" onClick={(event) => event.stopPropagation()}>
+        <input
+          type="checkbox"
+          className="rdv-checkbox"
+          checked={selected}
+          aria-label={`Sélectionner le rendez-vous avec ${name}`}
+          onChange={() => onToggleSelect(meeting.id)}
+        />
       </div>
 
-      <div style={{ width: 90, display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
-        <div style={{ fontSize: 20, fontWeight: 700, color: "var(--ink)", lineHeight: 1 }}>{date.day}</div>
-        <div style={{ fontSize: 11, color: "var(--ink3)", textTransform: "uppercase", fontWeight: 500 }}>{date.month}</div>
-        <span style={{ fontSize: 10, fontWeight: 600, background: "var(--surface2)", color: "var(--ink3)", borderRadius: 5, padding: "2px 7px" }}>
-          {date.time}
-        </span>
+      <div className="rdv-agenda-time">
+        <strong>{schedule.time || schedule.label}</strong>
+        <span>{schedule.time ? schedule.label : schedule.proximity}</span>
+        {schedule.isNear && <small>{schedule.proximity}</small>}
       </div>
 
-      {/* Secondary date: scheduled meeting date */}
-      <div style={{ width: 80, display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
-        {meeting.callbackDate ? (
-          <>
-            <div style={{ fontSize: 12, fontWeight: 600, color: proximity.color, lineHeight: 1 }}>{rdvDate.day} {rdvDate.month}</div>
-            <span style={{ fontSize: 9, fontWeight: 600, color: proximity.color, background: `${proximity.color}12`, borderRadius: 4, padding: "1px 5px" }}>
-              {proximity.text}
-            </span>
-          </>
-        ) : (
-          <span style={{ fontSize: 11, color: "var(--ink3)", opacity: 0.4 }}>—</span>
-        )}
-      </div>
-
-      <div style={{ flex: 2, minWidth: 140, display: "flex", alignItems: "center", gap: 10 }}>
-        <Avatar name={meeting.contact ? contactName(meeting.contact) : (meeting.company?.name ?? "—")} size={36} />
-        <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-            {meeting.contact ? contactName(meeting.contact) : (meeting.company ? "Société seule" : "—")}
-          </div>
-          <div style={{ fontSize: 12, color: "var(--ink3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginTop: 1 }}>
-            {meeting.contact?.title ?? (meeting.company ? meeting.company.name : "—")}
-          </div>
+      <div className="rdv-agenda-person">
+        <Avatar name={name} size={40} />
+        <div>
+          <strong>{name}</strong>
+          <span>{meeting.contact?.title || meeting.company?.name || "Coordonnées à compléter"}</span>
         </div>
       </div>
 
-      <div style={{ flex: 2, minWidth: 120, display: "flex", alignItems: "center", gap: 10 }}>
-        <div style={{ width: 32, height: 32, borderRadius: 8, background: "var(--surface2)", border: "1px solid var(--border)", display: "grid", placeContent: "center", fontSize: 13, fontWeight: 700, color: "var(--ink3)", flexShrink: 0 }}>
-          {(meeting.company?.name || "?")[0]}
-        </div>
-        <div style={{ minWidth: 0 }}>
-          <div
-            style={{ fontSize: 13, color: "var(--ink3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontWeight: 500 }}
-            title={meeting.company?.name || ""}
-          >
-            {meeting.company?.name || "—"}
-          </div>
-          {meeting.company?.industry && (
-            <span style={{ fontSize: 10, color: "var(--ink3)", background: "var(--surface2)", padding: "2px 7px", borderRadius: 4, fontWeight: 500 }}>
-              {meeting.company.industry}
-            </span>
-          )}
-        </div>
+      <div className="rdv-agenda-context">
+        <strong>{meeting.company?.name || "Entreprise non liée"}</strong>
+        <span>{meeting.client?.name || "Sans client"} / {meeting.mission.name}</span>
       </div>
 
-      <div style={{ flex: 1, minWidth: 80, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-        {meeting.client && (
-          <span className="rdv-pill" style={{ background: `${hashColor(meeting.client.name)}12`, color: hashColor(meeting.client.name), fontWeight: 600 }}>
-            {meeting.client.name}
-          </span>
-        )}
-      </div>
-
-      <div style={{ width: 100, display: "flex", alignItems: "center", gap: 6 }}>
-        <Avatar name={meeting.sdr.name} size={24} />
-        <span style={{ fontSize: 12, color: "var(--ink2)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-          {meeting.sdr.name}
-        </span>
-      </div>
-
-      <div style={{ width: 120, minWidth: 120, display: "flex", alignItems: "center", gap: 6 }}>
-        {meeting.interlocuteur ? (
-          <>
-            <Avatar
-              name={[meeting.interlocuteur.firstName, meeting.interlocuteur.lastName].filter(Boolean).join(" ") || "Commercial"}
-              size={24}
-            />
-            <span style={{ fontSize: 12, color: "var(--ink2)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {[meeting.interlocuteur.firstName, meeting.interlocuteur.lastName].filter(Boolean).join(" ") || "Assigné"}
-            </span>
-          </>
-        ) : (
-          <span style={{ fontSize: 11, color: "var(--ink3)", opacity: 0.65, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>Non assigné</span>
-        )}
-      </div>
-
-      <div style={{ width: 36, textAlign: "center", color: "var(--ink3)" }}>{meetingTypeIcon(meeting.meetingType)}</div>
-
-      {meeting.duration ? (
-        <div style={{ width: 50, textAlign: "center" }}>
-          <span style={{ fontSize: 10, fontWeight: 600, color: "var(--ink3)", background: "var(--surface2)", padding: "2px 6px", borderRadius: 4 }}>
-            {formatDuration(meeting.duration)}
+      <div className="rdv-agenda-team">
+        <Avatar name={meeting.sdr.name} size={28} />
+        <div>
+          <strong>{meeting.sdr.name}</strong>
+          <span>
+            {meeting.interlocuteur
+              ? [meeting.interlocuteur.firstName, meeting.interlocuteur.lastName].filter(Boolean).join(" ") || "Commercial assigné"
+              : "Commercial à assigner"}
           </span>
         </div>
-      ) : (
-        <div style={{ width: 50 }} />
-      )}
+      </div>
 
-      <div style={{ width: 70, textAlign: "center" }}>
-        <span className="status-badge" style={{ background: statusBg(status), color: statusColor(status) }}>
-          {statusLabel(status)}
+      <div className="rdv-readiness" aria-label="Préparation du rendez-vous">
+        <span className={meeting.rdvFiche ? "is-ready" : ""} title={meeting.rdvFiche ? "Fiche RDV prête" : "Fiche RDV à compléter"}>
+          <FileText size={15} />
+        </span>
+        <span className={meeting.callRecordingUrl?.trim() ? "is-ready" : ""} title={meeting.callRecordingUrl?.trim() ? "Audio lié" : "Audio manquant"}>
+          <Mic size={15} />
+        </span>
+        <span className={meeting.feedback ? "is-ready" : ""} title={meeting.feedback ? "Feedback renseigné" : "Feedback manquant"}>
+          <MessageSquareText size={15} />
         </span>
       </div>
 
-      <div style={{ width: 100, textAlign: "center" }}>
-        {meeting.confirmationStatus ? (
+      <div className="rdv-agenda-status">
+        {isPending ? (
+          <div className="rdv-inline-decision">
+            <span>À confirmer</span>
+            <button type="button" onClick={confirm} title="Confirmer" aria-label={`Confirmer le rendez-vous avec ${name}`}>
+              <Check size={14} />
+            </button>
+            <button type="button" className="is-danger" onClick={cancel} title="Annuler" aria-label={`Annuler le rendez-vous avec ${name}`}>
+              <X size={14} />
+            </button>
+          </div>
+        ) : meeting.confirmationStatus ? (
           <span
             className="status-badge"
             style={{
-              background: confirmationBg(meeting.confirmationStatus as ConfirmationFilter),
-              color: confirmationColor(meeting.confirmationStatus as ConfirmationFilter),
+              background: confirmationBg(meeting.confirmationStatus),
+              color: confirmationColor(meeting.confirmationStatus),
             }}
           >
-            {confirmationLabel(meeting.confirmationStatus as ConfirmationFilter)}
+            {confirmationLabel(meeting.confirmationStatus)}
           </span>
         ) : (
-          <span style={{ fontSize: 11, color: "var(--ink3)", opacity: 0.4 }}>—</span>
+          <span className="rdv-muted-status">Non renseigné</span>
         )}
       </div>
 
-      <div style={{ width: 36, textAlign: "center", position: "relative" }}>
-        {hasAudio ? (
-          <>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setAudioPopupOpen((prev) => !prev);
-              }}
-              style={{
-                width: 26,
-                height: 26,
-                borderRadius: 8,
-                border: "1px solid var(--border)",
-                background: audioPopupOpen ? "rgba(108,99,255,0.12)" : "var(--surface2)",
-                color: audioPopupOpen ? "var(--accent)" : "var(--ink3)",
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: "pointer",
-              }}
-              title="Audio et transcription"
-            >
-              <Mic size={13} />
-            </button>
-            {audioPopupOpen && (
-              <div
-                onClick={(e) => e.stopPropagation()}
-                style={{
-                  position: "absolute",
-                  top: "calc(100% + 8px)",
-                  right: 0,
-                  width: 320,
-                  zIndex: 20,
-                  border: "1px solid var(--border)",
-                  borderRadius: 12,
-                  background: "var(--surface)",
-                  boxShadow: "0 12px 28px rgba(15,23,42,0.14)",
-                  padding: 10,
-                  textAlign: "left",
-                }}
-              >
-                <audio controls src={`/api/actions/${meeting.id}/recording`} style={{ width: "100%" }} />
-                <div
-                  className="rdv-scrollbar"
-                  style={{
-                    marginTop: 8,
-                    maxHeight: 140,
-                    overflowY: "auto",
-                    fontSize: 12,
-                    color: "var(--ink2)",
-                    lineHeight: 1.45,
-                    whiteSpace: "pre-wrap",
-                  }}
-                >
-                  {transcription || "Aucune transcription disponible."}
-                </div>
-              </div>
-            )}
-          </>
-        ) : (
-          <span style={{ fontSize: 11, color: "var(--ink3)", opacity: 0.4 }}>—</span>
-        )}
-      </div>
-
-      <div style={{ width: 64, position: "relative" }}>
-        <div className="rdv-row-actions" style={{ opacity: 0, transition: "opacity 0.15s", display: "flex", gap: 3 }}>
-          {isPending && (
-            <>
-              <button
-                onClick={handleInlineConfirm}
-                style={{ background: "var(--greenLight)", border: "1px solid rgba(5,150,105,0.2)", color: "var(--green)", cursor: "pointer", padding: 4, borderRadius: 6 }}
-                title="Confirmer"
-              >
-                <Check size={13} />
-              </button>
-              <button
-                onClick={handleInlineCancel}
-                style={{ background: "var(--redLight)", border: "1px solid rgba(220,38,38,0.2)", color: "var(--red)", cursor: "pointer", padding: 4, borderRadius: 6 }}
-                title="Annuler"
-              >
-                <X size={13} />
-              </button>
-            </>
-          )}
-          {meeting.contact?.email && (
-            <button
-              onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(meeting.contact!.email!); }}
-              style={{ background: "var(--surface2)", border: "none", color: "var(--ink3)", cursor: "pointer", padding: 4, borderRadius: 6 }}
-              title="Copier email"
-            >
-              <Copy size={13} />
-            </button>
-          )}
-          {meeting.contact?.linkedin && (
-            <a
-              href={meeting.contact.linkedin}
-              target="_blank"
-              rel="noreferrer"
-              onClick={(e) => e.stopPropagation()}
-              style={{ color: "var(--ink3)", padding: 4, background: "var(--surface2)", borderRadius: 6, display: "flex" }}
-              title="LinkedIn"
-            >
-              <Linkedin size={13} />
-            </a>
-          )}
-        </div>
-      </div>
-    </div>
+      <ChevronRight className="rdv-row-chevron" size={18} aria-hidden />
+    </article>
   );
 });
-
-function SortHeader({ label, field, sortBy, sortDir, onSort, style }: {
-  label: string; field: SortField; sortBy?: SortField; sortDir?: SortDir;
-  onSort?: (f: SortField) => void; style?: React.CSSProperties;
-}) {
-  const active = sortBy === field;
-  return (
-    <button
-      onClick={() => onSort?.(field)}
-      style={{
-        background: "none", border: "none", cursor: onSort ? "pointer" : "default",
-        display: "flex", alignItems: "center", gap: 3, padding: 0,
-        fontSize: 11, fontWeight: active ? 700 : 600,
-        color: active ? "var(--accent)" : "var(--ink3)",
-        textTransform: "uppercase", letterSpacing: "0.06em",
-        whiteSpace: "nowrap",
-        ...style,
-      }}
-    >
-      {label}
-      {active ? (
-        sortDir === "asc" ? <ChevronUp size={10} /> : <ChevronDown size={10} />
-      ) : onSort ? (
-        <ChevronDown size={10} style={{ opacity: 0.3 }} />
-      ) : null}
-    </button>
-  );
-}
 
 export function MeetingList({
   meetings,
@@ -368,99 +205,69 @@ export function MeetingList({
   onLoadMore,
   updateMeeting,
   updateLocalMeeting,
-  sortBy,
-  sortDir,
+  sortBy = "createdAt",
+  sortDir = "desc",
   onSort,
 }: MeetingListProps) {
   const scrollContainerRef = listRef as React.RefObject<HTMLDivElement>;
 
   useEffect(() => {
-    const el = scrollContainerRef.current;
-    if (!el) return;
+    const element = scrollContainerRef.current;
+    if (!element) return;
     const onScroll = () => {
-      if (el.scrollTop + el.clientHeight >= el.scrollHeight - 200) {
-        onLoadMore();
-      }
+      if (element.scrollTop + element.clientHeight >= element.scrollHeight - 200) onLoadMore();
     };
-    el.addEventListener("scroll", onScroll);
-    return () => el.removeEventListener("scroll", onScroll);
+    element.addEventListener("scroll", onScroll, { passive: true });
+    return () => element.removeEventListener("scroll", onScroll);
   }, [scrollContainerRef, onLoadMore]);
 
+  const allSelected = meetings.length > 0 && selectedIds.size === meetings.length;
+
   return (
-    <>
-      <div
-        className="rdv-list-header"
-        style={{
-          display: "flex", alignItems: "center", padding: "10px 24px",
-          borderBottom: "1px solid var(--border)", fontSize: 11, fontWeight: 600,
-          color: "var(--ink3)", textTransform: "uppercase", letterSpacing: "0.06em",
-          flexShrink: 0, gap: 12, background: "rgba(255,255,255,0.88)",
-        }}
-      >
-        <div style={{ width: 36 }}>
-          <input
-            type="checkbox"
-            className="rdv-checkbox"
-            checked={selectedIds.size > 0 && selectedIds.size === meetings.length}
-            onChange={onToggleSelectAll}
-          />
+    <section className="rdv-agenda">
+      <div className="rdv-agenda-toolbar">
+        <label className="rdv-select-all">
+          <input type="checkbox" className="rdv-checkbox" checked={allSelected} onChange={onToggleSelectAll} />
+          <span>{meetings.length} affiché{meetings.length > 1 ? "s" : ""}</span>
+        </label>
+        <div className="rdv-agenda-legend" aria-hidden>
+          <span>Horaire</span>
+          <span>Contact</span>
+          <span>Contexte</span>
+          <span>Équipe</span>
+          <span>Préparation</span>
+          <span>Décision</span>
         </div>
-        <div style={{ width: 90 }}>
-          <SortHeader label="Créé le" field="createdAt" sortBy={sortBy} sortDir={sortDir} onSort={onSort} />
+        <div className="rdv-sort-control">
+          <label htmlFor="rdv-sort">Trier par</label>
+          <select id="rdv-sort" value={sortBy} onChange={(event) => onSort?.(event.target.value as SortField)}>
+            {SORT_LABELS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+          </select>
+          <button type="button" onClick={() => onSort?.(sortBy)} title="Inverser le tri" aria-label="Inverser le tri">
+            {sortDir === "asc" ? <ArrowUp size={14} /> : <ArrowDown size={14} />}
+          </button>
         </div>
-        <div style={{ width: 80 }}>
-          <SortHeader label="Date RDV" field="callbackDate" sortBy={sortBy} sortDir={sortDir} onSort={onSort} />
-        </div>
-        <div style={{ flex: 2, minWidth: 140 }}>
-          <SortHeader label="Contact" field="contactName" sortBy={sortBy} sortDir={sortDir} onSort={onSort} />
-        </div>
-        <div style={{ flex: 2, minWidth: 120 }}>
-          <SortHeader label="Entreprise" field="companyName" sortBy={sortBy} sortDir={sortDir} onSort={onSort} />
-        </div>
-        <div style={{ flex: 1, minWidth: 80, fontSize: 11, fontWeight: 600, color: "var(--ink3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Client</div>
-        <div style={{ width: 100 }}>
-          <SortHeader label="SDR" field="sdrName" sortBy={sortBy} sortDir={sortDir} onSort={onSort} />
-        </div>
-        <div style={{ width: 120, fontSize: 11, fontWeight: 600, color: "var(--ink3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Commercial</div>
-        <div style={{ width: 36, textAlign: "center", fontSize: 11, fontWeight: 600, color: "var(--ink3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Type</div>
-        <div style={{ width: 50, textAlign: "center" }}>
-          <SortHeader label="Durée" field="duration" sortBy={sortBy} sortDir={sortDir} onSort={onSort} style={{ justifyContent: "center" }} />
-        </div>
-        <div style={{ width: 70, textAlign: "center", fontSize: 11, fontWeight: 600, color: "var(--ink3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Statut</div>
-        <div style={{ width: 100, textAlign: "center", fontSize: 11, fontWeight: 600, color: "var(--ink3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Confirm.</div>
-        <div style={{ width: 36, textAlign: "center", fontSize: 11, fontWeight: 600, color: "var(--ink3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Audio</div>
-        <div style={{ width: 64 }} />
       </div>
 
-      <div ref={scrollContainerRef} className="rdv-scrollbar" style={{ flex: 1, overflowY: "auto" }}>
+      <div ref={scrollContainerRef} className="rdv-agenda-scroll rdv-scrollbar">
         {loading ? (
-          Array.from({ length: 10 }).map((_, i) => (
-            <div key={i} style={{ display: "flex", alignItems: "center", padding: "16px 24px", gap: 12, borderBottom: "1px solid var(--border)" }}>
+          Array.from({ length: 7 }).map((_, index) => (
+            <div className="rdv-agenda-skeleton" key={index}>
               <Skeleton w={18} h={18} r={5} />
-              <Skeleton w={70} h={44} r={8} />
-              <Skeleton w={60} h={30} r={6} />
-              <div style={{ flex: 2, display: "flex", flexDirection: "column", gap: 4 }}>
-                <Skeleton w="75%" h={14} />
-                <Skeleton w="50%" h={10} />
-              </div>
-              <div style={{ flex: 2 }}><Skeleton w="65%" h={14} /></div>
-              <div style={{ flex: 1 }}><Skeleton w="60%" h={24} r={12} /></div>
-              <Skeleton w={80} h={14} />
-              <Skeleton w={24} h={24} r={12} />
-              <Skeleton w={40} h={20} r={4} />
-              <Skeleton w={50} h={24} r={12} />
-              <Skeleton w={70} h={24} r={12} />
-              <Skeleton w={22} h={22} r={11} />
+              <Skeleton w={100} h={42} r={8} />
+              <Skeleton w="100%" h={42} r={10} />
+              <Skeleton w="100%" h={42} r={10} />
+              <Skeleton w={110} h={32} r={10} />
             </div>
           ))
         ) : meetings.length === 0 ? (
           <EmptyState />
         ) : (
-          meetings.map((m) => (
+          meetings.map((meeting) => (
             <MeetingRow
-              key={m.id}
-              meeting={m}
-              selected={selectedIds.has(m.id)}
+              key={meeting.id}
+              meeting={meeting}
+              selected={selectedIds.has(meeting.id)}
               onToggleSelect={onToggleSelect}
               onOpen={onOpen}
               updateMeeting={updateMeeting}
@@ -469,11 +276,9 @@ export function MeetingList({
           ))
         )}
         {loadingMore && (
-          <div style={{ padding: 20, textAlign: "center" }}>
-            <RefreshCw size={16} style={{ animation: "spin 1s linear infinite", color: "var(--ink3)" }} />
-          </div>
+          <div className="rdv-loading-more"><RefreshCw size={16} /> Chargement</div>
         )}
       </div>
-    </>
+    </section>
   );
 }

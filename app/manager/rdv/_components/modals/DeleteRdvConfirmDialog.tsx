@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import type { Meeting } from "../../_types";
 import { AlertTriangle, Trash2 } from "lucide-react";
+import { RdvDialog, RdvDialogFooter, RdvField, RdvNotice } from "../shared/RdvFormKit";
 
 interface DeleteRdvConfirmDialogProps {
   isOpen: boolean;
@@ -14,8 +15,8 @@ interface DeleteRdvConfirmDialogProps {
 
 function meetingLabel(meeting: Meeting) {
   const contact = [meeting.contact?.firstName, meeting.contact?.lastName].filter(Boolean).join(" ");
-  const primary = contact || meeting.company?.name || "Meeting sans contact";
-  return `${primary} - ${meeting.company?.name || "Sans entreprise"}`;
+  const primary = contact || meeting.company?.name || "Rendez-vous sans contact";
+  return `${primary} · ${meeting.company?.name || "Sans entreprise"}`;
 }
 
 export function DeleteRdvConfirmDialog({
@@ -31,9 +32,8 @@ export function DeleteRdvConfirmDialog({
   const guardToken = useMemo(() => `DELETE ${selectedCount}`, [selectedCount]);
   const deleteAllowed = !requiresGuard || confirmInput.trim().toUpperCase() === guardToken;
 
-  if (!isOpen) return null;
-
   const close = () => {
+    if (deleting) return;
     setConfirmInput("");
     onClose();
   };
@@ -44,111 +44,52 @@ export function DeleteRdvConfirmDialog({
   };
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 100,
-        background: "rgba(0,0,0,0.4)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 24,
-      }}
-      onClick={close}
+    <RdvDialog
+      isOpen={isOpen}
+      onClose={close}
+      title="Supprimer les rendez-vous"
+      description="Cette opération retire définitivement les éléments sélectionnés."
+      size="sm"
+      closeOnOverlay={!deleting}
+      closeOnEscape={!deleting}
+      className="rdv-delete-dialog"
     >
-      <div
-        style={{
-          background: "var(--surface)",
-          borderRadius: 16,
-          padding: 28,
-          maxWidth: 440,
-          width: "100%",
-          boxShadow: "0 24px 48px rgba(0,0,0,0.15)",
-        }}
-        onClick={(event) => event.stopPropagation()}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-          <div
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: 10,
-              background: "var(--redLight)",
-              display: "grid",
-              placeContent: "center",
-            }}
-          >
-            <AlertTriangle size={20} style={{ color: "var(--red)" }} />
-          </div>
-          <div>
-            <div style={{ fontSize: 16, fontWeight: 700, color: "var(--ink)" }}>
-              Confirmer la suppression
-            </div>
-            <div style={{ fontSize: 13, color: "var(--ink3)", marginTop: 2 }}>
-              Cette action est irreversible.
-            </div>
-          </div>
-        </div>
-
-        <p style={{ fontSize: 14, color: "var(--ink2)", marginBottom: 24, lineHeight: 1.5 }}>
-          Vous allez supprimer <strong>{selectedCount}</strong> rendez-vous selectionne
-          {selectedCount > 1 ? "s" : ""}. Cette action ne peut pas etre annulee.
-        </p>
-
-        <div
-          className="rdv-scrollbar"
-          style={{
-            maxHeight: 140,
-            overflowY: "auto",
-            border: "1px solid var(--border)",
-            borderRadius: 10,
-            background: "var(--surface2)",
-            padding: "8px 10px",
-            marginBottom: 14,
-          }}
-        >
-          {selectedMeetings.slice(0, 20).map((meeting) => (
-            <div key={meeting.id} style={{ fontSize: 12, color: "var(--ink2)", padding: "4px 0" }}>
-              {meetingLabel(meeting)}
-            </div>
-          ))}
-          {selectedMeetings.length > 20 && (
-            <div style={{ fontSize: 12, color: "var(--ink3)", paddingTop: 4 }}>
-              +{selectedMeetings.length - 20} autres
-            </div>
-          )}
-        </div>
-
-        {requiresGuard && (
-          <div style={{ marginBottom: 18 }}>
-            <div style={{ fontSize: 12, color: "var(--ink3)", marginBottom: 6 }}>
-              Tapez <strong>{guardToken}</strong> pour confirmer.
-            </div>
-            <input
-              className="rdv-input"
-              value={confirmInput}
-              onChange={(event) => setConfirmInput(event.target.value)}
-              placeholder={guardToken}
-              autoFocus
-            />
-          </div>
-        )}
-
-        <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
-          <button className="rdv-btn rdv-btn-ghost" onClick={close}>
-            Annuler
-          </button>
-          <button
-            className="rdv-btn"
-            style={{ background: "var(--red)", color: "white" }}
-            onClick={confirm}
-            disabled={!deleteAllowed || deleting}
-          >
-            <Trash2 size={13} /> {deleting ? "Suppression..." : "Supprimer definitivement"}
-          </button>
+      <div className="rdv-delete-summary">
+        <span><AlertTriangle size={18} /></span>
+        <div>
+          <strong>{selectedCount} rendez-vous seront supprimés</strong>
+          <p>Vérifiez la sélection ci-dessous avant de continuer.</p>
         </div>
       </div>
-    </div>
+
+      <div className="rdv-delete-list rdv-scrollbar" aria-label="Rendez-vous sélectionnés">
+        {selectedMeetings.slice(0, 20).map((meeting) => (
+          <div key={meeting.id}>{meetingLabel(meeting)}</div>
+        ))}
+        {selectedMeetings.length > 20 && <div>+{selectedMeetings.length - 20} autres rendez-vous</div>}
+      </div>
+
+      {requiresGuard ? (
+        <RdvField label={`Tapez ${guardToken} pour confirmer`} htmlFor="rdv-delete-guard">
+          <input
+            id="rdv-delete-guard"
+            className="rdv-input"
+            value={confirmInput}
+            onChange={(event) => setConfirmInput(event.target.value)}
+            placeholder={guardToken}
+            autoFocus
+          />
+        </RdvField>
+      ) : (
+        <RdvNotice tone="danger">La suppression est définitive et ne peut pas être annulée.</RdvNotice>
+      )}
+
+      <RdvDialogFooter>
+        <button className="rdv-btn rdv-btn-ghost" onClick={close} disabled={deleting}>Conserver</button>
+        <button className="rdv-btn rdv-btn-danger" onClick={confirm} disabled={!deleteAllowed || deleting}>
+          <Trash2 size={14} /> {deleting ? "Suppression..." : "Supprimer définitivement"}
+        </button>
+      </RdvDialogFooter>
+    </RdvDialog>
   );
 }
