@@ -65,6 +65,8 @@ const PIE_COLORS: Record<string, string> = {
     BAD_CONTACT: "#e4dbca", DISQUALIFIED: "#8d9b96",
 };
 const DAYS = ["L", "M", "Me", "J", "V", "S", "D"];
+const EMPTY_MISSIONS: MissionSummaryItem[] = [];
+const EMPTY_RECENT_ACTIVITY: RecentActivityItem[] = [];
 
 /* ─── Helpers ─── */
 function getInitials(name: string) {
@@ -289,8 +291,8 @@ export default function ManagerDashboard() {
         refetchInterval: 60_000,
     });
     const stats = data?.stats ?? null;
-    const missions = data?.missions ?? [];
-    const recentActivity = data?.recentActivity ?? [];
+    const missions = data?.missions ?? EMPTY_MISSIONS;
+    const recentActivity = data?.recentActivity ?? EMPTY_RECENT_ACTIVITY;
 
     const rdvGoalPct = stats ? Math.min((stats.meetingsBooked / RDV_WEEKLY_GOAL) * 100, 100) : 0;
     const hotLeads = stats ? (stats.resultBreakdown.INTERESTED + stats.resultBreakdown.CALLBACK_REQUESTED) : 0;
@@ -334,7 +336,7 @@ export default function ManagerDashboard() {
     }
 
     return (
-        <div className="min-h-full p-5 lg:p-6" style={{ background: "#F5F7F6" }}>
+        <div className="min-h-full">
 
             {/* ── Page Header ── */}
             <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
@@ -523,7 +525,7 @@ export default function ManagerDashboard() {
                         <div className="flex items-center justify-between mb-5">
                             <div className="flex items-center gap-2">
                                 <Target className="w-4 h-4 text-[#2F6B62]" />
-                                <h3 className="text-[14px] font-bold text-slate-800">Missions proches de l'objectif</h3>
+                                <h3 className="text-[14px] font-bold text-slate-800">Missions proches de l&apos;objectif</h3>
                             </div>
                             <Link href="/manager/missions" className="text-[12px] font-bold text-[#1F4D47] hover:text-[#143C37] transition-colors">
                                 Voir toutes →

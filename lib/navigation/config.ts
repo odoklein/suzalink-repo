@@ -3,13 +3,11 @@ import {
   Building2,
   Target,
   FileText,
-  LayoutGrid,
   List,
   BarChart3,
   Bell,
   Users,
   FolderKanban,
-  Calendar,
   CalendarDays,
   CalendarClock,
   Phone,
@@ -18,20 +16,16 @@ import {
   UserPlus,
   Mail,
   Inbox,
-  Send,
   Zap,
   MessageSquare,
   Receipt,
-  Search,
   History,
   HelpCircle,
   LucideIcon,
   Database,
-  FileDown,
   Activity,
   Key,
   Brain,
-  Clock,
   BookOpen,
 } from "lucide-react";
 import { UserRole } from "@prisma/client";
@@ -62,7 +56,7 @@ export interface NavSection {
 // MANAGER NAVIGATION
 // ============================================
 
-// Manager IA — Phase 0 refactor (verb-based 7-section structure).
+// Manager IA - Phase 0 refactor (verb-based 7-section structure).
 // Goals: collapse 18 flat items → 7 semantic groups; fix label/URL/permission drift;
 // surface orphaned routes (campaigns, notifications, sdrs); defer inbox consolidation
 // to Phase 1 (canonical = /manager/email).
@@ -186,9 +180,15 @@ export const MANAGER_NAV: NavSection[] = [
     ],
   },
   {
-    title: "Inbox",
+    title: "Communication",
     dividerBefore: true,
     items: [
+      {
+        href: "/manager/comms",
+        icon: MessageSquare,
+        label: "Messagerie",
+        permission: "pages.dashboard",
+      },
       {
         href: "/manager/email",
         icon: Inbox,

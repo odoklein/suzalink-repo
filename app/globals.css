@@ -1644,13 +1644,14 @@ textarea::placeholder {
 
 /* --- Layout Shell --- */
 .cp-layout {
-    height: 100vh;
+    height: 100dvh;
     overflow: hidden;
     background: #f8f9fb;
 }
 
 .cp-main {
-    height: 100vh;
+    height: 100dvh;
+    min-width: 0;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
@@ -1710,6 +1711,7 @@ textarea::placeholder {
 
 .cp-content {
     flex: 1;
+    min-width: 0;
     padding: 1.25rem 1.5rem;
 }
 

@@ -762,17 +762,19 @@ export function CommsWorkspace() {
     };
 
     return (
-        <div
-            className="flex min-h-0 flex-col bg-[#F5F7F6] dark:bg-slate-950"
-            style={{ height: "calc(100dvh - 56px - 2.5rem)", overflow: "hidden" }}
-        >
+        <div className="flex h-full min-h-0 flex-col overflow-hidden bg-white dark:bg-slate-950">
             {!focusMode && (
-                <div className="shrink-0">
+                <div className="shrink-0 border-b border-slate-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-[#151c2a] sm:px-6 sm:py-4">
                     <CommsPageHeader
                         title="Communications"
-                        subtitle="Échangez avec l'équipe et suivez les discussions importantes"
+                        subtitle={
+                            isLoading
+                                ? "Chargement des discussions..."
+                                : totalUnread > 0
+                                  ? `${threads.length} discussion${threads.length !== 1 ? "s" : ""}, ${totalUnread} non lue${totalUnread !== 1 ? "s" : ""}`
+                                  : `${threads.length} discussion${threads.length !== 1 ? "s" : ""}, tout est à jour`
+                        }
                         icon={<MessageSquare className="size-6 text-white" />}
-                        collapsible={false}
                         actions={
                             <>
                                 <button
@@ -813,8 +815,8 @@ export function CommsWorkspace() {
 
             <div
                 className={cn(
-                    "flex min-h-0 flex-1 overflow-hidden border border-slate-200 bg-white shadow-[0_12px_32px_rgba(12,59,56,0.06)] dark:border-slate-800 dark:bg-[#151c2a]",
-                    focusMode ? "mt-0 rounded-none" : "mt-4 rounded-2xl"
+                    "flex min-h-0 flex-1 overflow-hidden bg-white dark:bg-[#151c2a]",
+                    focusMode && "fixed inset-0 z-50"
                 )}
             >
                 <section
@@ -822,7 +824,7 @@ export function CommsWorkspace() {
                     className={cn(
                         "min-h-0 w-full shrink-0 flex-col border-slate-200 bg-white dark:border-slate-800 dark:bg-[#151c2a] md:border-r",
                         focusMode || selectedThread ? "hidden md:flex" : "flex",
-                        isListCollapsed ? "md:w-14" : "md:w-[360px] lg:w-[400px]"
+                        isListCollapsed ? "md:w-14" : "md:w-[340px] xl:w-[380px]"
                     )}
                 >
                     <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
@@ -1010,13 +1012,21 @@ export function CommsWorkspace() {
                             onTyping={handleTyping}
                         />
                     ) : (
-                        <div className="flex h-full flex-1 flex-col items-center justify-center bg-[#FAFAF8] px-6 text-center dark:bg-slate-900/50">
+                        <div className="flex h-full flex-1 flex-col items-center justify-center bg-slate-50/70 px-6 text-center dark:bg-slate-900/50">
                             <div className="mb-5 flex size-16 items-center justify-center rounded-2xl border border-[#0C3B38]/10 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
                                 <MessageSquare className="size-8 text-[#0C3B38] dark:text-emerald-300" />
                             </div>
                             <h3 className="text-base font-bold text-slate-900 dark:text-white">Vos conversations, au même endroit</h3>
                             <p className="mt-1 max-w-sm text-sm text-slate-500">Sélectionnez une discussion pour consulter les messages et répondre.</p>
-                            <p className="mt-4 text-xs text-slate-400"><kbd className="rounded border border-slate-200 bg-white px-1.5 py-0.5 font-mono dark:border-slate-700 dark:bg-slate-800">/</kbd> pour rechercher</p>
+                            <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+                                <Button type="button" variant="success" size="sm" onClick={() => setShowNewThreadModal(true)}>
+                                    <Plus className="size-4" /> Nouveau message
+                                </Button>
+                                <Button type="button" variant="outline" size="sm" onClick={() => setShowSearchPanel(true)}>
+                                    <Search className="size-4" /> Rechercher
+                                </Button>
+                            </div>
+                            <p className="mt-4 text-xs text-slate-400"><kbd className="rounded border border-slate-200 bg-white px-1.5 py-0.5 font-mono dark:border-slate-700 dark:bg-slate-800">/</kbd> pour rechercher rapidement</p>
                         </div>
                     )}
                 </section>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui";
 import {
@@ -12,13 +12,11 @@ import {
     FileX2,
     Receipt,
     ArrowRight,
-    Filter,
     Banknote,
     Zap,
     X,
-    CalendarDays,
 } from "lucide-react";
-import { Button, Badge, Input, Select } from "@/components/ui";
+import { Button } from "@/components/ui";
 import Link from "next/link";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -47,6 +45,18 @@ interface Invoice {
     };
 }
 
+interface EngagementOption {
+    id: string;
+    clientName: string;
+    offreName: string;
+    offreTarifId: string;
+}
+
+interface OffreOption {
+    id: string;
+    nom: string;
+}
+
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; dot: string; borderColor: string }> = {
     DRAFT: { label: "Brouillon", color: "text-slate-600", bg: "bg-slate-100", dot: "bg-slate-400", borderColor: "border-slate-200" },
     VALIDATED: { label: "Validée", color: "text-indigo-700", bg: "bg-indigo-50", dot: "bg-indigo-500", borderColor: "border-indigo-200" },
@@ -68,12 +78,12 @@ export default function InvoicesPage() {
     const [generatePeriodYear, setGeneratePeriodYear] = useState(new Date().getFullYear());
     const [generatePeriodMonth, setGeneratePeriodMonth] = useState(new Date().getMonth() + 1);
     const [isGenerating, setIsGenerating] = useState(false);
-    const [engagements, setEngagements] = useState<{ id: string; clientName: string; offreName: string; offreTarifId: string }[]>([]);
-    const [offres, setOffres] = useState<{ id: string; nom: string }[]>([]);
+    const [engagements, setEngagements] = useState<EngagementOption[]>([]);
+    const [offres, setOffres] = useState<OffreOption[]>([]);
     const [generateEngagementId, setGenerateEngagementId] = useState<string>("");
     const [generateOffreId, setGenerateOffreId] = useState<string>("");
 
-    const fetchInvoices = async () => {
+    const fetchInvoices = useCallback(async () => {
         setIsLoading(true);
         try {
             const params = new URLSearchParams();
@@ -88,9 +98,11 @@ export default function InvoicesPage() {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [searchQuery, showError, statusFilter]);
 
-    useEffect(() => { fetchInvoices(); }, [statusFilter]);
+    useEffect(() => {
+        void fetchInvoices();
+    }, [fetchInvoices]);
 
     const handleSyncPayments = async () => {
         setIsSyncing(true);
@@ -117,7 +129,7 @@ export default function InvoicesPage() {
             fetch("/api/billing/offres").then((r) => r.json()),
         ]).then(([engRes, offresRes]) => {
             if (engRes.success && engRes.data?.length) {
-                setEngagements(engRes.data.map((e: any) => ({
+                setEngagements((engRes.data as EngagementOption[]).map((e) => ({
                     id: e.id,
                     clientName: e.clientName,
                     offreName: e.offreName,
@@ -127,7 +139,7 @@ export default function InvoicesPage() {
                 setEngagements([]);
             }
             if (offresRes.success && offresRes.data?.length) {
-                setOffres(offresRes.data.map((o: any) => ({ id: o.id, nom: o.nom })));
+                setOffres((offresRes.data as OffreOption[]).map((o) => ({ id: o.id, nom: o.nom })));
             } else {
                 setOffres([]);
             }
@@ -167,7 +179,6 @@ export default function InvoicesPage() {
     const formatCurrency = (amount: number) =>
         new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(amount);
 
-    const total = invoices.reduce((sum, inv) => sum + Number(inv.totalTtc), 0);
     const counts = {
         draft: invoices.filter((i) => i.status === "DRAFT").length,
         pending: invoices.filter((i) => ["VALIDATED", "SENT"].includes(i.status)).length,
@@ -175,7 +186,7 @@ export default function InvoicesPage() {
     };
 
     return (
-        <div className="space-y-6 max-w-[1200px] mx-auto">
+        <div className="space-y-6">
             {/* Header */}
             <div className="flex items-start justify-between gap-4">
                 <div>
@@ -432,7 +443,7 @@ export default function InvoicesPage() {
                                             ? engagements.filter((e) => e.offreTarifId === generateOffreId)
                                             : engagements
                                         ).map((e) => (
-                                            <option key={e.id} value={e.id}>{e.clientName} — {e.offreName}</option>
+                                            <option key={e.id} value={e.id}>{e.clientName} - {e.offreName}</option>
                                         ))}
                                     </select>
                                 </div>

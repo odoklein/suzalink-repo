@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useMemo, useCallback, useRef } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
@@ -12,7 +12,6 @@ import {
     Search,
     Command,
     ChevronRight,
-    Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "./SidebarProvider";
@@ -46,9 +45,7 @@ function SidebarNavItem({
     const pathname = usePathname();
     const { hasPermission, isLoading } = usePermissions();
 
-    if (!isLoading && item.permission && !hasPermission(item.permission)) {
-        return null;
-    }
+    const isHidden = !isLoading && item.permission && !hasPermission(item.permission);
 
     const hasChildren = Boolean(item.children?.length);
     const isActive = isPathActive(pathname, item.href);
@@ -57,11 +54,10 @@ function SidebarNavItem({
         item.children!.some((c) => isPathActive(pathname, c.href));
 
     const shouldShowChildren = hasChildren && isExpanded;
-    // Auto-expand when the parent or one of its children is active.
-    const [isOpen, setIsOpen] = useState<boolean>(isActive || isChildActive);
-    useEffect(() => {
-        if (isActive || isChildActive) setIsOpen(true);
-    }, [isActive, isChildActive]);
+    const [isOpen, setIsOpen] = useState(false);
+    const showChildren = isOpen || isActive || isChildActive;
+
+    if (isHidden) return null;
 
     const content = (
         <>
@@ -157,8 +153,8 @@ function SidebarNavItem({
                 {renderLink("cp-nav-parent-link")}
                 <button
                     type="button"
-                    aria-label={isOpen ? "Réduire" : "Développer"}
-                    aria-expanded={isOpen}
+                    aria-label={showChildren ? "Réduire" : "Développer"}
+                    aria-expanded={showChildren}
                     onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
@@ -166,7 +162,7 @@ function SidebarNavItem({
                     }}
                     className={cn(
                         "cp-nav-chevron",
-                        isOpen && "cp-nav-chevron-open"
+                        showChildren && "cp-nav-chevron-open"
                     )}
                 >
                     <ChevronRight className="w-3 h-3" />
@@ -175,9 +171,9 @@ function SidebarNavItem({
             <div
                 className={cn(
                     "cp-nav-children-wrap",
-                    isOpen && "cp-nav-children-wrap-open"
+                    showChildren && "cp-nav-children-wrap-open"
                 )}
-                aria-hidden={!isOpen}
+                aria-hidden={!showChildren}
             >
                 <div className="cp-nav-children">
                     {item.children!.map((child) => (
@@ -283,7 +279,7 @@ export function GlobalSidebar({ navigation }: GlobalSidebarProps) {
 
     useEffect(() => {
         let cancelled = false;
-        (async () => {
+        const loadUnreadCount = async () => {
             try {
                 const res = await fetch("/api/comms/inbox/stats");
                 const json = await res.json();
@@ -292,9 +288,19 @@ export function GlobalSidebar({ navigation }: GlobalSidebarProps) {
             } catch {
                 if (!cancelled) setCommsUnreadCount(0);
             }
-        })();
+        };
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === "visible") void loadUnreadCount();
+        };
+
+        void loadUnreadCount();
+        const interval = window.setInterval(loadUnreadCount, 30_000);
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+
         return () => {
             cancelled = true;
+            window.clearInterval(interval);
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
         };
     }, []);
 

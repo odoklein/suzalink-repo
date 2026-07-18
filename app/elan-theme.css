@@ -258,10 +258,8 @@ body.elan-app :focus-visible {
 }
 
 .cp-content {
-    background:
-        linear-gradient(rgba(236, 229, 216, 0.91), rgba(236, 229, 216, 0.91)),
-        repeating-linear-gradient(90deg, transparent 0, transparent 95px, rgba(12, 59, 56, 0.022) 96px);
-    padding: 26px 30px 44px !important;
+    background: #f5f7f6;
+    padding: clamp(16px, 1.5vw, 28px) !important;
 }
 
 .cp-content > * {

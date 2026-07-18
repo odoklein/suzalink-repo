@@ -139,7 +139,7 @@ export default function ManagerSdrFeedbackPage() {
     };
 
     return (
-        <div className="min-h-full bg-[var(--elan-paper)] p-4 md:p-6">
+        <div className="min-h-full">
             <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
                 <div>
                     <h1 className="text-[22px] font-bold text-[var(--elan-ink)] tracking-tight">
@@ -359,10 +359,10 @@ export default function ManagerSdrFeedbackPage() {
                                             {item.review}
                                         </td>
                                         <td className="px-4 py-3 text-[12px] text-[var(--elan-slate)] whitespace-pre-wrap">
-                                            {item.objections || "—"}
+                                            {item.objections || "Non renseigné"}
                                         </td>
                                         <td className="px-4 py-3 text-[12px] text-[var(--elan-slate)] whitespace-pre-wrap">
-                                            {item.missionComment || "—"}
+                                            {item.missionComment || "Non renseigné"}
                                         </td>
                                     </tr>
                                 ))}

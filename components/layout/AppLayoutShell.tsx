@@ -325,16 +325,18 @@ function InnerLayout({
     const navigation =
         customNavigation || (userRole ? getNavByRole(userRole) : []);
 
-    // Full-bleed shell for the canonical Inbox views (no padded cp-content
-    // wrapper). Post Phase 1 inbox unification: /manager/email is the single
-    // manager surface that needs this; /manager/email/* sub-routes (overview,
-    // sent, contacts, etc.) live inside (hub)/layout.tsx and use the normal
-    // padded content area like any other manager page. SDR side untouched.
+    // Workspaces own their internal scrolling and need the full area below the
+    // top bar. Regular pages keep the shared gutter without a second centered
+    // max-width wrapper.
     const isEmailHub =
         pathname === "/manager/email" ||
         pathname === "/sdr/email" ||
         pathname.startsWith("/sdr/emails");
-    const isRdvPage = pathname.startsWith("/manager/rdv");
+    const isWorkspace =
+        isEmailHub ||
+        pathname.endsWith("/comms") ||
+        pathname === "/manager/planning" ||
+        pathname === "/sdr/planning";
 
     const pathParts = pathname.split("/").filter(Boolean);
     const rawPage = pathParts[pathParts.length - 1]?.replace(/-/g, " ") || "Dashboard";
@@ -347,6 +349,9 @@ function InnerLayout({
         team: "Performance",
         planning: "Planning",
         projects: "Projets",
+        comms: "Messagerie",
+        invoices: "Factures",
+        "sdr feedback": "Avis SDR",
         emails: "Email Hub",
         email: "Boîte de réception",
     };
@@ -500,20 +505,13 @@ function InnerLayout({
                     </div>
                 </header>
 
-                {isEmailHub ? (
-                    // Email Hub: fill remaining height, no padding wrapper
-                    <div className="flex-1 overflow-hidden" style={{ height: 'calc(100vh - 56px)' }}>
+                {isWorkspace ? (
+                    <div className="min-h-0 flex-1 overflow-hidden">
                         {children}
                     </div>
                 ) : (
                     <div className="cp-content">
-                        {isRdvPage ? (
-                            <div className="w-full">{children}</div>
-                        ) : (
-                            <div className="max-w-[1440px] mx-auto w-full">
-                                {children}
-                            </div>
-                        )}
+                        <div className="min-w-0 w-full">{children}</div>
                     </div>
                 )}
 
@@ -572,7 +570,7 @@ function InnerLayout({
 
                         <div>
                             <label className="block text-[12px] font-semibold text-[#12122A] mb-2">
-                                Comment s'est passée votre journée ? *
+                                Comment s&apos;est passée votre journée ? *
                             </label>
                             <textarea
                                 value={dailyReviewText}
@@ -587,7 +585,7 @@ function InnerLayout({
 
                         <div>
                             <label className="block text-[12px] font-semibold text-[#12122A] mb-2">
-                                Objections rencontrées aujourd'hui *
+                                Objections rencontrées aujourd&apos;hui *
                             </label>
                             <textarea
                                 value={dailyReviewObjections}
