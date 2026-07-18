@@ -146,7 +146,7 @@ export default function EngagementDetailPage() {
     const estimatedTotal = fixe + estimatedVariable;
 
     return (
-        <div className="space-y-6 max-w-4xl">
+        <div className="elan-page max-w-4xl">
             <div className="flex items-center gap-2 text-sm text-slate-500">
                 <Link href="/manager/billing/engagements" className="text-indigo-600 hover:text-indigo-700 flex items-center gap-1">
                     <ArrowLeft className="w-4 h-4" />

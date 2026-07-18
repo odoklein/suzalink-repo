@@ -270,11 +270,9 @@ export default function PlaybookImportPage() {
   ];
 
   const currentStepId = step === "upload" ? 1 : step === "parsing" ? 2 : 3;
-  const pageBg = "min-h-screen bg-gradient-to-b from-[#fafafa] to-[#f6f7fb]";
-
   return (
-    <div className={pageBg}>
-      <div className="px-8 py-10 max-w-7xl mx-auto">
+    <div className="elan-page">
+      <div className="mx-auto w-full max-w-7xl">
         {/* Stepper */}
         <div className="flex items-center justify-center gap-2 mb-10">
           {STEPS.map((s, i) => (
@@ -394,7 +392,7 @@ export default function PlaybookImportPage() {
         {step === "preview" && edited && (
           <>
             {/* Sticky top summary bar */}
-            <div className="sticky top-0 z-20 -mx-8 px-8 py-4 bg-white/95 backdrop-blur border-b border-slate-200 shadow-sm mb-6">
+            <div className="sticky top-0 z-20 -mx-4 mb-6 border-b border-slate-200 bg-white/95 px-4 py-4 shadow-sm backdrop-blur sm:mx-0 sm:rounded-xl sm:border">
               <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 flex-wrap">
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">

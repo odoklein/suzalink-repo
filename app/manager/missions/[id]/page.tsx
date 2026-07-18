@@ -1127,7 +1127,7 @@ export default function MissionDetailPage({ params }: { params: Promise<{ id: st
         : "—";
 
     return (
-        <div className="space-y-6">
+        <div className="elan-page">
             {/* Compact header with inline stats */}
             <div className="relative overflow-hidden bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-2xl p-6 text-white">
                 <div className="relative z-10 flex flex-wrap items-center justify-between gap-4">

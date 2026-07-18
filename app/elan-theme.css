@@ -262,6 +262,31 @@ body.elan-app :focus-visible {
     padding: clamp(16px, 1.5vw, 28px) !important;
 }
 
+.cp-content > div,
+.cp-content > div > * {
+    min-width: 0;
+}
+
+/* Shared page rhythm for role dashboards. Route components can opt in while
+   preserving their existing tables, forms and interaction logic. */
+.elan-page {
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    min-height: 100%;
+    flex-direction: column;
+    gap: clamp(18px, 1.35vw, 24px);
+}
+
+.elan-page :where(button, a, input, select, textarea) {
+    -webkit-tap-highlight-color: transparent;
+}
+
+.elan-page :where(input, select, textarea):focus-visible {
+    outline: 2px solid rgba(224, 124, 0, 0.32);
+    outline-offset: 1px;
+}
+
 .cp-content > * {
     animation: elanContentIn 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }

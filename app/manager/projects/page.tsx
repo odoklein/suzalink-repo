@@ -190,24 +190,23 @@ export default function ManagerProjectsPage() {
     const uniqueClients = [...new Set(projects.filter(p => p.client).map(p => p.client!.name))];
 
     return (
-        <div className="p-6 max-w-[1400px] mx-auto">
+        <div className="elan-page">
             {/* Header */}
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-[rgba(12,59,56,0.15)]">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-[11px] border border-[#2F6B62] bg-[#1F4D47]">
                         <FolderKanban className="w-6 h-6 text-white" />
                     </div>
                     <div>
                         <h1 className="text-2xl font-bold text-slate-900">Projets</h1>
                         <p className="text-sm text-slate-500 mt-0.5">
-                            {projects.length} projet{projects.length !== 1 ? "s" : ""} · {totalTasks} tâches au total
+                            {projects.length} projet{projects.length !== 1 ? "s" : ""} - {totalTasks} tâches au total
                         </p>
                     </div>
                 </div>
                 <button
                     onClick={() => setShowCreate(true)}
-                    className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white rounded-xl transition-all shadow-lg shadow-[rgba(12,59,56,0.15)] hover:shadow-xl hover:shadow-[rgba(12,59,56,0.22)] hover:scale-[1.02]"
-                    style={{ background: "linear-gradient(135deg, #0c3b38 0%, #25745f 100%)" }}
+                    className="flex items-center justify-center gap-2 rounded-[10px] border border-[#143C37] bg-[#1F4D47] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#143C37]"
                 >
                     <Plus className="w-4 h-4" />
                     Nouveau projet
@@ -215,7 +214,7 @@ export default function ManagerProjectsPage() {
             </div>
 
             {/* KPI Strip */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
                 <KpiCard icon={FolderKanban} label="Total" value={projects.length} iconColor="text-slate-600" iconBg="bg-slate-100" />
                 <KpiCard icon={Zap} label="Actifs" value={totalActive} iconColor="text-emerald-600" iconBg="bg-emerald-50" />
                 <KpiCard icon={CheckCircle2} label="Terminés" value={totalCompleted} iconColor="text-blue-600" iconBg="bg-blue-50" />
@@ -233,7 +232,7 @@ export default function ManagerProjectsPage() {
                         placeholder="Rechercher un projet..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        className="w-full pl-9 pr-3 py-2.5 text-sm border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all"
+                        className="w-full rounded-[10px] border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm transition-colors focus:border-[#E07C00] focus:outline-none focus:ring-2 focus:ring-[#FF9E1B]/20"
                     />
                 </div>
 
@@ -251,7 +250,7 @@ export default function ManagerProjectsPage() {
                             className={cn(
                                 "px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all",
                                 statusFilter === f.value
-                                    ? "bg-indigo-50 text-indigo-700 border-indigo-200 shadow-sm"
+                                    ? "bg-[#EEF3F1] text-[#1F4D47] border-[#AFC5BF] shadow-sm"
                                     : "bg-white text-slate-500 border-slate-200 hover:bg-slate-50"
                             )}
                         >
@@ -265,7 +264,7 @@ export default function ManagerProjectsPage() {
                     <select
                         value={clientFilter}
                         onChange={(e) => setClientFilter(e.target.value)}
-                        className="px-3 py-2 text-sm border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 appearance-none min-w-[150px]"
+                        className="min-w-[150px] appearance-none rounded-[10px] border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF9E1B]/20"
                     >
                         <option value="">Tous les clients</option>
                         {clients.filter(c => projects.some(p => p.client?.id === c.id)).map((c) => (
@@ -278,13 +277,13 @@ export default function ManagerProjectsPage() {
                 <div className="flex bg-slate-100 border border-slate-200 rounded-xl p-0.5 ml-auto">
                     <button
                         onClick={() => setView("grid")}
-                        className={cn("p-2 rounded-lg transition-all", view === "grid" ? "bg-white shadow-sm text-indigo-600" : "text-slate-400 hover:text-slate-600")}
+                        className={cn("p-2 rounded-lg transition-all", view === "grid" ? "bg-white shadow-sm text-[#1F4D47]" : "text-slate-400 hover:text-slate-600")}
                     >
                         <LayoutGrid className="w-4 h-4" />
                     </button>
                     <button
                         onClick={() => setView("list")}
-                        className={cn("p-2 rounded-lg transition-all", view === "list" ? "bg-white shadow-sm text-indigo-600" : "text-slate-400 hover:text-slate-600")}
+                        className={cn("p-2 rounded-lg transition-all", view === "list" ? "bg-white shadow-sm text-[#1F4D47]" : "text-slate-400 hover:text-slate-600")}
                     >
                         <LayoutList className="w-4 h-4" />
                     </button>
@@ -310,7 +309,7 @@ export default function ManagerProjectsPage() {
                     </p>
                     <button
                         onClick={() => setShowCreate(true)}
-                        className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-lg shadow-[rgba(12,59,56,0.15)] transition-all"
+                        className="flex items-center gap-2 rounded-[10px] border border-[#143C37] bg-[#1F4D47] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#143C37]"
                     >
                         <Plus className="w-4 h-4" />
                         Créer un projet

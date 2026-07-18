@@ -227,7 +227,7 @@ export default function SDRHistoryPage() {
             key: "contact",
             header: "Contact / Société",
             render: (_, row) => {
-                const name = row.contactName || row.companyName || "—";
+                const name = row.contactName || row.companyName || "Non renseigné";
                 return (
                     <div className="flex items-center gap-3">
                         <div
@@ -281,7 +281,7 @@ export default function SDRHistoryPage() {
             header: "Mission / Campagne",
             render: (_, row) => (
                 <span className="text-sm text-slate-600 truncate max-w-[160px] block" title={row.missionName || row.campaignName || ""}>
-                    {row.missionName || row.campaignName || "—"}
+                    {row.missionName || row.campaignName || "Non assignée"}
                 </span>
             ),
         },
@@ -291,7 +291,7 @@ export default function SDRHistoryPage() {
             render: (_, row) => {
                 const displayNote = row.note;
                 if (!displayNote) {
-                    return <span className="text-xs text-slate-300">—</span>;
+                    return <span className="text-xs text-slate-400">Non renseigné</span>;
                 }
                 return (
                     <div className="max-w-[200px]">
@@ -309,7 +309,7 @@ export default function SDRHistoryPage() {
                 row.callbackDate ? (
                     <span className="text-sm text-slate-700">{formatCallbackDateTime(row.callbackDate)}</span>
                 ) : (
-                    <span className="text-xs text-slate-400">—</span>
+                    <span className="text-xs text-slate-400">Non renseigné</span>
                 ),
         },
         {
@@ -319,7 +319,7 @@ export default function SDRHistoryPage() {
                 row.duration != null ? (
                     <span className="text-sm text-slate-600">{formatDuration(row.duration)}</span>
                 ) : (
-                    <span className="text-xs text-slate-400">—</span>
+                    <span className="text-xs text-slate-400">Non renseigné</span>
                 ),
         },
         {
@@ -329,7 +329,7 @@ export default function SDRHistoryPage() {
                 if (!row.companyId) {
                     return (
                         <span className="text-xs text-slate-400" title="Fiche non disponible (sans société)">
-                            —
+                            Non renseigné
                         </span>
                     );
                 }
@@ -352,7 +352,7 @@ export default function SDRHistoryPage() {
 
     if (isLoading && actions.length === 0) {
         return (
-            <div className="space-y-6 p-2">
+            <div className="elan-page">
                 <div className="h-24 rounded-2xl bg-slate-100 animate-pulse" />
                 <TableSkeleton columns={7} rows={10} className="rounded-2xl" />
             </div>
@@ -360,7 +360,7 @@ export default function SDRHistoryPage() {
     }
 
     return (
-        <div className="space-y-6 animate-fade-in p-2">
+        <div className="elan-page animate-fade-in">
             <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900 rounded-2xl p-6 shadow-xl">
                 <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 via-transparent to-slate-500/10" />
                 <div className="relative flex flex-col lg:flex-row lg:items-center justify-between gap-4">

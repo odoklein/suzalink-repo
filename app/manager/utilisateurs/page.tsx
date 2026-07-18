@@ -70,7 +70,7 @@ function getInitials(name: string) {
 }
 
 function timeAgo(iso: string | null | undefined): string {
-    if (!iso) return "—";
+    if (!iso) return "Non renseigné";
     const d = new Date(iso);
     const diffMs = Date.now() - d.getTime();
     const mins = Math.floor(diffMs / 60000);
@@ -447,17 +447,17 @@ export default function UtilisateursPage() {
     const ROLES = ["MANAGER", "SDR", "BOOKER", "BUSINESS_DEVELOPER", "DEVELOPER", "CLIENT", "COMMERCIAL"];
 
     return (
-        <div className="min-h-full bg-gradient-to-br from-slate-50 to-slate-100/50 p-6 space-y-5">
+        <div className="elan-page">
 
             {/* ── Header ── */}
-            <div className="flex items-start justify-between">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                     <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Utilisateurs</h1>
                     <p className="text-sm text-slate-500 mt-0.5">Gérez votre équipe et leurs accès</p>
                 </div>
                 <button
                     onClick={() => setShowCreate(true)}
-                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold shadow-sm shadow-indigo-500/20 transition-colors"
+                    className="inline-flex items-center justify-center gap-2 rounded-[10px] border border-[#143C37] bg-[#1F4D47] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#143C37]"
                 >
                     <Plus className="w-4 h-4" />
                     Nouvel utilisateur
@@ -478,7 +478,7 @@ export default function UtilisateursPage() {
                     { label: "Actifs", value: stats.active, color: "text-emerald-700", bg: "bg-emerald-50 border-emerald-200" },
                     { label: "SDR / Booker", value: stats.sdrCount, color: "text-blue-700", bg: "bg-blue-50 border-blue-200" },
                     { label: "Inactifs", value: stats.inactive, color: "text-rose-600", bg: "bg-rose-50 border-rose-200" },
-                    { label: "En ligne", value: stats.online, color: "text-indigo-700", bg: "bg-indigo-50 border-indigo-200" },
+                    { label: "En ligne", value: stats.online, color: "text-[#1F4D47]", bg: "bg-[#EEF3F1] border-[#CBD8D4]" },
                 ].map((s) => (
                     <div key={s.label} className={cn("rounded-2xl border px-4 py-3", s.bg)}>
                         <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">{s.label}</p>
@@ -497,7 +497,7 @@ export default function UtilisateursPage() {
                         placeholder="Rechercher…"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                        className="w-full rounded-[10px] border border-slate-200 py-2 pl-9 pr-3 text-sm outline-none focus:border-[#E07C00] focus:ring-2 focus:ring-[#FF9E1B]/20"
                     />
                     {search && (
                         <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -510,7 +510,7 @@ export default function UtilisateursPage() {
                 <div className="flex items-center gap-1 flex-wrap">
                     <button
                         onClick={() => setRoleFilter("")}
-                        className={cn("px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors", !roleFilter ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200")}
+                        className={cn("px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors", !roleFilter ? "bg-[#1F4D47] text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200")}
                     >Tous</button>
                     {ROLES.map((r) => (
                         <button

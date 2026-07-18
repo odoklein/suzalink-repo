@@ -1123,7 +1123,7 @@ export default function ImportListPage() {
     // ============================================
 
     return (
-        <div className="max-w-4xl mx-auto space-y-6">
+        <div className="elan-page mx-auto max-w-4xl">
             {/* Header */}
             <div className="rounded-2xl border border-indigo-100 bg-gradient-to-br from-white to-indigo-50 p-5">
                 <div className="flex items-center gap-4">

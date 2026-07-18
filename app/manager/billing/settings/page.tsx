@@ -161,7 +161,7 @@ export default function BillingSettingsPage() {
     }
 
     return (
-        <div className="space-y-6 max-w-3xl mx-auto">
+        <div className="elan-page mx-auto max-w-3xl">
             {/* Header */}
             <div>
                 <Link href="/manager/billing" className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 transition-colors mb-3">

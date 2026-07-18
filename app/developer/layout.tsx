@@ -9,6 +9,7 @@ import {
     FolderKanban,
     CheckSquare,
     Mail,
+    Network,
     Settings,
     LogOut,
     ChevronRight,
@@ -22,6 +23,7 @@ const NAV_ITEMS = [
     { href: "/developer/projects", icon: FolderKanban, label: "Projets" },
     { href: "/developer/tasks", icon: CheckSquare, label: "Tâches" },
     { href: "/developer/integrations", icon: Mail, label: "Intégrations" },
+    { href: "/developer/system", icon: Network, label: "Système" },
     { href: "/developer/settings", icon: Settings, label: "Paramètres" },
 ];
 

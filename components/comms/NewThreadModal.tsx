@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { X, Target, Building2, Users, MessageCircle, Megaphone, Search, Loader2, Send, ArrowLeft } from "lucide-react";
+import { X, Target, Building2, Users, MessageCircle, Megaphone, Search, Loader2, Send, ArrowLeft, Info } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
@@ -379,15 +379,16 @@ export function NewThreadModal({
     };
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} size="md">
-            <div className="p-6 bg-white text-slate-900">
+        <Modal isOpen={isOpen} onClose={onClose} size="md" showCloseButton={false}>
+            <div className="bg-white text-slate-900">
                 {/* Header */}
-                <div className="flex items-center justify-between mb-6">
+                <div className="mb-5 flex items-center justify-between gap-3 sm:mb-6">
                     <div className="flex items-center gap-3">
                         {step !== "type" && (
                             <button
                                 onClick={() => setStep(step === "compose" ? "recipient" : "type")}
-                                className="p-1.5 text-slate-500 hover:text-slate-900 hover:bg-slate-200 rounded-lg transition-colors"
+                                className="rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-[#E5EFEC] hover:text-[#0C3B38] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0C3B38]/25"
+                                aria-label="Revenir à l'étape précédente"
                             >
                                 <ArrowLeft className="w-4 h-4" />
                             </button>
@@ -400,7 +401,8 @@ export function NewThreadModal({
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-200 rounded-lg transition-colors"
+                        className="rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0C3B38]/25"
+                        aria-label="Fermer"
                     >
                         <X className="w-4 h-4" />
                     </button>
@@ -416,13 +418,13 @@ export function NewThreadModal({
                                 <button
                                     key={opt.type}
                                     onClick={() => handleSelectType(opt.type)}
-                                    className="flex items-center gap-4 p-4 rounded-xl border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/50 transition-all text-left group"
+                                    className="group flex items-center gap-3 rounded-xl border border-slate-200 p-3 text-left transition-colors hover:border-[#AFC5BF] hover:bg-[#F0F5F3] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0C3B38]/25 sm:gap-4 sm:p-4"
                                 >
                                     <div className={cn(
                                         "w-12 h-12 rounded-xl flex items-center justify-center transition-colors",
-                                        "bg-slate-100 group-hover:bg-indigo-100"
+                                        "bg-slate-100 group-hover:bg-[#DBE4DF]"
                                     )}>
-                                        <opt.icon className="w-6 h-6 text-slate-600 group-hover:text-indigo-600" />
+                                        <opt.icon className="h-6 w-6 text-slate-600 group-hover:text-[#0C3B38]" />
                                     </div>
                                     <div className="flex-1">
                                         <p className="font-semibold text-slate-900">{label}</p>
@@ -490,9 +492,9 @@ export function NewThreadModal({
                                         <button
                                             key={item.id}
                                             onClick={() => handleSelectRecipient(item)}
-                                            className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors text-left group"
+                                            className="group flex w-full items-center gap-3 rounded-xl p-3 text-left transition-colors hover:bg-[#F0F5F3] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#0C3B38]/25"
                                         >
-                                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center text-sm font-semibold text-slate-600 group-hover:from-indigo-100 group-hover:to-indigo-200 group-hover:text-indigo-600 transition-colors">
+                                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-sm font-semibold text-slate-600 transition-colors group-hover:bg-[#DBE4DF] group-hover:text-[#0C3B38]">
                                                 {item.name.charAt(0).toUpperCase()}
                                             </div>
                                             <div className="flex-1 min-w-0">
@@ -517,8 +519,8 @@ export function NewThreadModal({
                 {step === "compose" && (
                     <div className="space-y-4">
                         {/* Recipient indicator */}
-                        <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-100 to-indigo-200 flex items-center justify-center text-sm font-semibold text-indigo-600">
+                        <div className="flex items-center gap-3 rounded-xl border border-[#D7E3DF] bg-[#F0F5F3] p-3">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#DBE4DF] text-sm font-semibold text-[#0C3B38]">
                                 {(selectedUser?.name || anchorName || "?").charAt(0).toUpperCase()}
                             </div>
                             <div>
@@ -539,19 +541,20 @@ export function NewThreadModal({
                                 placeholder="Écrivez votre message..."
                                 rows={5}
                                 autoFocus
-                                className="w-full rounded-xl border border-slate-200 bg-white text-slate-900 placeholder:text-slate-500 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 resize-none"
+                                className="w-full resize-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#0C3B38] focus:outline-none focus:ring-2 focus:ring-[#0C3B38]/15"
                             />
                         </div>
 
                         {/* Note for mission threads */}
                         {channelType === "MISSION" && (
-                            <p className="text-xs text-slate-500 bg-blue-50 text-blue-700 px-3 py-2 rounded-lg">
-                                💡 Tous les SDR et managers assignes a cette mission verront cette discussion.
+                            <p className="flex items-start gap-2 rounded-lg border border-[#D7E3DF] bg-[#F0F5F3] px-3 py-2 text-xs leading-relaxed text-[#2F6B62]">
+                                <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                                Tous les SDR et managers assignés à cette mission verront cette discussion.
                             </p>
                         )}
 
                         {/* Actions */}
-                        <div className="flex justify-end gap-2 pt-2">
+                        <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
                             <Button variant="secondary" onClick={onClose}>
                                 Annuler
                             </Button>

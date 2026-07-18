@@ -23,7 +23,7 @@ export default function SdrPlanningPage() {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-[#fafbfc]">
+            <div className="flex h-full items-center justify-center bg-[#f5f7f6]">
                 <div className="flex flex-col items-center gap-3">
                     <div className="cp-spinner" />
                     <p className="text-sm text-slate-400 font-medium">Chargement...</p>
@@ -34,7 +34,7 @@ export default function SdrPlanningPage() {
 
     if (!hasPermission("pages.planning")) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-indigo-50/30 p-4">
+            <div className="flex h-full items-center justify-center bg-[#f5f7f6] p-4">
                 <Card
                     variant="glass"
                     className="max-w-md w-full text-center shadow-xl shadow-slate-200/50"

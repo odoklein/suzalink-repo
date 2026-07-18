@@ -1516,7 +1516,7 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
     // ============================================================
 
     return (
-        <div className="max-w-[1440px] mx-auto pb-16 space-y-8">
+        <div className="elan-page mx-auto max-w-[1440px] pb-16">
 
             {/* ── HEADER ── */}
             <div className="relative">

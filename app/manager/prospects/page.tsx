@@ -222,7 +222,7 @@ export default function ProspectsPage() {
         {
             key: "company",
             header: "Entreprise",
-            render: (_value, profile) => profile.companyName || "—",
+            render: (_value, profile) => profile.companyName || "Non renseigné",
         },
         {
             key: "status",
@@ -259,7 +259,7 @@ export default function ProspectsPage() {
         {
             key: "mission",
             header: "Mission",
-            render: (_value, profile) => profile.assignedMission?.name || "—",
+            render: (_value, profile) => profile.assignedMission?.name || "Non assigné",
         },
         {
             key: "actions",
@@ -306,7 +306,7 @@ export default function ProspectsPage() {
     ];
 
     return (
-        <div className="space-y-6">
+        <div className="elan-page">
             {/* Header */}
             <div className="flex items-center justify-between" data-tour="prospects-header">
                 <div>

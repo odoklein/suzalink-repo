@@ -619,7 +619,7 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
     const actionableCount = companies.filter((c) => c.status === "ACTIONABLE").length;
 
     return (
-        <div className="space-y-6">
+        <div className="elan-page">
             {/* Premium Header */}
             <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
                 <div className="flex items-start gap-5">

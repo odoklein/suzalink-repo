@@ -226,7 +226,7 @@ export default function ClientsPage() {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="elan-page">
             <PageHeader
                 title="Clients"
                 subtitle="Gérez votre portefeuille de clients et leurs activités"

@@ -264,7 +264,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
     }));
 
     return (
-        <div className="space-y-6 max-w-[1200px] mx-auto">
+        <div className="elan-page mx-auto max-w-[1200px]">
             {/* Breadcrumb + Actions */}
             <div className="flex items-start justify-between gap-4">
                 <div>

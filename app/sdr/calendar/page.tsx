@@ -260,17 +260,17 @@ export default function SdrCalendarPage() {
 
     if (loading && !data) {
         return (
-            <div className="flex items-center justify-center h-[calc(100vh-120px)]">
+            <div className="flex h-full items-center justify-center">
                 <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
             </div>
         );
     }
 
     return (
-        <div className="flex flex-col h-[calc(100vh-64px)]">
+        <div className="flex h-full min-h-0 flex-col overflow-hidden bg-white">
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-white">
-                <div className="flex items-center gap-3">
+            <div className="flex items-center justify-between gap-3 border-b border-slate-200 bg-white px-2 py-3 sm:px-6 sm:py-4">
+                <div className="flex min-w-0 flex-1 items-center justify-between gap-2 sm:flex-none sm:justify-start sm:gap-3">
                     <div className="flex items-center gap-1">
                         <button
                             onClick={prevMonth}
@@ -278,7 +278,7 @@ export default function SdrCalendarPage() {
                         >
                             <ChevronLeft className="w-5 h-5" />
                         </button>
-                        <h1 className="text-lg font-bold text-slate-800 capitalize min-w-[180px] text-center">
+                        <h1 className="min-w-[112px] text-center text-base font-bold capitalize text-slate-800 sm:min-w-[180px] sm:text-lg">
                             {formatMonthLabel(month)}
                         </h1>
                         <button
@@ -290,15 +290,16 @@ export default function SdrCalendarPage() {
                     </div>
                     <button
                         onClick={goToToday}
-                        className="ml-2 px-3 py-1.5 text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors"
+                        className="rounded-lg bg-[#EEF3F1] px-2.5 py-1.5 text-sm font-medium text-[#1F4D47] transition-colors hover:bg-[#E2ECE9] sm:ml-2 sm:px-3"
                     >
-                        Aujourd&apos;hui
+                        <span className="sm:hidden">Auj.</span>
+                        <span className="hidden sm:inline">Aujourd&apos;hui</span>
                     </button>
                 </div>
 
                 <div className="flex items-center gap-6">
                     {/* Stats */}
-                    <div className="flex items-center gap-4 text-sm">
+                    <div className="hidden items-center gap-4 text-sm lg:flex">
                         {capacity && (
                             <div className="flex items-center gap-2">
                                 <span className="text-slate-500">Disponibilité:</span>
@@ -309,7 +310,7 @@ export default function SdrCalendarPage() {
                         )}
                         <div className="flex items-center gap-2">
                             <span className="text-slate-500">Alloué:</span>
-                            <span className="font-semibold text-indigo-600">{totalAllocated}j</span>
+                            <span className="font-semibold text-[#1F4D47]">{totalAllocated}j</span>
                         </div>
                         <div className="flex items-center gap-2">
                             <span className="text-slate-500">Planifié:</span>
@@ -320,7 +321,7 @@ export default function SdrCalendarPage() {
             </div>
 
             {/* Calendar Grid */}
-            <div className="flex-1 overflow-hidden flex">
+            <div className="relative flex flex-1 overflow-hidden">
                 <div className="flex-1 flex flex-col min-w-0">
                     {/* Day Headers */}
                     <div className="grid grid-cols-7 border-b border-slate-200 bg-slate-50/80 flex-shrink-0">
@@ -328,11 +329,12 @@ export default function SdrCalendarPage() {
                             <div
                                 key={label}
                                 className={cn(
-                                    "text-center text-xs font-semibold uppercase tracking-wider py-3",
+                                    "py-2.5 text-center text-[10px] font-semibold uppercase tracking-normal sm:py-3 sm:text-xs sm:tracking-wider",
                                     index >= 5 ? "text-slate-400" : "text-slate-600"
                                 )}
                             >
-                                {label}
+                                <span className="sm:hidden">{label.slice(0, 3)}</span>
+                                <span className="hidden sm:inline">{label}</span>
                             </div>
                         ))}
                     </div>
@@ -341,7 +343,7 @@ export default function SdrCalendarPage() {
                     <div className="flex-1 overflow-y-auto">
                         <div
                             className="grid h-full"
-                            style={{ gridTemplateRows: `repeat(${weeks.length}, minmax(100px, 1fr))` }}
+                            style={{ gridTemplateRows: `repeat(${weeks.length}, minmax(clamp(72px, 11vh, 100px), 1fr))` }}
                         >
                             {weeks.map((week, weekIndex) => (
                                 <div key={weekIndex} className="grid grid-cols-7 border-b border-slate-100">
@@ -362,23 +364,23 @@ export default function SdrCalendarPage() {
                                                     cell.isCurrentMonth && setSelectedDate(cell.date)
                                                 }
                                                 className={cn(
-                                                    "relative text-left px-3 py-2 border-r border-slate-100 last:border-r-0 transition-colors",
+                                                    "relative border-r border-slate-100 p-1 text-left transition-colors last:border-r-0 sm:px-3 sm:py-2",
                                                     cell.isCurrentMonth
                                                         ? "bg-white hover:bg-slate-50/80"
                                                         : "bg-slate-50/30",
                                                     isWeekend && cell.isCurrentMonth && "bg-slate-50/40",
                                                     selectedDate === cell.date &&
                                                         cell.isCurrentMonth &&
-                                                        "ring-2 ring-indigo-500 ring-inset",
+                                                        "ring-2 ring-[#E07C00] ring-inset",
                                                     hasAbsence && "bg-amber-50/50"
                                                 )}
                                             >
                                                 {/* Day Number */}
-                                                <div className="flex items-center justify-between mb-2">
+                                                <div className="mb-1 flex items-center justify-between sm:mb-2">
                                                     <span
                                                         className={cn(
-                                                            "text-sm font-semibold w-7 h-7 flex items-center justify-center rounded-full",
-                                                            cell.isToday && "bg-indigo-600 text-white shadow-sm",
+                                                            "flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold sm:h-7 sm:w-7 sm:text-sm",
+                                                            cell.isToday && "bg-[#FF9E1B] text-[#15201E] shadow-sm",
                                                             !cell.isToday && cell.isCurrentMonth && "text-slate-700",
                                                             !cell.isToday &&
                                                                 !cell.isCurrentMonth &&
@@ -389,7 +391,7 @@ export default function SdrCalendarPage() {
                                                     </span>
 
                                                     {dateBlocks.length > 0 && (
-                                                        <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">
+                                                        <span className="rounded-full bg-[#EEF3F1] px-1.5 py-0.5 text-[9px] font-bold text-[#1F4D47] sm:px-2 sm:text-[10px]">
                                                             {dateBlocks.length}
                                                         </span>
                                                     )}
@@ -415,7 +417,7 @@ export default function SdrCalendarPage() {
                                                                 )}
                                                             >
                                                                 <Icon className="w-3 h-3" />
-                                                                <span className="truncate">
+                                                                <span className="hidden truncate sm:inline">
                                                                     {block.mission.client.name}
                                                                 </span>
                                                             </div>
@@ -438,7 +440,7 @@ export default function SdrCalendarPage() {
 
                 {/* Day Detail Sidebar */}
                 {selectedDate && (
-                    <div className="w-[360px] border-l border-slate-200 bg-white flex flex-col">
+                    <div className="absolute inset-0 z-20 flex w-full flex-col border-l border-slate-200 bg-white sm:relative sm:inset-auto sm:w-[360px]">
                         <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200">
                             <div>
                                 <h3 className="font-semibold text-slate-800 capitalize">

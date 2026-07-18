@@ -287,7 +287,7 @@ export default function ManagerNotificationsPage() {
     const deleteSelected = async () => { for (const id of selectedIds) await deleteNotification(id); setSelectedIds(new Set()); };
 
     return (
-        <div className="space-y-6 pb-10">
+        <div className="elan-page pb-10">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/25">

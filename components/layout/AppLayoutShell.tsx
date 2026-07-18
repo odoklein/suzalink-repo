@@ -305,7 +305,7 @@ function InnerLayout({
 
     if (status === "loading" || !session) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-[#fafbfc]">
+            <div className="min-h-[100dvh] flex items-center justify-center bg-[#f5f7f6]">
                 <div className="flex flex-col items-center gap-3">
                     <div className="cp-spinner" />
                     <p className="text-sm text-slate-400 font-medium">Chargement...</p>
@@ -316,7 +316,7 @@ function InnerLayout({
 
     if (userRole && !allowedRoles.includes(userRole)) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-[#fafbfc]">
+            <div className="min-h-[100dvh] flex items-center justify-center bg-[#f5f7f6]">
                 <div className="cp-spinner" />
             </div>
         );
@@ -335,27 +335,73 @@ function InnerLayout({
     const isWorkspace =
         isEmailHub ||
         pathname.endsWith("/comms") ||
+        pathname === "/manager/rdv" ||
         pathname === "/manager/planning" ||
-        pathname === "/sdr/planning";
+        pathname === "/sdr/planning" ||
+        pathname === "/sdr/calendar";
 
     const pathParts = pathname.split("/").filter(Boolean);
     const rawPage = pathParts[pathParts.length - 1]?.replace(/-/g, " ") || "Dashboard";
     const pageLabels: Record<string, string> = {
         dashboard: "Tableau de bord",
         prospection: "Appels",
+        prospects: "Prospects",
+        campaigns: "Campagnes",
+        rdv: "Rendez-vous",
         listing: "Listing",
+        lists: "Listes",
         missions: "Missions",
         clients: "Clients",
         team: "Performance",
+        analytics: "Performance",
+        "analyse ia": "Analyse IA",
+        utilisateurs: "Collaborateurs",
+        sdrs: "SDRs",
         planning: "Planning",
         projects: "Projets",
         comms: "Messagerie",
+        callbacks: "Rappels",
+        meetings: "Mes rendez-vous",
+        history: "Historique",
+        opportunities: "Opportunités",
+        calendar: "Calendrier",
+        action: "Appeler",
+        settings: "Paramètres",
+        billing: "Facturation",
+        files: "Fichiers",
+        notifications: "Notifications",
+        api: "API et intégrations",
         invoices: "Factures",
         "sdr feedback": "Avis SDR",
         emails: "Email Hub",
         email: "Boîte de réception",
     };
-    const currentPage = pageLabels[rawPage?.toLowerCase()] || rawPage;
+    const routePageLabels: Record<string, string> = {
+        "/manager/billing/invoices/new": "Nouvelle facture",
+        "/manager/billing/settings": "Paramètres de facturation",
+        "/manager/campaigns/new": "Nouvelle campagne",
+        "/manager/missions/new": "Nouvelle mission",
+        "/manager/lists/new": "Nouvelle liste",
+        "/manager/lists/import": "Importer un CSV",
+        "/manager/settings/broadcast": "Campagnes email",
+        "/manager/settings/security-email": "Emails de sécurité",
+        "/manager/settings/statuses": "Statuts d'appel",
+        "/manager/prospects/review": "Prospects à réviser",
+        "/manager/prospects/rules": "Règles prospects",
+        "/manager/prospects/sources": "Sources prospects",
+        "/manager/prospects/sandbox": "Bac à sable prospects",
+        "/manager/planning/conflicts": "Conflits de planning",
+        "/manager/playbook/import": "Importer un playbook",
+        "/manager/enricher": "Enrichissement téléphonique",
+    };
+    const nestedDetailLabel =
+        /^\/manager\/billing\/invoices\/[^/]+$/.test(pathname) ? "Détail de la facture" :
+        /^\/manager\/billing\/clients\/[^/]+$/.test(pathname) ? "Détail du client" :
+        /^\/manager\/billing\/engagements\/[^/]+$/.test(pathname) ? "Détail de l'engagement" :
+        /^\/manager\/(missions|campaigns|projects|prospects|clients|lists|utilisateurs)\/[^/]+$/.test(pathname) ? "Vue détaillée" :
+        /^\/sdr\/(projects|contacts|companies|lists)\/[^/]+$/.test(pathname) ? "Vue détaillée" :
+        undefined;
+    const currentPage = routePageLabels[pathname] || nestedDetailLabel || pageLabels[rawPage?.toLowerCase()] || rawPage;
 
     const showDailyReviewWarning =
         isSdrArea &&
@@ -453,20 +499,20 @@ function InnerLayout({
                 )}
             >
                 <header className="cp-topbar">
-                    <div className="flex items-center gap-3">
+                    <div className="flex min-w-0 items-center gap-3">
                         <MobileMenuButton />
-                        <nav className="cp-breadcrumb" aria-label="Breadcrumb">
+                        <nav className="cp-breadcrumb min-w-0" aria-label="Breadcrumb">
                             <span className="cp-breadcrumb-root">
                                 {roleConfig?.label || "App"}
                             </span>
                             <span className="cp-breadcrumb-sep">/</span>
-                            <span className="cp-breadcrumb-current">
+                            <span className="cp-breadcrumb-current truncate">
                                 {currentPage}
                             </span>
                         </nav>
                     </div>
 
-                    <div className="flex items-center gap-3">
+                    <div className="flex shrink-0 items-center gap-2 sm:gap-3">
                         {isSdrArea && showDailyReviewWarning && (
                             <button
                                 type="button"
@@ -474,11 +520,12 @@ function InnerLayout({
                                     setDailyReviewError(null);
                                     setIsDailyReviewModalOpen(true);
                                 }}
-                                className="inline-flex items-center gap-1.5 h-8 pl-2 pr-2.5 rounded-lg border border-amber-300/80 bg-amber-50 text-[11px] font-bold text-amber-950 shadow-sm hover:bg-amber-100/90 transition-colors duration-150"
+                                className="inline-flex h-8 w-8 items-center justify-center gap-1.5 rounded-lg border border-amber-300/80 bg-amber-50 text-[11px] font-bold text-amber-950 shadow-sm transition-colors duration-150 hover:bg-amber-100/90 sm:w-auto sm:px-2.5"
                                 title={`Après ${dailyReviewPromptTime}, merci de compléter votre avis de fin de journée.`}
+                                aria-label="Avis de fin de journée à compléter"
                             >
                                 <AlertTriangle className="w-3.5 h-3.5 shrink-0 text-amber-600" aria-hidden />
-                                Avis à compléter
+                                <span className="hidden sm:inline">Avis à compléter</span>
                             </button>
                         )}
                         {isSdrArea && (
@@ -488,7 +535,7 @@ function InnerLayout({
                                     setDailyReviewError(null);
                                     setIsDailyReviewModalOpen(true);
                                 }}
-                                className="h-8 px-3 rounded-lg border border-[#E8EBF0] bg-white text-[12px] font-semibold text-[#5A5A7A] hover:text-[#12122A] hover:border-[#C5C8D4] hover:bg-[#F9FAFB] transition-colors duration-150"
+                                className="hidden h-8 rounded-lg border border-[#E8EBF0] bg-white px-3 text-[12px] font-semibold text-[#5A5A7A] transition-colors duration-150 hover:border-[#C5C8D4] hover:bg-[#F9FAFB] hover:text-[#12122A] sm:inline-flex sm:items-center"
                             >
                                 Donner mon avis
                             </button>
@@ -496,7 +543,7 @@ function InnerLayout({
                         <button
                             type="button"
                             onClick={() => router.refresh()}
-                            className="w-8 h-8 rounded-lg border border-[#E8EBF0] flex items-center justify-center text-[#8B8BA7] hover:text-[#12122A] hover:border-[#C5C8D4] transition-colors duration-150"
+                            className="hidden h-8 w-8 items-center justify-center rounded-lg border border-[#E8EBF0] text-[#8B8BA7] transition-colors duration-150 hover:border-[#C5C8D4] hover:text-[#12122A] sm:flex"
                             title="Rafraîchir"
                         >
                             <RefreshCw className="w-3.5 h-3.5" />
@@ -506,7 +553,7 @@ function InnerLayout({
                 </header>
 
                 {isWorkspace ? (
-                    <div className="min-h-0 flex-1 overflow-hidden">
+                    <div className="min-h-0 flex-1 overflow-hidden bg-[#f5f7f6]">
                         {children}
                     </div>
                 ) : (

@@ -194,28 +194,27 @@ export default function BillingDashboardPage() {
     const growth = getGrowthPercentage();
 
     return (
-        <div className="space-y-8 max-w-[1280px] mx-auto">
+        <div className="elan-page">
             {/* Hero Header */}
-            <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 rounded-2xl p-8 text-white">
+            <div className="relative overflow-hidden rounded-[14px] bg-[#0C3B38] p-5 text-white sm:p-7">
                 <div className="absolute inset-0 opacity-20">
                     <div className="absolute inset-0" style={{
-                        backgroundImage: "radial-gradient(circle at 25% 25%, rgba(99, 102, 241, 0.3) 0%, transparent 50%), radial-gradient(circle at 75% 75%, rgba(139, 92, 246, 0.2) 0%, transparent 50%)"
+                        backgroundImage: "radial-gradient(circle at 80% 20%, rgba(255, 158, 27, 0.18) 0%, transparent 42%)"
                     }} />
                 </div>
-                <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full -translate-y-20 translate-x-20 blur-3xl" />
                 <div className="relative z-10">
-                    <div className="flex items-center gap-2 text-indigo-300 text-sm font-medium mb-2">
+                    <div className="mb-2 flex items-center gap-2 text-sm font-medium text-[#FFB64F]">
                         <Shield className="w-4 h-4" />
                         <span>Conforme Factur-X EN16931 / EU 2026</span>
                     </div>
-                    <div className="flex items-start justify-between">
+                    <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
                         <div>
                             <h1 className="text-3xl font-bold mb-1">Facturation</h1>
                             <p className="text-slate-400 text-sm">
                                 {stats?.totalInvoices || 0} factures - {stats?.totalClients || 0} clients
                             </p>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                             <Button
                                 variant="ghost"
                                 onClick={() => window.open("/api/billing/export", "_blank")}
@@ -231,7 +230,7 @@ export default function BillingDashboardPage() {
                                 </Button>
                             </Link>
                             <Link href="/manager/billing/invoices/new">
-                                <Button className="bg-white text-indigo-700 hover:bg-indigo-50 shadow-lg shadow-black/20">
+                                <Button className="border border-[#E07C00] bg-[#FF9E1B] text-[#15201E] hover:bg-[#F09212]">
                                     <Plus className="w-4 h-4 mr-2" />
                                     Nouvelle facture
                                 </Button>
@@ -414,29 +413,29 @@ export default function BillingDashboardPage() {
                     <div className="border-t border-slate-100 mt-5 pt-5">
                         <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Actions rapides</p>
                         <div className="space-y-2">
-                            <Link href="/manager/billing/invoices/new" className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-indigo-50 transition-colors group">
-                                <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center">
-                                    <Plus className="w-4 h-4 text-indigo-600" />
+                        <Link href="/manager/billing/invoices/new" className="group flex items-center gap-3 rounded-xl p-2.5 transition-colors hover:bg-[#F0F5F3]">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#DBE4DF]">
+                                <Plus className="h-4 w-4 text-[#0C3B38]" />
                                 </div>
-                                <span className="text-sm text-slate-700 group-hover:text-indigo-700">Nouvelle facture</span>
+                            <span className="text-sm text-slate-700 group-hover:text-[#0C3B38]">Nouvelle facture</span>
                             </Link>
-                            <Link href="/manager/billing/clients" className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-indigo-50 transition-colors group">
-                                <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center">
-                                    <Users className="w-4 h-4 text-indigo-600" />
+                        <Link href="/manager/billing/clients" className="group flex items-center gap-3 rounded-xl p-2.5 transition-colors hover:bg-[#F0F5F3]">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#DBE4DF]">
+                                <Users className="h-4 w-4 text-[#0C3B38]" />
                                 </div>
-                                <span className="text-sm text-slate-700 group-hover:text-indigo-700">Gérer les clients</span>
+                            <span className="text-sm text-slate-700 group-hover:text-[#0C3B38]">Gérer les clients</span>
                             </Link>
-                            <Link href="/manager/billing/offres" className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-indigo-50 transition-colors group">
-                                <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center">
-                                    <Tag className="w-4 h-4 text-indigo-600" />
+                        <Link href="/manager/billing/offres" className="group flex items-center gap-3 rounded-xl p-2.5 transition-colors hover:bg-[#F0F5F3]">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#DBE4DF]">
+                                <Tag className="h-4 w-4 text-[#0C3B38]" />
                                 </div>
-                                <span className="text-sm text-slate-700 group-hover:text-indigo-700">Offres & Tarifs</span>
+                            <span className="text-sm text-slate-700 group-hover:text-[#0C3B38]">Offres & Tarifs</span>
                             </Link>
-                            <Link href="/manager/billing/engagements" className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-indigo-50 transition-colors group">
-                                <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center">
-                                    <CalendarDays className="w-4 h-4 text-indigo-600" />
+                        <Link href="/manager/billing/engagements" className="group flex items-center gap-3 rounded-xl p-2.5 transition-colors hover:bg-[#F0F5F3]">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#DBE4DF]">
+                                <CalendarDays className="h-4 w-4 text-[#0C3B38]" />
                                 </div>
-                                <span className="text-sm text-slate-700 group-hover:text-indigo-700">Engagements</span>
+                            <span className="text-sm text-slate-700 group-hover:text-[#0C3B38]">Engagements</span>
                             </Link>
                         </div>
                     </div>

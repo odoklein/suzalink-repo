@@ -323,7 +323,7 @@ export default function UnifiedDashboardPage() {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="elan-page">
             {/* ═══════════════════════════════════════════════════════════ */}
             {/* HERO HEADER — UNIFIED STATS */}
             {/* ═══════════════════════════════════════════════════════════ */}

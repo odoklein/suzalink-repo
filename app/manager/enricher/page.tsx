@@ -327,8 +327,8 @@ export default function EnricherPage() {
     const fieldsForSelect = origFields.length > 0 ? origFields : [];
 
     return (
-        <div className="min-h-screen bg-[#0a0a0f] text-[#e8e8f0] p-6 font-sans">
-            <div className="max-w-6xl mx-auto">
+        <div className="elan-page rounded-2xl bg-[#0a0a0f] p-4 font-sans text-[#e8e8f0] sm:p-6">
+            <div className="mx-auto w-full max-w-6xl">
                 <div className="mb-12">
                     <div className="flex items-center gap-3 mb-2">
                         <div className="w-9 h-9 rounded-md bg-[#00ff88] flex items-center justify-center text-black font-bold text-lg">☎</div>

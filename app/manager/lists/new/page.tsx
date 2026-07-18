@@ -123,7 +123,7 @@ export default function NewListPage() {
     // ============================================
 
     return (
-        <div className="max-w-2xl mx-auto space-y-6">
+        <div className="elan-page mx-auto max-w-2xl">
             {/* Header */}
             <div className="flex items-center gap-4">
                 <Link href="/manager/lists">

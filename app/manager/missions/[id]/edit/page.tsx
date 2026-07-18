@@ -178,7 +178,7 @@ export default function EditMissionPage({ params }: { params: Promise<{ id: stri
 
     if (isLoading) {
         return (
-            <div className="max-w-2xl mx-auto space-y-6">
+            <div className="elan-page mx-auto max-w-2xl">
                 <div className="flex items-center gap-4">
                     <div className="w-10 h-10 bg-slate-200 rounded-xl animate-pulse" />
                     <div className="space-y-2">
@@ -205,7 +205,7 @@ export default function EditMissionPage({ params }: { params: Promise<{ id: stri
     // ============================================
 
     return (
-        <div className="max-w-2xl mx-auto space-y-6">
+        <div className="elan-page mx-auto max-w-2xl">
             {/* Header */}
             <div className="flex items-center gap-4">
                 <Link href={`/manager/missions/${resolvedParams.id}`}>

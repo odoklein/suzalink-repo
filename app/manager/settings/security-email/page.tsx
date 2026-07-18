@@ -126,14 +126,14 @@ export default function SecurityEmailSettingsPage() {
   }
 
   if (loading) {
-    return <div className="max-w-5xl mx-auto px-6 py-10 text-slate-500">Chargement...</div>;
+    return <div className="elan-page mx-auto max-w-5xl text-slate-500">Chargement...</div>;
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-10 space-y-6">
+    <div className="elan-page mx-auto max-w-5xl">
       <Link
         href="/manager/settings"
-        className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-indigo-700"
+        className="inline-flex items-center gap-2 text-sm text-slate-600 transition-colors hover:text-[#0C3B38]"
       >
         <ArrowLeft className="w-4 h-4" />
         Retour aux parametres

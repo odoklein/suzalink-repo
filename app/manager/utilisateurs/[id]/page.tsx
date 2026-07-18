@@ -1353,10 +1353,10 @@ export default function UtilisateurDetailPage() {
     const online = isOnline(user);
 
     return (
-        <div className="min-h-full bg-gradient-to-br from-slate-50 to-slate-100/50">
+        <div className="elan-page">
 
             {/* ── Back button ── */}
-            <div className="px-6 pt-5">
+            <div>
                 <button
                     onClick={() => router.push("/manager/utilisateurs")}
                     className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-indigo-600 transition-colors"

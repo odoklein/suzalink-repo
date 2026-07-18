@@ -1010,7 +1010,7 @@ export default function FilesExplorer() {
   return (
     <div
       {...getRootProps()}
-      className="space-y-6 rounded-[28px] bg-gradient-to-br from-slate-50 via-white to-slate-100/60 p-4 sm:p-6 border border-slate-200/70"
+      className="elan-page"
     >
       <input {...getInputProps()} />
 
@@ -1404,7 +1404,7 @@ export default function FilesExplorer() {
                         {file.formattedSize} • {typeLabel(file.mimeType)}
                       </p>
                     </div>
-                    <div className="text-xs text-slate-500 hidden md:block w-28 text-right">{file.createdAt ? formatDateShort(file.createdAt) : "—"}</div>
+                    <div className="text-xs text-slate-500 hidden md:block w-28 text-right">{file.createdAt ? formatDateShort(file.createdAt) : "Non renseigné"}</div>
                     <ItemMenu
                       isDriveItem
                       accent="blue"
@@ -1468,7 +1468,7 @@ export default function FilesExplorer() {
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium text-slate-900 truncate">{file.name}</p>
                             <p className="text-xs text-slate-500 truncate">
-                              {file.formattedSize} • {typeLabel(file.mimeType)} • {file.uploadedBy?.name ?? "—"}
+                              {file.formattedSize} / {typeLabel(file.mimeType)} / {file.uploadedBy?.name ?? "Non renseigné"}
                             </p>
                             {Array.isArray(file.tags) && file.tags.length > 0 && (
                               <div className="mt-1 flex flex-wrap gap-1">

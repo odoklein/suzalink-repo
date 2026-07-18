@@ -125,7 +125,7 @@ export default function EditBillingClientPage() {
     }
 
     return (
-        <div className="space-y-6 max-w-2xl">
+        <div className="elan-page max-w-2xl">
             <div>
                 <Link href="/manager/billing/clients">
                     <Button variant="ghost" size="sm" className="mb-2">

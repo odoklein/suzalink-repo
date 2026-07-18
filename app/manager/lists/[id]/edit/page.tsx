@@ -137,7 +137,7 @@ export default function EditListPage({ params }: { params: Promise<{ id: string 
 
     if (isLoading) {
         return (
-            <div className="space-y-6">
+            <div className="elan-page mx-auto max-w-3xl">
                 <div className="flex items-center gap-4">
                     <div className="w-10 h-10 bg-slate-200 rounded-xl animate-pulse" />
                     <div className="h-6 w-48 bg-slate-200 rounded animate-pulse" />
@@ -154,7 +154,7 @@ export default function EditListPage({ params }: { params: Promise<{ id: string 
     }
 
     return (
-        <div className="space-y-6">
+        <div className="elan-page mx-auto max-w-3xl">
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">

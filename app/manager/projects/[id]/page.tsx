@@ -208,7 +208,7 @@ export default function ManagerProjectDetailPage() {
 
     if (loading) {
         return (
-            <div className="p-6">
+            <div className="elan-page">
                 <LoadingState message="Chargement du projet..." />
             </div>
         );
@@ -216,7 +216,7 @@ export default function ManagerProjectDetailPage() {
 
     if (!project) {
         return (
-            <div className="p-6 text-center">
+            <div className="elan-page items-center justify-center text-center">
                 <p className="text-slate-500">Projet non trouvé</p>
                 <button onClick={() => router.back()} className="mt-4 text-indigo-600 hover:underline text-sm">
                     Retour
@@ -234,7 +234,7 @@ export default function ManagerProjectDetailPage() {
     ];
 
     return (
-        <div className="p-6 max-w-7xl mx-auto">
+        <div className="elan-page mx-auto max-w-7xl">
             {/* Back + Header */}
             <div className="mb-6">
                 <button

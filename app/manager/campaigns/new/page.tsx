@@ -349,7 +349,7 @@ export default function NewCampaignPage() {
     // ============================================
 
     return (
-        <div className="max-w-4xl mx-auto space-y-6">
+        <div className="elan-page mx-auto max-w-4xl">
             {/* Header */}
             <div className="flex items-center gap-4">
                 <Link href="/manager/campaigns">

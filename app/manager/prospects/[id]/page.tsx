@@ -309,7 +309,7 @@ export default function ProspectDetailPage({ params }: { params: Promise<{ id: s
     const fullName = [profile.firstName, profile.lastName].filter(Boolean).join(" ") || "N/A";
 
     return (
-        <div className="space-y-6">
+        <div className="elan-page">
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">

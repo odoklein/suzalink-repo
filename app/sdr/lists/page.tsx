@@ -160,9 +160,9 @@ export default function SDRListsPage() {
 
     if (isLoading && lists.length === 0) {
         return (
-            <div className="flex items-center justify-center py-20">
+            <div className="elan-page items-center justify-center py-20">
                 <div className="text-center">
-                    <Loader2 className="w-8 h-8 text-indigo-500 animate-spin mx-auto mb-4" />
+                <Loader2 className="mx-auto mb-4 h-8 w-8 animate-spin text-[#0C3B38] motion-reduce:animate-none" />
                     <p className="text-slate-500">Chargement des listes...</p>
                 </div>
             </div>
@@ -170,7 +170,7 @@ export default function SDRListsPage() {
     }
 
     return (
-        <div className="space-y-6 animate-fade-in">
+        <div className="elan-page animate-fade-in">
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
@@ -193,8 +193,8 @@ export default function SDRListsPage() {
             <div className="grid grid-cols-3 gap-3">
                 <Card className="!p-3">
                     <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center">
-                            <List className="w-4 h-4 text-indigo-500" />
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#E5EFEC]">
+                        <List className="h-4 w-4 text-[#0C3B38]" />
                         </div>
                         <div>
                             <p className="text-lg font-bold text-slate-900">{stats.total}</p>
@@ -236,7 +236,7 @@ export default function SDRListsPage() {
                             placeholder="Rechercher..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 text-sm placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20"
+                            className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pl-9 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#0C3B38] focus:outline-none focus:ring-2 focus:ring-[#0C3B38]/15"
                         />
                     </div>
                     <Select
@@ -279,7 +279,7 @@ export default function SDRListsPage() {
                                 className={cn(
                                     "!p-4 cursor-pointer transition-all",
                                     isSelected
-                                        ? "border-indigo-500 bg-indigo-50/50"
+                                    ? "border-[#2F6B62] bg-[#F0F5F3]"
                                         : "hover:border-slate-300"
                                 )}
                                 onClick={() => handleSelectList(list.id)}
@@ -289,7 +289,7 @@ export default function SDRListsPage() {
                                     <div className={cn(
                                         "w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0",
                                         isSelected
-                                            ? "bg-indigo-500 text-white"
+                                        ? "bg-[#0C3B38] text-white"
                                             : "bg-slate-100 text-slate-500"
                                     )}>
                                         <ChannelIcon className="w-5 h-5" />
@@ -323,11 +323,11 @@ export default function SDRListsPage() {
                                         <div className="mt-3 space-y-1">
                                             <div className="flex items-center justify-between text-xs">
                                                 <span className="text-slate-500">Progression</span>
-                                                <span className="font-medium text-indigo-600">{list.progress}%</span>
+                                <span className="font-medium text-[#0C3B38]">{list.progress}%</span>
                                             </div>
                                             <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
                                                 <div
-                                                    className="h-full bg-indigo-500 rounded-full transition-all"
+                                className="h-full rounded-full bg-[#2F6B62] transition-all"
                                                     style={{ width: `${list.progress}%` }}
                                                 />
                                             </div>
@@ -354,7 +354,7 @@ export default function SDRListsPage() {
 
                                     {/* Selection indicator */}
                                     {isSelected && (
-                                        <div className="w-2 h-2 rounded-full bg-indigo-500 mt-2" />
+                            <div className="mt-2 h-2 w-2 rounded-full bg-[#2F6B62]" />
                                     )}
                                 </div>
                             </Card>

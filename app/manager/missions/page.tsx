@@ -241,7 +241,7 @@ export default function MissionsPage() {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="elan-page">
 
             {/* ─── HERO HEADER ─── */}
             <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-7 text-white">

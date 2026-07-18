@@ -171,7 +171,7 @@ export default function OffresPage() {
         n > 0 ? `${n} €` : "—";
 
     return (
-        <div className="space-y-6">
+        <div className="elan-page">
             <div className="flex items-center justify-between flex-wrap gap-4">
                 <PageHeader
                     title="Offres & Tarifs"

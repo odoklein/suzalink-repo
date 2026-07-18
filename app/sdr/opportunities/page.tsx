@@ -132,9 +132,9 @@ export default function SDROpportunitiesPage() {
 
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center py-20">
+            <div className="elan-page items-center justify-center py-20">
                 <div className="text-center">
-                    <Loader2 className="w-8 h-8 text-indigo-500 animate-spin mx-auto mb-4" />
+                <Loader2 className="mx-auto mb-4 h-8 w-8 animate-spin text-[#0C3B38] motion-reduce:animate-none" />
                     <p className="text-slate-500">Chargement des opportunités...</p>
                 </div>
             </div>
@@ -142,7 +142,7 @@ export default function SDROpportunitiesPage() {
     }
 
     return (
-        <div className="space-y-6 animate-fade-in">
+        <div className="elan-page animate-fade-in">
             {/* Header */}
             <div>
                 <h1 className="text-xl font-bold text-slate-900">Opportunités</h1>
@@ -155,8 +155,8 @@ export default function SDROpportunitiesPage() {
             <div className="grid grid-cols-2 gap-3">
                 <Card className="!p-4">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center">
-                            <Briefcase className="w-5 h-5 text-purple-500" />
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#E5EFEC]">
+                            <Briefcase className="h-5 w-5 text-[#0C3B38]" />
                         </div>
                         <div>
                             <p className="text-2xl font-bold text-slate-900">{stats.total}</p>
@@ -234,7 +234,7 @@ export default function SDROpportunitiesPage() {
                             key={opp.id}
                             className={cn(
                                 "!p-4 transition-all",
-                                opp.handedOff ? "opacity-75" : "hover:border-indigo-300"
+                                opp.handedOff ? "opacity-75" : "hover:border-[#AFC5BF]"
                             )}
                         >
                             {/* Header */}
@@ -299,14 +299,14 @@ export default function SDROpportunitiesPage() {
 
             {/* Empty state motivation */}
             {opportunities.length === 0 && (
-                <Card className="!p-4 bg-gradient-to-br from-indigo-50 to-purple-50 border-indigo-100">
+                <Card className="!border-[#D7E3DF] !bg-[#F0F5F3] !p-4">
                     <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center flex-shrink-0">
-                            <Sparkles className="w-5 h-5 text-indigo-600" />
+                        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-[#DBE4DF]">
+                            <Sparkles className="h-5 w-5 text-[#0C3B38]" />
                         </div>
                         <div>
-                            <h3 className="font-medium text-indigo-900">Créez vos premières opportunités</h3>
-                            <p className="text-sm text-indigo-700 mt-1">
+                            <h3 className="font-medium text-[#173F3A]">Créez vos premières opportunités</h3>
+                            <p className="mt-1 text-sm text-[#2F6B62]">
                                 Lorsque vous marquez un contact comme "Intéressé" avec une note descriptive,
                                 une opportunité est automatiquement créée ici.
                             </p>

@@ -1013,7 +1013,7 @@ export default function ManagerProspectionPage() {
         const channelLabel = CHANNEL_TABS.find(t => t.value === channel)?.label ?? "";
         return (
             <Fragment>
-            <div className="max-w-7xl mx-auto pb-12 space-y-8">
+            <div className="w-full min-w-0 space-y-8 pb-8">
                 {/* Page header */}
                 <div className="flex items-start justify-between gap-4 pt-2 flex-wrap">
                     <div className="flex items-center gap-4">
@@ -1022,7 +1022,7 @@ export default function ManagerProspectionPage() {
                         </div>
                         <div>
                             <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-                                Prospection — {channelLabel}
+                                Prospection - {channelLabel}
                             </h1>
                             <p className="text-sm text-slate-500 mt-0.5">
                                 Sélectionnez une mission pour accéder au centre de contrôle
@@ -1275,7 +1275,7 @@ export default function ManagerProspectionPage() {
     // ─────────────────────────────────────────────────────────────────────────
 
     return (
-        <div className="max-w-7xl mx-auto pb-12 space-y-5">
+        <div className="elan-page pb-8">
 
             {/* ── Header ────────────────────────────────────────────────── */}
             <div className="flex flex-col gap-3 pt-2">
@@ -1669,7 +1669,7 @@ export default function ManagerProspectionPage() {
                                     const displaySummary = getActionDisplaySummary(row);
                                     const contactName = getContactName(row);
                                     const companyName = getCompanyName(row);
-                                    const name = contactName || companyName || "—";
+                                    const name = contactName || companyName || "Non renseigné";
                                     const showCompany = companyName && companyName !== name;
 
                                     return (
@@ -1767,7 +1767,7 @@ export default function ManagerProspectionPage() {
                                                         <div className="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-[10px] font-black text-slate-600 shrink-0" aria-hidden>
                                                             {(row.sdr?.name?.[0] || "?").toUpperCase()}
                                                         </div>
-                                                        <span className="text-xs font-semibold text-slate-700 whitespace-nowrap">{row.sdr?.name || "—"}</span>
+                                                        <span className="text-xs font-semibold text-slate-700 whitespace-nowrap">{row.sdr?.name || "Non assigné"}</span>
                                                     </div>
                                                 </td>
                                             )}
@@ -1791,7 +1791,7 @@ export default function ManagerProspectionPage() {
                                                                 {displaySummary}
                                                             </p>
                                                         ) : (
-                                                            <span className="text-[11px] text-slate-300 italic">—</span>
+                                                            <span className="text-[11px] text-slate-400 italic">Non renseigné</span>
                                                         )}
                                                     </div>
                                                 </td>
@@ -1805,7 +1805,7 @@ export default function ManagerProspectionPage() {
                                                             {Math.floor(row.duration / 60)}:{String(row.duration % 60).padStart(2, "0")}
                                                         </span>
                                                     ) : (
-                                                        <span className="text-slate-300 text-xs">—</span>
+                                                        <span className="text-slate-400 text-xs">Non renseigné</span>
                                                     )}
                                                 </td>
                                             )}
@@ -1833,7 +1833,7 @@ export default function ManagerProspectionPage() {
                 {totalPages > 1 && (
                     <div className="flex items-center justify-between px-5 py-4 border-t border-slate-100 bg-slate-50/50">
                         <p className="text-xs font-semibold text-slate-400">
-                            Page {page} / {totalPages} — {processed.length} résultat{processed.length !== 1 ? "s" : ""}
+                            Page {page} / {totalPages} - {processed.length} résultat{processed.length !== 1 ? "s" : ""}
                         </p>
                         <div className="flex items-center gap-1">
                             <button

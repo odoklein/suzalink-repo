@@ -111,7 +111,7 @@ function buildMessageFromPayload(
 // Lazy-load heavy panels/modals to improve initial page load
 const ThreadView = dynamic(
     () => import("@/components/comms/ThreadView").then((m) => m.default),
-    { ssr: false, loading: () => <div className="flex items-center justify-center h-full"><Loader2 className="w-8 h-8 text-indigo-500 animate-spin" /></div> }
+    { ssr: false, loading: () => <div className="flex h-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-[#0C3B38] motion-reduce:animate-none" /></div> }
 );
 const NewThreadModal = dynamic(
     () => import("@/components/comms/NewThreadModal").then((m) => m.NewThreadModal),

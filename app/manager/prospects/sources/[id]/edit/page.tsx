@@ -129,7 +129,7 @@ export default function EditSourcePage({ params }: { params: Promise<{ id: strin
     }
 
     return (
-        <div className="space-y-6">
+        <div className="elan-page mx-auto max-w-4xl">
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">

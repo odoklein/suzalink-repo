@@ -172,7 +172,7 @@ export default function EngagementsPage() {
         : selectedOffre?.prixParRdv ?? 0;
 
     return (
-        <div className="space-y-6">
+        <div className="elan-page">
             <div className="flex items-center justify-between">
                 <PageHeader
                     title="Engagements clients"

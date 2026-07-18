@@ -139,7 +139,7 @@ export default function ManagerSdrFeedbackPage() {
     };
 
     return (
-        <div className="min-h-full">
+        <div className="elan-page">
             <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
                 <div>
                     <h1 className="text-[22px] font-bold text-[var(--elan-ink)] tracking-tight">

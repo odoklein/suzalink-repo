@@ -204,7 +204,7 @@ export default function NewInvoicePage() {
     const completedSteps = steps.filter((s) => s.done).length;
 
     return (
-        <div className="space-y-6 max-w-[1200px] mx-auto">
+        <div className="elan-page mx-auto max-w-[1200px]">
             {/* Header */}
             <div className="flex items-start justify-between">
                 <div>

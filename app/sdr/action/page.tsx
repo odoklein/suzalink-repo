@@ -928,7 +928,7 @@ export default function SDRActionPage() {
             return {
                 icon: AlertCircle,
                 title: "File vide pour cette mission / liste",
-                description: "Aucun contact ou société éligible. Vérifiez : (1) La mission a au moins une campagne active. (2) La liste est active (onglet BDD du manager). (3) Les sociétés ont des contacts liés avec les infos requises selon le canal — téléphone pour Appel, email pour Email, LinkedIn pour LinkedIn ; les sociétés sans contact n'apparaissent qu'en Appel si la société a un téléphone. (4) Vous êtes bien assigné à la mission. Si la liste affiche « 322 sociétés, 1 contact », la plupart des sociétés n'ont pas de contact : seuls les contacts (ou sociétés avec téléphone en Appel) éligibles apparaissent ici.",
+                description: "Aucun contact ou société éligible. Vérifiez : (1) La mission a au moins une campagne active. (2) La liste est active (onglet BDD du manager). (3) Les sociétés ont les informations requises pour le canal : téléphone pour Appel, email pour Email et profil pour LinkedIn. Les sociétés sans contact n'apparaissent en Appel que si elles ont un téléphone. (4) Vous êtes bien assigné à la mission.",
             };
         }
         return {
@@ -1061,7 +1061,7 @@ export default function SDRActionPage() {
                 } else if (total === 0) {
                     success("Déjà à jour", "Aucun appel récent à synchroniser.");
                 } else {
-                    success("Synchronisation terminée", `${total} appel${total > 1 ? 's' : ''} analysé${total > 1 ? 's' : ''} — aucune correspondance Allo trouvée.`);
+                    success("Synchronisation terminée", `${total} appel${total > 1 ? 's' : ''} analysé${total > 1 ? 's' : ''}. Aucune correspondance Allo trouvée.`);
                 }
                 refreshQueue();
             } else {
@@ -2052,7 +2052,7 @@ export default function SDRActionPage() {
                             </div>
                             <div>
                                 <h1 className="text-[22px] font-[500] text-white leading-tight">Actions</h1>
-                                <p className="text-[13px] text-white/50">File d'actions — vue tableau</p>
+                                <p className="text-[13px] text-white/50">File d&apos;actions - vue tableau</p>
                             </div>
                         </div>
 
@@ -2453,7 +2453,7 @@ export default function SDRActionPage() {
     // Loading (card view)
     if (isLoading && !currentAction) {
         return (
-            <div className="space-y-6 max-w-2xl mx-auto">
+            <div className="elan-page">
                 <CardSkeleton hasHeader hasImage={false} lines={4} />
                 <CardSkeleton hasHeader={false} lines={3} />
                 <div className="flex gap-4">
@@ -2467,7 +2467,7 @@ export default function SDRActionPage() {
     // Empty queue (card view)
     if (!currentAction?.hasNext) {
         return (
-            <div className="space-y-4">
+            <div className="elan-page">
                 {/* Header — Empty Queue */}
                 <div className="relative overflow-hidden bg-gradient-to-br from-[#0c3b38] via-[#082c2a] to-[#0c3b38] rounded-2xl p-5 shadow-xl">
                     <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-[rgba(255,158,27,0.12)] via-transparent to-transparent" />
@@ -2525,7 +2525,7 @@ export default function SDRActionPage() {
     }
 
     return (
-        <div className="space-y-4 pb-28">
+        <div className="elan-page pb-28">
             {/* Success Overlay */}
             {showSuccess && (
                 <div className="fixed inset-0 bg-white/80 backdrop-blur-md z-50 flex items-center justify-center">
@@ -3083,7 +3083,7 @@ export default function SDRActionPage() {
                         </div>
                         <div>
                             <h3 className="text-[14px] font-[500] text-[#1a1a1a]">Date de rappel</h3>
-                            <p className="text-[12px] text-amber-600">Optionnel — ou indiquez-la dans la note</p>
+                            <p className="text-[12px] text-amber-600">Optionnel : vous pouvez aussi l&apos;indiquer dans la note.</p>
                         </div>
                     </div>
                     <div className="p-4">
@@ -3104,7 +3104,7 @@ export default function SDRActionPage() {
                 <div className="rounded-2xl border border-[rgba(224,124,0,0.22)] bg-gradient-to-r from-[rgba(255,158,27,0.1)] to-[rgba(12,59,56,0.06)] shadow-sm overflow-hidden">
                     <div className="px-5 py-3 border-b border-[rgba(224,124,0,0.16)]">
                         <h3 className="text-sm font-bold text-slate-900">Catégorie du RDV</h3>
-                        <p className="text-xs text-slate-500 mt-0.5">Optionnel — sinon détecté automatiquement depuis la note</p>
+                        <p className="text-xs text-slate-500 mt-0.5">Optionnel : sinon, ce champ est détecté automatiquement depuis la note.</p>
                     </div>
                     <div className="px-5 py-4 flex gap-3">
                         {([["EXPLORATOIRE", "Exploratoire", "Prise de contact / découverte"], ["BESOIN", "Besoin", "Projet concret / budget identifié"]] as const).map(([value, label, desc]) => (

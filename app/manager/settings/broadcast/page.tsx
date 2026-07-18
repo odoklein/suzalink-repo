@@ -168,10 +168,10 @@ function ConfirmSendDialog({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
       <div className="w-full max-w-md mx-4 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-indigo-50 to-white">
+        <div className="flex items-center justify-between border-b border-slate-100 bg-[#F0F5F3] px-6 py-4">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-indigo-100 flex items-center justify-center">
-              <Send className="w-4 h-4 text-indigo-600" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#DBE4DF]">
+              <Send className="h-4 w-4 text-[#0C3B38]" />
             </div>
             <span className="font-semibold text-slate-800">Confirmer l&apos;envoi</span>
           </div>
@@ -213,7 +213,7 @@ function ConfirmSendDialog({
           <button
             onClick={onConfirm}
             disabled={sending}
-            className="flex items-center gap-2 px-5 py-2 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl disabled:opacity-60 transition-colors"
+            className="flex items-center gap-2 rounded-xl bg-[#0C3B38] px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#173F3A] disabled:opacity-60"
           >
             {sending ? (
               <>
@@ -544,11 +544,11 @@ export default function BroadcastEmailPage() {
         textarea.code::selection { background: rgba(99,102,241,0.25); }
       `}</style>
 
-      <div className="max-w-4xl mx-auto px-4 py-10 space-y-6">
+      <div className="elan-page mx-auto max-w-4xl">
         {/* Back link */}
         <Link
           href="/manager/settings"
-          className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-indigo-600 font-medium transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 transition-colors hover:text-[#0C3B38]"
         >
           <ArrowLeft className="w-4 h-4" />
           Retour aux paramètres
@@ -556,8 +556,8 @@ export default function BroadcastEmailPage() {
 
         {/* Header */}
         <div className="flex items-start gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-indigo-100 flex items-center justify-center shrink-0">
-            <Megaphone className="w-6 h-6 text-indigo-600" />
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#DBE4DF]">
+            <Megaphone className="h-6 w-6 text-[#0C3B38]" />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-slate-900 tracking-tight">

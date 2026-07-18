@@ -442,15 +442,15 @@ export default function ManagerSettingsStatusesPage() {
 
     if (loading) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
-                <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+            <div className="elan-page min-h-[400px] items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-[#0C3B38] motion-reduce:animate-none" />
                 <p className="text-sm text-slate-500">Chargement des statuts…</p>
             </div>
         );
     }
 
     return (
-        <div className="max-w-6xl mx-auto px-4 py-8 space-y-6">
+        <div className="elan-page mx-auto max-w-6xl">
             {/* Header */}
             <div className="flex items-center gap-4">
                 <Link

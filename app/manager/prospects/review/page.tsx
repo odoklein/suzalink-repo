@@ -221,7 +221,7 @@ export default function ExceptionInboxPage() {
     ];
 
     return (
-        <div className="space-y-6">
+        <div className="elan-page">
             {/* Header */}
             <div className="flex items-center justify-between" data-tour="exception-inbox-header">
                 <div>

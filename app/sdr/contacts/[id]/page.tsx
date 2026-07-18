@@ -76,7 +76,7 @@ export default function SDRContactFichePage() {
 
     if (error || !contact) {
         return (
-            <div className="p-6 max-w-lg mx-auto text-center">
+        <div className="elan-page mx-auto max-w-lg items-center justify-center text-center">
                 <p className="text-slate-600 mb-4">{error || "Contact non trouvé"}</p>
                 <Button variant="primary" onClick={() => router.push("/sdr")}>
                     <ArrowLeft className="w-4 h-4 mr-2" />
@@ -89,7 +89,7 @@ export default function SDRContactFichePage() {
     const fullName = [contact.firstName, contact.lastName].filter(Boolean).join(" ") || "Sans nom";
 
     return (
-        <div className="p-6 max-w-2xl mx-auto space-y-6">
+        <div className="elan-page mx-auto max-w-2xl">
             <div className="flex items-center gap-4">
                 <Link href="/sdr">
                     <Button variant="ghost" size="sm">

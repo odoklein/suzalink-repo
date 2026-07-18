@@ -188,7 +188,7 @@ export default function NewMissionPage() {
     // ============================================
 
     return (
-        <div className="max-w-5xl mx-auto space-y-6 pb-20">
+        <div className="elan-page mx-auto max-w-5xl pb-16">
             {/* Header */}
             <div className="flex items-center gap-4">
                 <Link href="/manager/missions">

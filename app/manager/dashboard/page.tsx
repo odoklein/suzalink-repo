@@ -307,7 +307,7 @@ export default function ManagerDashboard() {
 
     if (isLoading && !stats) {
         return (
-            <div className="min-h-[60dvh] bg-[#F5F7F6] p-4 sm:p-6" aria-busy="true" aria-label="Chargement du tableau de bord">
+            <div className="elan-page min-h-[60dvh]" aria-busy="true" aria-label="Chargement du tableau de bord">
                 <div className="space-y-4">
                     <div className="h-10 w-72 max-w-full skeleton-shimmer rounded-xl" />
                     <div className="grid grid-cols-1 lg:grid-cols-[2fr_1.2fr] gap-4">
@@ -322,7 +322,7 @@ export default function ManagerDashboard() {
 
     if (isError && !data) {
         return (
-            <div className="min-h-[60dvh] bg-[#F5F7F6] flex items-center justify-center p-6">
+            <div className="elan-page min-h-[60dvh] items-center justify-center">
                 <div className="w-full max-w-md rounded-xl border border-red-200 bg-white p-6 text-center shadow-sm" role="alert">
                     <AlertTriangle className="mx-auto mb-3 h-8 w-8 text-red-500" />
                     <h1 className="text-lg font-bold text-slate-900">Tableau de bord indisponible</h1>
@@ -336,7 +336,7 @@ export default function ManagerDashboard() {
     }
 
     return (
-        <div className="min-h-full">
+        <div className="elan-page">
 
             {/* ── Page Header ── */}
             <div className="flex flex-wrap items-center justify-between gap-4 mb-6">

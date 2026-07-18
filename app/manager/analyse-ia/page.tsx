@@ -295,10 +295,10 @@ function ExecutiveSummarySection({ analysis }: { analysis: WeeklyAnalysis }) {
             {/* KPI Row */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {[
-                    { label: "Total actions", value: snap.actionCount ?? "–", icon: Activity, color: "text-indigo-600" },
-                    { label: "RDV obtenus", value: snap.meetingCount ?? "–", icon: Calendar, color: "text-emerald-600" },
-                    { label: "Taux conversion", value: snap.conversionRate != null ? `${snap.conversionRate}%` : "–", icon: TrendingUp, color: "text-amber-600" },
-                    { label: "Appels", value: snap.callCount ?? "–", icon: BarChart2, color: "text-blue-600" },
+                    { label: "Total actions", value: snap.actionCount ?? "Non renseigné", icon: Activity, color: "text-[#1F4D47]" },
+                    { label: "RDV obtenus", value: snap.meetingCount ?? "Non renseigné", icon: Calendar, color: "text-emerald-600" },
+                    { label: "Taux conversion", value: snap.conversionRate != null ? `${snap.conversionRate}%` : "Non renseigné", icon: TrendingUp, color: "text-amber-600" },
+                    { label: "Appels", value: snap.callCount ?? "Non renseigné", icon: BarChart2, color: "text-[#2F6B62]" },
                 ].map(({ label, value, icon: Icon, color }) => (
                     <div key={label} className="bg-slate-50 rounded-lg p-3 border border-slate-200">
                         <Icon className={cn("w-4 h-4 mb-1", color)} />
@@ -939,21 +939,21 @@ export default function AnalyseIAPage() {
     const isRunning = runMutation.isPending;
 
     return (
-        <div className="min-h-screen bg-slate-50">
+        <div className="elan-page">
             {/* ── Header ── */}
-            <div className="bg-white border-b border-slate-200 px-6 py-5">
-                <div className="max-w-7xl mx-auto">
+            <div className="rounded-[14px] border border-slate-200 bg-white px-4 py-5 sm:px-6">
+                <div className="w-full">
                     <div className="flex items-start justify-between gap-4 flex-wrap">
                         <div>
                             <div className="flex items-center gap-2 mb-1">
-                                <Brain className="w-6 h-6 text-indigo-600" />
+                                <Brain className="w-6 h-6 text-[#1F4D47]" />
                                 <h1 className="text-xl font-bold text-slate-900">Analyse IA Stratégique</h1>
-                                <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-semibold border border-indigo-200">
+                                <span className="rounded-full border border-[#CBD8D4] bg-[#EEF3F1] px-2 py-0.5 text-xs font-semibold text-[#1F4D47]">
                                     Copilote Hebdomadaire
                                 </span>
                             </div>
                             <p className="text-sm text-slate-500">
-                                Raisonnement multi-étapes sur vos données terrain — transcriptions, notes, RDV, ICP, scripts.
+                                Raisonnement multi-étapes sur vos données terrain : transcriptions, notes, RDV, ICP et scripts.
                             </p>
                         </div>
                         <div className="flex items-center gap-2">
@@ -962,7 +962,7 @@ export default function AnalyseIAPage() {
                                 className={cn(
                                     "flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium transition-colors",
                                     showHistory
-                                        ? "bg-indigo-50 border-indigo-300 text-indigo-700"
+                                        ? "bg-[#EEF3F1] border-[#AFC5BF] text-[#1F4D47]"
                                         : "bg-white border-slate-200 text-slate-600 hover:border-slate-400"
                                 )}
                             >
@@ -986,7 +986,7 @@ export default function AnalyseIAPage() {
                                 <span className="text-sm font-medium text-slate-700 min-w-[200px] text-center">
                                     {formatWeekLabel(weekStart, weekEnd)}
                                     {weekOffset === 0 && (
-                                        <span className="ml-2 text-xs bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded">
+                                        <span className="ml-2 rounded bg-[#EEF3F1] px-1.5 py-0.5 text-xs text-[#1F4D47]">
                                             Cette semaine
                                         </span>
                                     )}
@@ -1006,7 +1006,7 @@ export default function AnalyseIAPage() {
                             placeholder="Label optionnel (ex: Mission Alpha S.15)"
                             value={runLabel}
                             onChange={(e) => setRunLabel(e.target.value)}
-                            className="border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 bg-white w-64 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#FF9E1B]/25 sm:w-64"
                         />
 
                         <button
@@ -1015,8 +1015,8 @@ export default function AnalyseIAPage() {
                             className={cn(
                                 "flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm transition-all shadow-sm",
                                 isRunning
-                                    ? "bg-indigo-400 text-white cursor-not-allowed"
-                                    : "bg-indigo-600 hover:bg-indigo-700 text-white hover:shadow"
+                                    ? "bg-[#7C9B94] text-white cursor-not-allowed"
+                                    : "bg-[#1F4D47] hover:bg-[#143C37] text-white hover:shadow"
                             )}
                         >
                             {isRunning ? (
@@ -1043,7 +1043,7 @@ export default function AnalyseIAPage() {
             </div>
 
             {/* ── Body ── */}
-            <div className="max-w-7xl mx-auto px-4 py-6">
+            <div className="w-full py-1">
                 <div className={cn("flex gap-6", showHistory ? "" : "")}>
                     {/* History Sidebar */}
                     {showHistory && (

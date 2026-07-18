@@ -280,32 +280,32 @@ export default function ApiManagementPage() {
   }
 
   function formatDate(date: string | null) {
-    if (!date) return "Never";
+    if (!date) return "Jamais";
     return new Date(date).toLocaleString();
   }
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-7xl">
+    <div className="elan-page">
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-6">
+      <div>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-              <div className="p-2 bg-indigo-100 rounded-lg">
-                <Key className="w-6 h-6 text-indigo-600" />
+            <h1 className="flex items-center gap-3 text-2xl font-bold text-gray-900">
+              <div className="rounded-[10px] bg-[#EEF3F1] p-2">
+                <Key className="w-6 h-6 text-[#1F4D47]" />
               </div>
-              API Management
+              API et intégrations
             </h1>
             <p className="text-gray-500 mt-2">
-              Secure API keys for external integrations with role-based access control
+              Gérez les clés d&apos;API et les accès de vos intégrations externes.
             </p>
           </div>
           <Button 
             onClick={() => setShowCreateDialog(true)}
-            className="bg-indigo-600 hover:bg-indigo-700"
+            className="bg-[#1F4D47] hover:bg-[#143C37]"
           >
             <Plus className="w-4 h-4 mr-2" />
-            Create API Key
+            Créer une clé API
           </Button>
         </div>
 

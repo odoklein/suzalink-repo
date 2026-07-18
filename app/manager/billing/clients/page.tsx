@@ -104,7 +104,7 @@ export default function BillingClientsPage() {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="elan-page">
             <div className="flex items-center justify-between">
                 <PageHeader
                     title="Clients de facturation"

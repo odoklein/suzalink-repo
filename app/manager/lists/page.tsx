@@ -340,7 +340,7 @@ export default function ListsPage() {
     }, [lists, healthByListId]);
 
     return (
-        <div className="space-y-6">
+        <div className="elan-page">
             {/* Premium Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
@@ -513,7 +513,7 @@ export default function ListsPage() {
                             {[
                                 { value: "all", label: "Toutes tailles" },
                                 { value: "small", label: "< 50" },
-                                { value: "medium", label: "50–200" },
+                                { value: "medium", label: "50-200" },
                                 { value: "large", label: "200+" },
                             ].map((s) => (
                                 <button
@@ -537,7 +537,7 @@ export default function ListsPage() {
                             {[
                                 { value: "all", label: "Qualité" },
                                 { value: "low", label: "< 50%" },
-                                { value: "medium", label: "50–80%" },
+                                { value: "medium", label: "50-80%" },
                                 { value: "high", label: "80%+" },
                             ].map((q) => (
                                 <button
@@ -693,7 +693,7 @@ export default function ListsPage() {
                                             {/* Mission */}
                                             <div className="flex items-center min-w-0">
                                                 <span className="text-xs font-medium text-slate-500 truncate">
-                                                    {list.mission?.name || "—"}
+                                                    {list.mission?.name || "Non assignée"}
                                                 </span>
                                             </div>
 
@@ -721,7 +721,7 @@ export default function ListsPage() {
                                             >
                                                 {!health ? (
                                                     <div className="w-full flex items-center justify-center">
-                                                        <span className="text-[11px] text-slate-400">—</span>
+                                                        <span className="text-[11px] text-slate-400">Non renseigné</span>
                                                     </div>
                                                 ) : (
                                                     <div className="flex flex-col gap-1 w-full min-w-0">
@@ -741,7 +741,7 @@ export default function ListsPage() {
                                                                 <ActivityScoreBar
                                                                     score={health.activityScore}
                                                                     size="sm"
-                                                                    explanation={`Score composite 0–100`}
+                                                                    explanation="Score composite 0-100"
                                                                 />
                                                             </div>
                                                             {health.coverageRate !== null && (
@@ -759,7 +759,7 @@ export default function ListsPage() {
 
                                             {/* Source */}
                                             <div className="flex items-center justify-center">
-                                                <span className="text-[11px] font-medium text-slate-400 truncate">{list.source || "—"}</span>
+                                                <span className="text-[11px] font-medium text-slate-400 truncate">{list.source || "Non renseignée"}</span>
                                             </div>
 
                                             {/* Actions */}

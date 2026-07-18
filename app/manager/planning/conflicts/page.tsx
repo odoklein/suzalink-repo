@@ -125,10 +125,10 @@ export default function PlanningConflictsPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="elan-page">
             {/* Header */}
             <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-                <div className="max-w-5xl mx-auto px-6 py-4">
+                <div className="mx-auto w-full max-w-5xl px-4 py-4 sm:px-0">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <Button variant="ghost" size="sm" onClick={() => router.back()}>
@@ -182,7 +182,7 @@ export default function PlanningConflictsPage() {
             </div>
 
             {/* Content */}
-            <div className="max-w-5xl mx-auto px-6 py-6 space-y-8">
+            <div className="mx-auto w-full max-w-5xl space-y-8">
                 {loading ? (
                     <div className="flex items-center justify-center py-20">
                         <RefreshCw className="w-6 h-6 animate-spin text-gray-400" />

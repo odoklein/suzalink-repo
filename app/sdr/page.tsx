@@ -332,7 +332,7 @@ export default function SDRDashboardPage() {
 
     if (isLoading && !stats) {
         return (
-            <div className="flex items-center justify-center py-32 bg-[#ECE5D8] min-h-screen">
+            <div className="flex min-h-[60dvh] items-center justify-center py-24">
                 <div className="flex flex-col items-center gap-4">
                     <Loader2 className="w-8 h-8 text-[#E07C00] animate-spin" />
                     <p className="text-[13px] text-[var(--elan-slate)] font-medium">Chargement du dashboard...</p>
@@ -345,7 +345,7 @@ export default function SDRDashboardPage() {
     const sparkData = buildSparklineData(stats?.actionsToday ?? 0);
 
     return (
-        <div className="min-h-full bg-[#ECE5D8] p-4 md:p-6">
+        <div className="elan-page">
             {/* Page Header */}
             <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
                 <div>
@@ -577,7 +577,7 @@ export default function SDRDashboardPage() {
                             ) : (
                                 <ul className="space-y-1">
                                     {myActions.map((item) => {
-                                        const name = item.contactName || item.companyName || "—";
+                                        const name = item.contactName || item.companyName || "Non renseigné";
                                         const hasFiche = !!(item.contactId || item.companyId);
                                         return (
                                             <li key={item.id}>

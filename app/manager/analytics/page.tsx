@@ -547,8 +547,8 @@ export default function AnalyticsPage() {
 
     if (isLoading) {
         return (
-            <div className="min-h-[100dvh] bg-[#F5F7F6] p-4 sm:p-6" aria-busy="true" aria-label="Chargement des performances">
-                <div className="mx-auto max-w-[1500px] space-y-5">
+            <div className="elan-page" aria-busy="true" aria-label="Chargement des performances">
+                <div className="space-y-5">
                     <div className="flex items-center justify-between gap-4">
                         <div className="space-y-2"><div className="h-7 w-64 skeleton-shimmer rounded-lg" /><div className="h-3 w-80 max-w-full skeleton-shimmer rounded" /></div>
                         <div className="hidden sm:block h-10 w-72 skeleton-shimmer rounded-xl" />
@@ -567,7 +567,7 @@ export default function AnalyticsPage() {
 
     if (loadError && !stats) {
         return (
-            <div className="min-h-[60dvh] bg-[#F5F7F6] flex items-center justify-center p-6">
+            <div className="flex min-h-[60dvh] items-center justify-center">
                 <div className="w-full max-w-md rounded-xl border border-red-200 bg-white p-6 text-center shadow-sm" role="alert">
                     <AlertTriangle className="mx-auto mb-3 h-8 w-8 text-red-500" />
                     <h1 className="text-lg font-bold text-slate-900">Performances indisponibles</h1>
@@ -594,7 +594,7 @@ export default function AnalyticsPage() {
     const HOURS = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
 
     return (
-        <div className="min-h-full p-5 lg:p-6 pb-20 overflow-x-hidden" style={{ background: "#F5F7F6" }}>
+        <div className="elan-page overflow-x-hidden pb-12">
 
             {/* Page Header */}
             <div className="flex flex-wrap items-center justify-between gap-4 mb-6">

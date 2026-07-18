@@ -171,15 +171,15 @@ export default function SDRProjectsPage() {
     const totalOverdue = projects.reduce((acc, p) => acc + (p.taskStats?.overdue || 0), 0);
 
     return (
-        <div className="p-6 max-w-7xl mx-auto">
+        <div className="elan-page">
             <PageHeader
                 title="Projets"
                 subtitle={`${projects.length} projets`}
-                icon={<FolderKanban className="w-6 h-6 text-indigo-600" />}
+                icon={<FolderKanban className="w-6 h-6 text-[#1F4D47]" />}
                 actions={
                     <button
                         onClick={() => setShowCreate(true)}
-                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors"
+                        className="flex items-center gap-2 rounded-[10px] border border-[#143C37] bg-[#1F4D47] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#143C37]"
                     >
                         <Plus className="w-4 h-4" />
                         Nouveau projet
@@ -204,14 +204,14 @@ export default function SDRProjectsPage() {
                         placeholder="Rechercher un projet..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:border-indigo-400"
+                        className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm focus:border-[#E07C00] focus:outline-none"
                     />
                 </div>
 
                 <select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
-                    className="px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:border-indigo-400"
+                    className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-[#E07C00] focus:outline-none"
                 >
                     <option value="">Tous les statuts</option>
                     <option value="ACTIVE">Actifs</option>
@@ -224,7 +224,7 @@ export default function SDRProjectsPage() {
                         onClick={() => setView("grid")}
                         className={cn(
                             "p-1.5 rounded transition-colors",
-                            view === "grid" ? "bg-white shadow-sm text-indigo-600" : "text-slate-500 hover:text-slate-700"
+                            view === "grid" ? "bg-white shadow-sm text-[#1F4D47]" : "text-slate-500 hover:text-slate-700"
                         )}
                     >
                         <LayoutGrid className="w-4 h-4" />
@@ -233,7 +233,7 @@ export default function SDRProjectsPage() {
                         onClick={() => setView("list")}
                         className={cn(
                             "p-1.5 rounded transition-colors",
-                            view === "list" ? "bg-white shadow-sm text-indigo-600" : "text-slate-500 hover:text-slate-700"
+                            view === "list" ? "bg-white shadow-sm text-[#1F4D47]" : "text-slate-500 hover:text-slate-700"
                         )}
                     >
                         <LayoutList className="w-4 h-4" />

@@ -350,7 +350,7 @@ export default function SDRListDetailPage({ params }: { params: Promise<{ id: st
 
     if (isLoading || !list) {
         return (
-            <div className="p-6 space-y-6">
+        <div className="elan-page">
                 <div className="animate-pulse h-10 w-48 bg-slate-200 rounded"></div>
                 <div className="animate-pulse h-96 w-full bg-slate-200 rounded"></div>
             </div>
@@ -358,7 +358,7 @@ export default function SDRListDetailPage({ params }: { params: Promise<{ id: st
     }
 
     return (
-        <div className="p-6 space-y-6 max-w-[1600px] mx-auto">
+        <div className="elan-page mx-auto max-w-[1600px]">
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">

@@ -195,7 +195,7 @@ function CallbacksStatsModalBody({
                                     const name = cb.contact
                                         ? `${cb.contact.firstName ?? ""} ${cb.contact.lastName ?? ""}`.trim() || "Contact"
                                         : cb.company?.name ?? "Société";
-                                    const company = cb.contact?.company?.name ?? cb.company?.name ?? "—";
+                                    const company = cb.contact?.company?.name ?? cb.company?.name ?? "Non renseignée";
                                     const urgency = getUrgency(cb);
                                     return (
                                         <tr
@@ -211,7 +211,7 @@ function CallbacksStatsModalBody({
                                                 <Badge className={cn("text-xs border", urgency.color)}>{urgency.label}</Badge>
                                             </td>
                                             <td className="py-2.5 px-3 text-slate-600">
-                                                {cb.callbackDate ? formatCallbackDateTime(cb.callbackDate) : "—"}
+                                                {cb.callbackDate ? formatCallbackDateTime(cb.callbackDate) : "Date non renseignée"}
                                             </td>
                                         </tr>
                                     );
@@ -590,7 +590,7 @@ export default function SDRCallbacksPage() {
             header: "Téléphone",
             render: (_, cb) => {
                 const phone = cb.contact?.phone || cb.company?.phone;
-                if (!phone) return <span className="text-xs text-slate-300 flex items-center gap-1"><PhoneOff className="w-3 h-3" /> —</span>;
+                if (!phone) return <span className="text-xs text-slate-400 flex items-center gap-1"><PhoneOff className="w-3 h-3" /> Non renseigné</span>;
                 return (
                     <a
                         href={`tel:${phone}`}
@@ -621,7 +621,7 @@ export default function SDRCallbacksPage() {
                     &quot;{cb.note}&quot;
                 </p>
             ) : (
-                <span className="text-xs text-slate-300">—</span>
+                <span className="text-xs text-slate-400">Non renseigné</span>
             ),
         },
         {
@@ -685,7 +685,7 @@ export default function SDRCallbacksPage() {
     // Show skeleton only when loading and no data to show (no cache)
     if (isLoading && callbacks.length === 0) {
         return (
-            <div className="space-y-6 p-2">
+            <div className="elan-page">
                 <div className="h-24 rounded-2xl bg-slate-100 animate-pulse" />
                 {viewMode === "table" ? (
                     <TableSkeleton columns={5} rows={10} className="rounded-2xl" />
@@ -701,7 +701,7 @@ export default function SDRCallbacksPage() {
     }
 
     return (
-        <div className="space-y-6 animate-fade-in p-2">
+        <div className="elan-page animate-fade-in">
             {/* Modern Header */}
             <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-amber-900 rounded-2xl p-6 shadow-xl">
                 <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 via-transparent to-orange-500/10" />
@@ -1060,7 +1060,7 @@ export default function SDRCallbacksPage() {
                                                 <div className="flex flex-wrap items-center gap-3 mt-2">
                                                     {callback.sdr && (
                                                         <Badge variant="outline" className="bg-slate-50 text-slate-700 border-slate-200">
-                                                            Assigné à: {callback.sdr.name ?? '—'}
+                                                            Assigné à: {callback.sdr.name ?? "Non renseigné"}
                                                         </Badge>
                                                     )}
                                                     {callback.mission?.client && (
@@ -1191,7 +1191,7 @@ export default function SDRCallbacksPage() {
             <Modal
                 isOpen={!!outcomeCallback && !!outcomeResult}
                 onClose={() => { setOutcomeCallback(null); setOutcomeResult(null); setOutcomeNote(""); }}
-                title={outcomeResult ? `Résultat du rappel — ${ACTION_RESULT_LABELS[outcomeResult]}` : ""}
+                title={outcomeResult ? `Résultat du rappel - ${ACTION_RESULT_LABELS[outcomeResult]}` : ""}
                 description={outcomeCallback ? (outcomeCallback.contact ? `${outcomeCallback.contact.firstName ?? ""} ${outcomeCallback.contact.lastName ?? ""}`.trim() || outcomeCallback.company?.name : outcomeCallback.company?.name) ?? "" : ""}
                 size="sm"
             >

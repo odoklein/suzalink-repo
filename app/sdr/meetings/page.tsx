@@ -547,8 +547,8 @@ export default function SDRMeetingsPage() {
         d.toLocaleDateString("fr-FR", { month: "short" }).toUpperCase().replace(".", "");
 
     return (
-        <div className="min-h-full bg-[#F2F3F7] px-4 py-7 pb-20 sm:px-6 animate-fade-in">
-            <div className="mx-auto max-w-7xl space-y-6">
+        <div className="elan-page animate-fade-in pb-12">
+            <div className="space-y-6">
                 <header className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                     <div>
                         <h1 className="text-[2rem] leading-none tracking-tight text-slate-950 font-serif italic">
@@ -792,7 +792,7 @@ export default function SDRMeetingsPage() {
                                                 <span className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full border bg-red-50 text-red-700 border-red-200 animate-pulse">
                                                     <XCircle className="w-2.5 h-2.5" />
                                                     Absent
-                                                    {meeting.meetingFeedback.recontactRequested === "YES" && " — A recontacter"}
+                                                    {meeting.meetingFeedback.recontactRequested === "YES" && " - À recontacter"}
                                                 </span>
                                             )}
                                             {meeting.meetingFeedback && meeting.meetingFeedback.outcome !== "NO_SHOW" && (
@@ -975,7 +975,7 @@ export default function SDRMeetingsPage() {
                                             {selectedMeeting.contact.firstName} {selectedMeeting.contact.lastName}
                                         </p>
                                         <p className="text-xs text-slate-500">
-                                            {selectedMeeting.contact.title || "—"} · {selectedMeeting.contact.company.name}
+                                            {selectedMeeting.contact.title || "Fonction non renseignée"} - {selectedMeeting.contact.company.name}
                                         </p>
                                     </div>
                                 </div>
