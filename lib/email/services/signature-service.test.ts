@@ -27,6 +27,29 @@ test("creates a readable plain text fallback", () => {
   );
 });
 
+test("preserves email-safe layouts, inline styles and hosted logos", () => {
+  const clean = sanitizeEmailSignatureHtml(
+    '<table cellpadding="0" style="font-family:Arial,sans-serif;color:#173f3a"><tr><td style="padding-right:12px"><img src="https://example.com/logo.png" width="72" onerror="alert(1)" style="max-width:72px"></td><td><strong>Jean Dupont</strong><br><a href="mailto:jean@example.com" style="color:#1f4d47">jean@example.com</a></td></tr></table>',
+  );
+
+  assert.ok(clean);
+  assert.match(clean, /<table/);
+  assert.match(clean, /font-family:Arial,sans-serif/);
+  assert.match(clean, /<img src="https:\/\/example.com\/logo.png"/);
+  assert.equal(clean.includes("onerror"), false);
+});
+
+test("removes unsafe CSS URLs from advanced signatures", () => {
+  const clean = sanitizeEmailSignatureHtml(
+    '<div style="color:#123456;background-image:url(https://tracker.test/pixel)">Jean</div>',
+  );
+
+  assert.ok(clean);
+  assert.match(clean, /color:#123456/);
+  assert.equal(clean.includes("background-image"), false);
+  assert.equal(clean.includes("tracker.test"), false);
+});
+
 test("appends an HTML signature once", () => {
   const once = appendEmailSignatureHtml("<p>Bonjour</p>", "<p>Jean</p>");
   assert.ok(once?.includes('data-suzalink-signature="true"'));
@@ -41,7 +64,7 @@ test("appends a text signature once", () => {
 
 test("rejects signatures larger than the configured limit", () => {
   assert.throws(
-    () => sanitizeEmailSignatureHtml("a".repeat(20_001)),
+    () => sanitizeEmailSignatureHtml("a".repeat(100_001)),
     SignatureValidationError,
   );
 });

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 import {
@@ -20,6 +20,10 @@ import {
     Italic,
     Underline,
     Link2,
+    Code2,
+    Eye,
+    Monitor,
+    ClipboardPaste,
 } from "lucide-react";
 
 // ============================================
@@ -399,6 +403,60 @@ interface MailboxManagerDialogProps {
 // SIGNATURE EDITOR
 // ============================================
 
+type SignatureEditorMode = "visual" | "html" | "preview";
+
+const SIGNATURE_STARTER_HTML = `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="font-family:Arial,sans-serif;color:#24312f;line-height:1.45">
+  <tr>
+    <td style="padding-right:16px;vertical-align:top">
+      <img src="https://example.com/logo.png" alt="Logo" width="72" style="display:block;width:72px;max-width:72px;height:auto">
+    </td>
+    <td style="padding-left:16px;border-left:2px solid #ff9e1b;vertical-align:top">
+      <div style="font-size:16px;font-weight:700;color:#173f3a">Prénom Nom</div>
+      <div style="font-size:13px;color:#60706c;margin-top:2px">Fonction · Société</div>
+      <div style="font-size:12px;margin-top:10px">
+        <a href="mailto:prenom@entreprise.com" style="color:#1f4d47;text-decoration:none">prenom@entreprise.com</a><br>
+        <a href="tel:+33102030405" style="color:#1f4d47;text-decoration:none">+33 1 02 03 04 05</a><br>
+        <a href="https://entreprise.com" style="color:#1f4d47;text-decoration:underline">entreprise.com</a>
+      </div>
+    </td>
+  </tr>
+</table>`;
+
+function sanitizeSignatureForClient(html: string): string {
+    if (!html || typeof DOMParser === "undefined") return "";
+    const documentNode = new DOMParser().parseFromString(html, "text/html");
+    documentNode.querySelectorAll("script, style, iframe, object, embed, form, input, button, textarea, select, meta, link, base").forEach((node) => node.remove());
+
+    documentNode.body.querySelectorAll("*").forEach((element) => {
+        Array.from(element.attributes).forEach((attribute) => {
+            const name = attribute.name.toLowerCase();
+            const value = attribute.value.trim().toLowerCase();
+            if (name.startsWith("on") || name === "srcdoc" || name === "contenteditable") {
+                element.removeAttribute(attribute.name);
+                return;
+            }
+            if (name === "href" && !/^(https?:|mailto:|tel:)/i.test(value)) element.removeAttribute(attribute.name);
+            if (name === "src" && !/^(https?:|data:image\/)/i.test(value)) element.removeAttribute(attribute.name);
+            if (name === "style" && /(?:url\s*\(|expression\s*\(|javascript:|@import|behavior\s*:|-moz-binding)/i.test(value)) {
+                element.removeAttribute("style");
+            }
+        });
+    });
+
+    return documentNode.body.innerHTML.trim();
+}
+
+function signatureHasContent(html: string): boolean {
+    if (!html) return false;
+    if (/<(?:img|table|hr)\b/i.test(html)) return true;
+    return html.replace(/<[^>]*>/g, "").replace(/&nbsp;/gi, " ").trim().length > 0;
+}
+
+function buildSignaturePreviewDocument(signatureHtml: string): string {
+    const safeHtml = sanitizeSignatureForClient(signatureHtml);
+    return `<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src https: data:; style-src 'unsafe-inline'; font-src data:"><meta name="viewport" content="width=device-width, initial-scale=1"><style>html,body{margin:0;background:#fff;color:#27312f;font-family:Arial,sans-serif;font-size:14px}body{padding:24px;overflow-wrap:anywhere}.message{line-height:1.6;color:#384441}.signature{margin-top:22px}img{max-width:100%;height:auto}table{max-width:100%}a{cursor:default}</style></head><body><div class="message">Bonjour Camille,<br><br>Merci pour notre échange. Vous trouverez ci-dessous mes coordonnées.</div><div class="signature">${safeHtml || '<span style="color:#94a3b8">Votre signature apparaîtra ici.</span>'}</div></body></html>`;
+}
+
 function SignatureEditorDialog({
     mailbox,
     onClose,
@@ -411,29 +469,55 @@ function SignatureEditorDialog({
     const editorRef = useRef<HTMLDivElement>(null);
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [isEmpty, setIsEmpty] = useState(!mailbox.signatureHtml);
+    const [mode, setMode] = useState<SignatureEditorMode>("visual");
+    const [signatureHtml, setSignatureHtml] = useState(mailbox.signatureHtml || "");
+    const isEmpty = !signatureHasContent(signatureHtml);
+    const previewDocument = useMemo(() => buildSignaturePreviewDocument(signatureHtml), [signatureHtml]);
 
     useEffect(() => {
+        const nextHtml = mailbox.signatureHtml || "";
+        setSignatureHtml(nextHtml);
+        setMode("visual");
         if (editorRef.current) {
-            editorRef.current.innerHTML = mailbox.signatureHtml || "";
+            editorRef.current.innerHTML = sanitizeSignatureForClient(nextHtml);
         }
     }, [mailbox.id, mailbox.signatureHtml]);
+
+    useEffect(() => {
+        if (mode === "visual" && editorRef.current) {
+            editorRef.current.innerHTML = sanitizeSignatureForClient(signatureHtml);
+        }
+        // Hydrate only when entering the visual tab to avoid resetting the caret.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [mode]);
+
+    const syncFromVisualEditor = () => {
+        setSignatureHtml(editorRef.current?.innerHTML.trim() || "");
+    };
+
+    const changeMode = (nextMode: SignatureEditorMode) => {
+        if (mode === "visual") syncFromVisualEditor();
+        setMode(nextMode);
+        setError(null);
+    };
 
     const runCommand = (command: string, value?: string) => {
         editorRef.current?.focus();
         document.execCommand(command, false, value);
-        setIsEmpty(!editorRef.current?.textContent?.trim());
+        syncFromVisualEditor();
     };
 
     const handleSave = async () => {
         setIsSaving(true);
         setError(null);
         try {
-            const signatureHtml = editorRef.current?.innerHTML.trim() || null;
+            const htmlToSave = mode === "visual"
+                ? editorRef.current?.innerHTML.trim() || null
+                : signatureHtml.trim() || null;
             const response = await fetch(`/api/email/mailboxes/${mailbox.id}`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ signatureHtml }),
+                body: JSON.stringify({ signatureHtml: htmlToSave }),
             });
             const result = await response.json();
             if (!response.ok || !result.success) {
@@ -452,7 +536,7 @@ function SignatureEditorDialog({
         <>
             <div className="fixed inset-0 z-[110] bg-[#15201E]/45 backdrop-blur-[2px]" onClick={onClose} />
             <div
-                className="fixed left-1/2 top-1/2 z-[111] flex max-h-[calc(100dvh-2rem)] w-[min(720px,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-xl border border-[#DDE5E2] bg-white shadow-[0_24px_70px_rgba(21,32,30,0.24)]"
+                className="fixed inset-0 z-[111] flex flex-col overflow-hidden border border-[#DDE5E2] bg-white shadow-[0_24px_70px_rgba(21,32,30,0.24)] sm:inset-auto sm:left-1/2 sm:top-1/2 sm:h-[min(780px,calc(100dvh-2rem))] sm:max-h-[calc(100dvh-2rem)] sm:w-[min(920px,calc(100vw-2rem))] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-xl"
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="signature-editor-title"
@@ -471,50 +555,93 @@ function SignatureEditorDialog({
                     </button>
                 </div>
 
-                <div className="overflow-y-auto bg-[#F7F9F8] p-5">
-                    <p className="mb-2 text-sm font-semibold text-slate-700">Contenu de la signature</p>
-                    <div className="overflow-hidden rounded-xl border border-[#CBD8D4] bg-white focus-within:border-[#E07C00] focus-within:ring-2 focus-within:ring-[#FF9E1B]/20">
-                        <div className="flex items-center gap-1 border-b border-[#E1E7E5] bg-[#F7F9F8] px-2 py-1.5">
+                <div className="flex min-h-0 flex-1 flex-col bg-[#F7F9F8] p-4 sm:p-5">
+                    <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <p className="text-sm font-semibold text-slate-700">Conception de la signature</p>
+                            <p className="mt-0.5 text-xs text-slate-500">Collez une signature mise en forme ou utilisez directement votre code HTML.</p>
+                        </div>
+                        <div className="grid grid-cols-3 rounded-lg border border-[#CBD8D4] bg-white p-1" role="tablist" aria-label="Mode d'édition">
                             {[
-                                { command: "bold", label: "Gras", icon: Bold },
-                                { command: "italic", label: "Italique", icon: Italic },
-                                { command: "underline", label: "Souligné", icon: Underline },
-                            ].map(({ command, label, icon: Icon }) => (
+                                { id: "visual" as const, label: "Visuel", icon: PenLine },
+                                { id: "html" as const, label: "HTML", icon: Code2 },
+                                { id: "preview" as const, label: "Aperçu", icon: Eye },
+                            ].map(({ id, label, icon: Icon }) => (
                                 <button
-                                    key={command}
+                                    key={id}
                                     type="button"
-                                    onClick={() => runCommand(command)}
-                                    className="rounded-lg p-2 text-slate-500 hover:bg-white hover:text-[#1F4D47]"
-                                    title={label}
-                                    aria-label={label}
+                                    role="tab"
+                                    aria-selected={mode === id}
+                                    onClick={() => changeMode(id)}
+                                    className={cn(
+                                        "inline-flex h-9 items-center justify-center gap-1.5 rounded-md px-3 text-xs font-bold transition-colors",
+                                        mode === id ? "bg-[#1F4D47] text-white" : "text-slate-500 hover:bg-[#EEF3F1] hover:text-[#1F4D47]",
+                                    )}
                                 >
-                                    <Icon className="h-4 w-4" />
+                                    <Icon className="h-3.5 w-3.5" />
+                                    {label}
                                 </button>
                             ))}
-                            <div className="mx-1 h-5 w-px bg-[#DDE5E2]" />
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    const url = window.prompt("Adresse du lien (https://, mailto: ou tel:)");
-                                    if (url) runCommand("createLink", url);
-                                }}
-                                className="rounded-lg p-2 text-slate-500 hover:bg-white hover:text-[#1F4D47]"
-                                title="Ajouter un lien"
-                                aria-label="Ajouter un lien"
-                            >
-                                <Link2 className="h-4 w-4" />
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    if (editorRef.current) editorRef.current.innerHTML = "";
-                                    setIsEmpty(true);
-                                }}
-                                className="ml-auto rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-500 hover:bg-red-50 hover:text-red-600"
-                            >
-                                Effacer
-                            </button>
                         </div>
+                    </div>
+
+                    <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-[#CBD8D4] bg-white focus-within:border-[#E07C00] focus-within:ring-2 focus-within:ring-[#FF9E1B]/20">
+                        {mode === "visual" && (
+                            <div className="flex items-center gap-1 border-b border-[#E1E7E5] bg-[#F7F9F8] px-2 py-1.5">
+                                {[
+                                    { command: "bold", label: "Gras", icon: Bold },
+                                    { command: "italic", label: "Italique", icon: Italic },
+                                    { command: "underline", label: "Souligné", icon: Underline },
+                                ].map(({ command, label, icon: Icon }) => (
+                                    <button key={command} type="button" onClick={() => runCommand(command)} className="rounded-lg p-2 text-slate-500 hover:bg-white hover:text-[#1F4D47]" title={label} aria-label={label}>
+                                        <Icon className="h-4 w-4" />
+                                    </button>
+                                ))}
+                                <div className="mx-1 h-5 w-px bg-[#DDE5E2]" />
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const url = window.prompt("Adresse du lien (https://, mailto: ou tel:)");
+                                        if (url) runCommand("createLink", url);
+                                    }}
+                                    className="rounded-lg p-2 text-slate-500 hover:bg-white hover:text-[#1F4D47]"
+                                    title="Ajouter un lien"
+                                    aria-label="Ajouter un lien"
+                                >
+                                    <Link2 className="h-4 w-4" />
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        if (editorRef.current) editorRef.current.innerHTML = "";
+                                        setSignatureHtml("");
+                                    }}
+                                    className="ml-auto rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-500 hover:bg-red-50 hover:text-red-600"
+                                >
+                                    Effacer
+                                </button>
+                            </div>
+                        )}
+
+                        {mode === "html" && (
+                            <div className="flex items-center justify-between border-b border-[#E1E7E5] bg-[#F7F9F8] px-3 py-2">
+                                <div className="flex items-center gap-2 text-xs font-semibold text-slate-600">
+                                    <Code2 className="h-4 w-4 text-[#1F4D47]" />
+                                    Source HTML
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        if (isEmpty || window.confirm("Remplacer la signature actuelle par le modèle ?")) setSignatureHtml(SIGNATURE_STARTER_HTML);
+                                    }}
+                                    className="inline-flex items-center gap-1.5 rounded-md border border-[#CBD8D4] bg-white px-2.5 py-1.5 text-xs font-semibold text-[#1F4D47] hover:bg-[#EEF3F1]"
+                                >
+                                    <ClipboardPaste className="h-3.5 w-3.5" />
+                                    Charger un modèle
+                                </button>
+                            </div>
+                        )}
+
                         <div
                             ref={editorRef}
                             contentEditable
@@ -523,17 +650,48 @@ function SignatureEditorDialog({
                             aria-multiline="true"
                             aria-label="Contenu de la signature"
                             data-placeholder="Nom, fonction, téléphone, site web..."
-                            onInput={() => setIsEmpty(!editorRef.current?.textContent?.trim())}
+                            onInput={syncFromVisualEditor}
                             onPaste={(event) => {
                                 event.preventDefault();
-                                document.execCommand("insertText", false, event.clipboardData.getData("text/plain"));
+                                const richHtml = event.clipboardData.getData("text/html");
+                                if (richHtml) document.execCommand("insertHTML", false, sanitizeSignatureForClient(richHtml));
+                                else document.execCommand("insertText", false, event.clipboardData.getData("text/plain"));
+                                window.requestAnimationFrame(syncFromVisualEditor);
                             }}
-                            className="min-h-[180px] px-4 py-4 text-sm leading-relaxed text-slate-800 outline-none empty:before:pointer-events-none empty:before:text-slate-400 empty:before:content-[attr(data-placeholder)] [&_a]:text-[#1F4D47] [&_a]:underline"
+                            className={cn(
+                                "min-h-0 flex-1 overflow-auto px-4 py-4 text-sm leading-relaxed text-slate-800 outline-none empty:before:pointer-events-none empty:before:text-slate-400 empty:before:content-[attr(data-placeholder)] [&_a]:text-[#1F4D47] [&_a]:underline [&_img]:max-w-full",
+                                mode !== "visual" && "hidden",
+                            )}
                         />
+
+                        {mode === "html" && (
+                            <textarea
+                                value={signatureHtml}
+                                onChange={(event) => setSignatureHtml(event.target.value)}
+                                spellCheck={false}
+                                aria-label="Code HTML de la signature"
+                                placeholder={'<table style="font-family:Arial,sans-serif">...</table>'}
+                                className="min-h-0 flex-1 resize-none overflow-auto bg-[#FCFDFD] p-4 font-mono text-[12px] leading-6 text-slate-800 outline-none selection:bg-[#FF9E1B]/25"
+                            />
+                        )}
+
+                        {mode === "preview" && (
+                            <div className="flex min-h-0 flex-1 flex-col bg-[#E9EFED]">
+                                <div className="flex h-10 shrink-0 items-center gap-2 border-b border-[#D7E1DE] bg-[#F7F9F8] px-3 text-xs font-semibold text-slate-500">
+                                    <Monitor className="h-4 w-4 text-[#1F4D47]" />
+                                    Aperçu dans un email
+                                    <span className="ml-auto rounded-md border border-[#D7E1DE] bg-white px-2 py-1 text-[10px] text-slate-400">Sandbox sécurisé</span>
+                                </div>
+                                <div className="min-h-0 flex-1 p-3 sm:p-5">
+                                    <iframe title="Aperçu de la signature email" sandbox="" srcDoc={previewDocument} className="h-full min-h-[300px] w-full rounded-lg border border-[#CBD8D4] bg-white shadow-[0_8px_24px_rgba(31,77,71,0.08)]" />
+                                </div>
+                            </div>
+                        )}
                     </div>
+
                     <div className="mt-3 flex items-start gap-2 rounded-lg border border-[#D7E1DE] bg-[#EEF3F1] px-3 py-2.5 text-xs leading-relaxed text-[#3F625D]">
                         <CheckCircle className="mt-0.5 h-4 w-4 shrink-0" />
-                        <p>Cette signature sera ajoutée automatiquement aux nouveaux messages, réponses et transferts envoyés depuis cette boîte.</p>
+                        <p>Le HTML est nettoyé à l&apos;enregistrement. Les styles inline, tableaux, liens et logos HTTPS sont conservés. Les scripts et événements sont supprimés.</p>
                     </div>
                     {error && (
                         <div className="mt-3 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700" role="alert">
@@ -544,7 +702,7 @@ function SignatureEditorDialog({
                 </div>
 
                 <div className="flex items-center justify-between gap-3 border-t border-[#E1E7E5] bg-white px-5 py-4">
-                    <span className="text-xs text-slate-400">{isEmpty ? "Aucune signature" : "Aperçu identique dans le composeur"}</span>
+                    <span className="text-xs text-slate-400">{isEmpty ? "Aucune signature" : `${signatureHtml.length.toLocaleString("fr-FR")} / 100 000 caractères`}</span>
                     <div className="flex gap-2">
                         <button onClick={onClose} disabled={isSaving} className="h-10 rounded-lg border border-[#CBD8D4] px-4 text-sm font-semibold text-slate-700 hover:bg-[#F1F4F3] disabled:opacity-50">
                             Annuler

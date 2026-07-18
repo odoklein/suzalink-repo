@@ -183,8 +183,8 @@ export async function PATCH(
                 throw new SignatureValidationError('La signature doit être une chaîne de caractères');
             }
             const signature = body.signature?.trim() || null;
-            if (signature && signature.length > 20_000) {
-                throw new SignatureValidationError('La signature dépasse la limite de 20 000 caractères');
+            if (signature && signature.length > MAX_EMAIL_SIGNATURE_LENGTH) {
+                throw new SignatureValidationError(`La signature dépasse la limite de ${MAX_EMAIL_SIGNATURE_LENGTH.toLocaleString('fr-FR')} caractères`);
             }
             updateData.signature = signature;
         }
