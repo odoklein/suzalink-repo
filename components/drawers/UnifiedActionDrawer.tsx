@@ -3004,7 +3004,7 @@ export function UnifiedActionDrawer({
                                     )}
 
                                     {/* Note */}
-                                    {newActionResult !== "ENVOIE_MAIL" && !(newActionResult === "MEETING_BOOKED" && canOpenBookingFlow) && (
+                                    {newActionResult !== "ENVOIE_MAIL" && (
                                     <div>
                                         <label
                                             htmlFor="action-note"
@@ -3106,8 +3106,7 @@ export function UnifiedActionDrawer({
                                     </div>
                                     )}
 
-                                    {/* BookingDrawer owns the final CRM write for meeting bookings. */}
-                                    {newActionResult !== "ENVOIE_MAIL" && !(newActionResult === "MEETING_BOOKED" && canOpenBookingFlow) && (
+                                    {newActionResult !== "ENVOIE_MAIL" && (
                                     <div className="flex flex-col sm:flex-row gap-2 pt-3 mt-1 border-t border-indigo-100">
                                         <Button
                                             type="button"
