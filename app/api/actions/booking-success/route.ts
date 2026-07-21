@@ -62,7 +62,7 @@ function isLikelyJoinLink(value: string): boolean {
     const host = url.hostname.toLowerCase();
     const full = candidate.toLowerCase();
 
-    if (host.includes('calendly.com') || host.endsWith('.cal.com') || host === 'cal.com') {
+    if (host.includes('calendly.com') || host.endsWith('.cal.com') || host === 'cal.com' || host.endsWith('.cal.eu') || host === 'cal.eu') {
         return false;
     }
 

@@ -94,6 +94,7 @@ export const config = {
         "/developer/:path*",
         "/bd/:path*",
         "/commercial/:path*",
+        "/calendar",
         "/dashboard",
         // All /api routes except /api/auth/* (NextAuth handles its own routes)
         "/api/((?!auth/).*)",

@@ -177,6 +177,13 @@ export const MANAGER_NAV: NavSection[] = [
         label: "Projets",
         permission: "pages.projects",
       },
+      {
+        href: "/calendar",
+        icon: CalendarClock,
+        label: "Calendrier projet",
+        permission: "pages.projects",
+        openInNewTab: true,
+      },
     ],
   },
   {
@@ -315,6 +322,13 @@ export const SDR_NAV: NavSection[] = [
         icon: FolderKanban,
         label: "Projets",
         permission: "pages.projects",
+      },
+      {
+        href: "/calendar",
+        icon: CalendarClock,
+        label: "Calendrier projet",
+        permission: "pages.projects",
+        openInNewTab: true,
       },
       {
         href: "/sdr/planning",
@@ -503,6 +517,13 @@ export const DEVELOPER_NAV: NavSection[] = [
         icon: List,
         label: "Tâches",
         permission: "pages.projects",
+      },
+      {
+        href: "/calendar",
+        icon: CalendarClock,
+        label: "Calendrier projet",
+        permission: "pages.projects",
+        openInNewTab: true,
       },
     ],
   },
