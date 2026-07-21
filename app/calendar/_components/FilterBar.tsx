@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Filter, X } from "lucide-react";
+import { Filter, X, Check } from "lucide-react";
 import type { CalendarProject, CalendarMember, CalendarFilters } from "../_lib/types";
 import { STATUS_LABELS } from "../_lib/calendar-utils";
 
@@ -16,7 +16,7 @@ export function FilterBar({ projects, members, filters, onChange }: FilterBarPro
   const activeCount = filters.projectIds.length + filters.memberIds.length + filters.statuses.length;
 
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+    <div className="cal-filters">
       <MultiSelect
         label="Projets"
         options={projects.map((p) => ({ value: p.id, label: p.name, color: p.color }))}
@@ -39,13 +39,9 @@ export function FilterBar({ projects, members, filters, onChange }: FilterBarPro
         <button
           type="button"
           onClick={() => onChange({ projectIds: [], memberIds: [], statuses: [] })}
-          style={{
-            display: "flex", alignItems: "center", gap: 4, fontSize: 12, color: "var(--elan-danger)",
-            background: "none", border: "none", cursor: "pointer", padding: "4px 8px",
-            fontFamily: "var(--font-elan-sans)",
-          }}
+          className="cal-filter-clear"
         >
-          <X size={14} /> Effacer ({activeCount})
+          <X size={13} /> Effacer ({activeCount})
         </button>
       )}
     </div>
@@ -82,55 +78,38 @@ function MultiSelect({ label, options, selected, onSelectedChange }: MultiSelect
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        style={{
-          display: "flex", alignItems: "center", gap: 6, padding: "5px 12px", fontSize: 13,
-          borderRadius: 6, border: "1px solid var(--elan-line)", cursor: "pointer",
-          fontFamily: "var(--font-elan-sans)", fontWeight: 500,
-          background: selected.length > 0 ? "var(--elan-petrol)" : "var(--elan-surface)",
-          color: selected.length > 0 ? "#fff" : "var(--elan-ink-soft)",
-          transition: "all 0.15s",
-        }}
+        className={`cal-filter-btn ${selected.length > 0 ? "cal-filter-btn-active" : ""}`}
       >
-        <Filter size={13} />
+        <Filter size={12} />
         {label}
         {selected.length > 0 && (
-          <span style={{
-            background: "rgba(255,255,255,0.2)", borderRadius: 10, padding: "0 6px",
-            fontSize: 11, fontWeight: 600,
-          }}>
-            {selected.length}
-          </span>
+          <span className="cal-filter-badge">{selected.length}</span>
         )}
       </button>
       {open && (
-        <div style={{
-          position: "absolute", top: "100%", left: 0, marginTop: 4, zIndex: 50,
-          background: "var(--elan-surface)", border: "1px solid var(--elan-line)",
-          borderRadius: 8, boxShadow: "var(--elan-shadow-md)", minWidth: 200,
-          maxHeight: 280, overflowY: "auto", padding: 4,
-        }}>
-          {options.map((opt) => (
-            <label
-              key={opt.value}
-              style={{
-                display: "flex", alignItems: "center", gap: 8, padding: "6px 10px",
-                borderRadius: 6, cursor: "pointer", fontSize: 13,
-                fontFamily: "var(--font-elan-sans)", color: "var(--elan-ink)",
-                background: selected.includes(opt.value) ? "var(--elan-eucalyptus)" : "transparent",
-              }}
-            >
-              <input
-                type="checkbox"
-                checked={selected.includes(opt.value)}
-                onChange={() => toggle(opt.value)}
-                style={{ accentColor: "var(--elan-petrol)" }}
-              />
-              {opt.color && (
-                <span style={{ width: 10, height: 10, borderRadius: "50%", background: opt.color, flexShrink: 0 }} />
-              )}
-              <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{opt.label}</span>
-            </label>
-          ))}
+        <div className="cal-dropdown">
+          {options.map((opt) => {
+            const isChecked = selected.includes(opt.value);
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => toggle(opt.value)}
+                className={`cal-dropdown-item ${isChecked ? "cal-dropdown-item-active" : ""}`}
+              >
+                <span style={{
+                  width: 16, height: 16, borderRadius: 4, display: "flex", alignItems: "center", justifyContent: "center",
+                  border: isChecked ? "none" : "1.5px solid var(--elan-line-strong)",
+                  background: isChecked ? "var(--elan-petrol)" : "transparent",
+                  color: "#fff", flexShrink: 0, transition: "all 0.15s",
+                }}>
+                  {isChecked && <Check size={11} strokeWidth={3} />}
+                </span>
+                {opt.color && <span className="cal-color-dot" style={{ background: opt.color }} />}
+                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{opt.label}</span>
+              </button>
+            );
+          })}
           {options.length === 0 && (
             <div style={{ padding: "12px 10px", fontSize: 13, color: "var(--elan-slate)" }}>Aucun élément</div>
           )}

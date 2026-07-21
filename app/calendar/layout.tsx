@@ -3,6 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import "./calendar.css";
 
 export default function CalendarLayout({ children }: { children: React.ReactNode }) {
   const { status } = useSession();
@@ -14,18 +15,13 @@ export default function CalendarLayout({ children }: { children: React.ReactNode
 
   if (status === "loading") {
     return (
-      <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--elan-paper-2)" }}>
-        <div style={{ width: 32, height: 32, border: "3px solid var(--elan-line)", borderTopColor: "var(--elan-petrol)", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
-        <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+      <div className="cal-shell" style={{ alignItems: "center", justifyContent: "center" }}>
+        <div className="cal-spinner" />
       </div>
     );
   }
 
   if (status !== "authenticated") return null;
 
-  return (
-    <div style={{ height: "100vh", display: "flex", flexDirection: "column", overflow: "hidden", background: "var(--elan-paper-2)" }}>
-      {children}
-    </div>
-  );
+  return <div className="cal-shell">{children}</div>;
 }

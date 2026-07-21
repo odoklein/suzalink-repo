@@ -1,8 +1,8 @@
 "use client";
 
 import { useMemo } from "react";
-import { Diamond } from "lucide-react";
-import { buildWeekDays, toLocalDateKey, groupTasksByDate, groupMilestonesByDate, PRIORITY_COLORS } from "../_lib/calendar-utils";
+import { Diamond, CalendarX } from "lucide-react";
+import { buildWeekDays, toLocalDateKey, groupTasksByDate, groupMilestonesByDate } from "../_lib/calendar-utils";
 import type { CalendarTask, CalendarMilestone } from "../_lib/types";
 
 interface WeekViewProps {
@@ -20,13 +20,23 @@ export function WeekView({ calendarDate, tasks, milestones, onDayClick }: WeekVi
   const milestonesByDate = useMemo(() => groupMilestonesByDate(milestones), [milestones]);
   const todayKey = toLocalDateKey(new Date());
 
-  return (
-    <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-      {/* All-day row */}
-      <div style={{ display: "flex", borderBottom: "1px solid var(--elan-line)", flexShrink: 0 }}>
-        <div style={{ width: 56, flexShrink: 0, padding: "8px 0", textAlign: "right", paddingRight: 10, fontSize: 10, color: "var(--elan-slate)", fontFamily: "var(--font-elan-sans)" }}>
-          Journée
+  if (tasks.length === 0 && milestones.length === 0) {
+    return (
+      <div className="cal-week" style={{ alignItems: "center", justifyContent: "center" }}>
+        <div className="cal-empty">
+          <div className="cal-empty-icon"><CalendarX size={26} /></div>
+          <div className="cal-empty-title">Semaine libre</div>
+          <div className="cal-empty-text">Aucune tâche prévue cette semaine</div>
         </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="cal-week">
+      {/* All-day row */}
+      <div className="cal-week-allday">
+        <div className="cal-week-allday-label">Journée</div>
         {days.map((d) => {
           const key = toLocalDateKey(d);
           const dayTasks = (tasksByDate.get(key) || []).filter((t) => !hasTime(t));
@@ -37,51 +47,37 @@ export function WeekView({ calendarDate, tasks, milestones, onDayClick }: WeekVi
               key={key}
               onClick={() => onDayClick(d)}
               style={{
-                flex: 1, minWidth: 110, borderLeft: "1px solid var(--elan-line)",
-                padding: "4px 6px", minHeight: 32, cursor: "pointer",
+                flex: 1, minWidth: 120, borderLeft: "1px solid var(--elan-line)",
+                padding: "4px 6px", minHeight: 36, cursor: "pointer",
                 background: isToday ? "rgba(12, 59, 56, 0.04)" : "transparent",
               }}
             >
               {dayMilestones.map((m) => (
-                <div key={m.id} style={{
-                  display: "flex", alignItems: "center", gap: 3, fontSize: 10, fontWeight: 600,
-                  color: m.project.color, marginBottom: 2, fontFamily: "var(--font-elan-sans)",
-                  overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                }}>
-                  <Diamond size={9} style={{ flexShrink: 0 }} /> {m.title}
+                <div key={m.id} className="cal-milestone-pill" style={{ background: `${m.project.color}14`, color: m.project.color, marginBottom: 2, fontSize: 10 }}>
+                  <Diamond size={8} style={{ flexShrink: 0 }} /> <span className="cal-pill-text">{m.title}</span>
                 </div>
               ))}
               {dayTasks.slice(0, 2).map((t) => (
-                <div key={t.id} style={{
-                  fontSize: 10, padding: "1px 4px", borderRadius: 3, marginBottom: 1,
-                  borderLeft: `2px solid ${t.project.color}`, background: "var(--elan-paper)",
-                  overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                  fontFamily: "var(--font-elan-sans)", color: "var(--elan-ink)",
-                }}>
-                  {t.title}
+                <div key={t.id} className="cal-pill" style={{ borderLeftColor: t.project.color, fontSize: 10, marginBottom: 1 }}>
+                  <span className="cal-pill-text">{t.title}</span>
                 </div>
               ))}
-              {dayTasks.length > 2 && (
-                <div style={{ fontSize: 9, color: "var(--elan-slate)" }}>+{dayTasks.length - 2}</div>
-              )}
+              {dayTasks.length > 2 && <div className="cal-more" style={{ fontSize: 9 }}>+{dayTasks.length - 2}</div>}
             </div>
           );
         })}
       </div>
 
       {/* Day headers */}
-      <div style={{ display: "flex", borderBottom: "1px solid var(--elan-line)", flexShrink: 0 }}>
-        <div style={{ width: 56, flexShrink: 0 }} />
+      <div className="cal-week-headers">
+        <div className="cal-week-header-spacer" />
         {days.map((d) => {
           const key = toLocalDateKey(d);
           const isToday = key === todayKey;
           return (
-            <div key={key} style={{
-              flex: 1, minWidth: 110, borderLeft: "1px solid var(--elan-line)",
-              height: 40, display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 13, fontWeight: isToday ? 700 : 400, fontFamily: "var(--font-elan-sans)",
-              color: isToday ? "var(--elan-petrol)" : "var(--elan-ink-soft)",
-            }}>
+            <div key={key} className={`cal-week-header-day ${isToday ? "cal-week-header-today" : ""}`}
+              style={{ fontWeight: isToday ? 700 : 400, color: isToday ? "var(--elan-petrol)" : "var(--elan-ink-soft)" }}
+            >
               {d.toLocaleDateString("fr-FR", { weekday: "short", day: "numeric" })}
             </div>
           );
@@ -89,15 +85,10 @@ export function WeekView({ calendarDate, tasks, milestones, onDayClick }: WeekVi
       </div>
 
       {/* Time grid */}
-      <div style={{ flex: 1, display: "flex", overflow: "auto" }}>
-        <div style={{ width: 56, flexShrink: 0 }}>
+      <div className="cal-week-grid">
+        <div className="cal-week-hours">
           {HOURS.map((h) => (
-            <div key={h} style={{
-              height: 64, fontSize: 11, color: "var(--elan-slate)", textAlign: "right",
-              paddingRight: 10, paddingTop: 2, fontWeight: 500, fontFamily: "var(--font-elan-sans)",
-            }}>
-              {h}:00
-            </div>
+            <div key={h} className="cal-week-hour-label">{h}:00</div>
           ))}
         </div>
         {days.map((d) => {
@@ -105,38 +96,46 @@ export function WeekView({ calendarDate, tasks, milestones, onDayClick }: WeekVi
           const dayTasks = (tasksByDate.get(key) || []).filter((t) => hasTime(t));
           const isToday = key === todayKey;
           return (
-            <div key={key} style={{
-              flex: 1, minWidth: 110, borderLeft: "1px solid var(--elan-line)",
-              position: "relative",
-              background: isToday ? "rgba(12, 59, 56, 0.02)" : "transparent",
-            }}>
-              {HOURS.map((h) => (
-                <div key={h} style={{ height: 64, borderTop: "1px solid var(--elan-line)" }} />
-              ))}
+            <div key={key} className={`cal-week-col ${isToday ? "cal-week-col-today" : ""}`}>
+              {HOURS.map((h) => <div key={h} className="cal-week-hour-row" />)}
+
+              {/* Now line */}
+              {isToday && (() => {
+                const now = new Date();
+                const h = now.getHours();
+                const m = now.getMinutes();
+                if (h < 8 || h >= 20) return null;
+                const top = (h - 8) * 64 + Math.round((m * 64) / 60);
+                return (
+                  <div style={{
+                    position: "absolute", left: 0, right: 0, top,
+                    height: 2, background: "var(--elan-amber)", zIndex: 4, opacity: 0.7,
+                    boxShadow: "0 0 6px rgba(255, 158, 27, 0.3)",
+                  }}>
+                    <div style={{
+                      position: "absolute", left: -3, top: -3, width: 8, height: 8,
+                      borderRadius: "50%", background: "var(--elan-amber)",
+                    }} />
+                  </div>
+                );
+              })()}
+
               {dayTasks.map((t) => {
                 const pos = getTaskPosition(t);
                 if (!pos) return null;
                 return (
                   <div
                     key={t.id}
+                    className="cal-week-event"
                     onClick={() => onDayClick(d)}
                     style={{
-                      position: "absolute", top: pos.top, left: 3, right: 3,
-                      height: Math.max(pos.height, 28), borderRadius: 6,
-                      background: `${t.project.color}18`,
-                      borderLeft: `3px solid ${t.project.color}`,
-                      padding: "4px 6px", cursor: "pointer", overflow: "hidden",
-                      fontSize: 11, fontFamily: "var(--font-elan-sans)", color: "var(--elan-ink)",
+                      top: pos.top, height: Math.max(pos.height, 28),
+                      background: `${t.project.color}14`,
+                      borderLeftColor: t.project.color,
                     }}
                   >
-                    <div style={{ fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                      {t.title}
-                    </div>
-                    {t.assignee && (
-                      <div style={{ fontSize: 10, color: "var(--elan-slate)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        {t.assignee.name}
-                      </div>
-                    )}
+                    <div className="cal-week-event-title">{t.title}</div>
+                    {t.assignee && <div className="cal-week-event-assignee">{t.assignee.name}</div>}
                   </div>
                 );
               })}

@@ -30,6 +30,7 @@ export default function CalendarPage() {
   const [data, setData] = useState<CalendarData | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
+  const [initialLoad, setInitialLoad] = useState(true);
 
   const backHref = ROLE_PATHS[session?.user?.role || ""] || "/dashboard";
   const dateRange = useMemo(() => getDateRange(calendarDate, view), [calendarDate, view]);
@@ -52,12 +53,17 @@ export default function CalendarPage() {
       console.error("Calendar fetch error:", err);
     } finally {
       setLoading(false);
+      setInitialLoad(false);
     }
   }, [dateRange, filters]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
+  // Close detail panel when switching views
+  useEffect(() => { setSelectedDay(null); }, [view]);
+
   const navigate = (direction: -1 | 0 | 1) => {
+    setSelectedDay(null);
     if (direction === 0) {
       setCalendarDate(new Date());
       return;
@@ -70,7 +76,15 @@ export default function CalendarPage() {
     });
   };
 
-  const handleDayClick = (date: Date) => setSelectedDay(date);
+  const handleDayClick = (date: Date) => {
+    const clickedKey = toLocalDateKey(date);
+    const selectedKey = selectedDay ? toLocalDateKey(selectedDay) : null;
+    if (clickedKey === selectedKey) {
+      setSelectedDay(null);
+    } else {
+      setSelectedDay(date);
+    }
+  };
 
   const selectedDayKey = selectedDay ? toLocalDateKey(selectedDay) : null;
   const tasksByDate = useMemo(() => data ? groupTasksByDate(data.tasks) : new Map(), [data]);
@@ -86,6 +100,7 @@ export default function CalendarPage() {
         onViewChange={setView}
         onNavigate={navigate}
         backHref={backHref}
+        data={data}
       >
         <FilterBar
           projects={data?.projects || []}
@@ -95,58 +110,63 @@ export default function CalendarPage() {
         />
       </CalendarHeader>
 
-      <div style={{ flex: 1, display: "flex", overflow: "hidden", position: "relative" }}>
-        {loading && (
-          <div style={{
-            position: "absolute", inset: 0, zIndex: 20,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            background: "rgba(244, 240, 232, 0.6)", backdropFilter: "blur(2px)",
-          }}>
-            <div style={{
-              width: 32, height: 32, border: "3px solid var(--elan-line)",
-              borderTopColor: "var(--elan-petrol)", borderRadius: "50%",
-              animation: "spin 0.8s linear infinite",
-            }} />
-            <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+      <div className="cal-body">
+        {loading && !initialLoad && (
+          <div className="cal-loading">
+            <div className="cal-spinner" />
           </div>
         )}
 
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-          {view === "month" && data && (
-            <MonthView
-              calendarDate={calendarDate}
-              tasks={data.tasks}
-              milestones={data.milestones}
-              onDayClick={handleDayClick}
-            />
-          )}
-          {view === "week" && data && (
-            <WeekView
-              calendarDate={calendarDate}
-              tasks={data.tasks}
-              milestones={data.milestones}
-              onDayClick={handleDayClick}
-            />
-          )}
-          {view === "timeline" && data && (
-            <TimelineView
-              calendarDate={calendarDate}
-              tasks={data.tasks}
-              milestones={data.milestones}
-              projects={data.projects}
-              dateRange={dateRange}
-            />
-          )}
-          {view === "availability" && data && (
-            <AvailabilityView
-              calendarDate={calendarDate}
-              members={data.members}
-              dateRange={dateRange}
-            />
-          )}
-        </div>
+        {initialLoad && (
+          <div className="cal-loading" style={{ background: "var(--elan-paper-2)" }}>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
+              <div className="cal-spinner" />
+              <div style={{ fontSize: 13, color: "var(--elan-slate)", fontFamily: "var(--font-elan-sans)", fontWeight: 500 }}>
+                Chargement du calendrier...
+              </div>
+            </div>
+          </div>
+        )}
 
-        {selectedDay && (
+        {!initialLoad && (
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+            {view === "month" && data && (
+              <MonthView
+                calendarDate={calendarDate}
+                tasks={data.tasks}
+                milestones={data.milestones}
+                selectedDay={selectedDay}
+                onDayClick={handleDayClick}
+              />
+            )}
+            {view === "week" && data && (
+              <WeekView
+                calendarDate={calendarDate}
+                tasks={data.tasks}
+                milestones={data.milestones}
+                onDayClick={handleDayClick}
+              />
+            )}
+            {view === "timeline" && data && (
+              <TimelineView
+                calendarDate={calendarDate}
+                tasks={data.tasks}
+                milestones={data.milestones}
+                projects={data.projects}
+                dateRange={dateRange}
+              />
+            )}
+            {view === "availability" && data && (
+              <AvailabilityView
+                calendarDate={calendarDate}
+                members={data.members}
+                dateRange={dateRange}
+              />
+            )}
+          </div>
+        )}
+
+        {selectedDay && !initialLoad && (
           <DayDetailPanel
             date={selectedDay}
             tasks={selectedDayTasks}
