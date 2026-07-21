@@ -1,322 +1,287 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect, use, useMemo } from "react";
 import Link from "next/link";
 import {
-    ArrowLeft,
-    Calendar,
-    CheckSquare,
-    Clock,
-    User,
-    Users,
-    Building2,
-    Loader2,
-    Plus,
-    MoreHorizontal,
+    ArrowLeft, Calendar, CheckSquare, User, Users, Building2,
+    Plus, LayoutGrid, List,
 } from "lucide-react";
 import { NewTaskModal } from "@/components/tasks/NewTaskModal";
+import { KanbanBoard } from "@/components/tasks/KanbanBoard";
+import { TaskDetailDrawer } from "@/components/tasks/TaskDetailDrawer";
+import { LoadingState, Badge, useToast } from "@/components/ui";
+import { cn } from "@/lib/utils";
+
+interface ProjectTask {
+    id: string;
+    title: string;
+    status: string;
+    priority: string;
+    dueDate: string | null;
+    position?: number;
+    labels?: string[];
+    parentTaskId?: string | null;
+    assignee: { id: string; name: string } | null;
+    _count?: { comments: number; subtasks?: number };
+}
 
 interface ProjectDetail {
     id: string;
     name: string;
     description: string | null;
     status: "ACTIVE" | "COMPLETED" | "ARCHIVED";
+    color: string | null;
     owner: { id: string; name: string; email: string };
     client: { id: string; name: string } | null;
-    members: Array<{
-        id: string;
-        userId: string;
-        role: string;
-        user: { id: string; name: string; email: string; role: string }
-    }>;
-    tasks: Array<{
-        id: string;
-        title: string;
-        status: string;
-        priority: string;
-        dueDate: string | null;
-        assignee: { id: string; name: string } | null;
-    }>;
+    members: Array<{ id: string; userId: string; role: string; user: { id: string; name: string; email: string; role: string } }>;
+    tasks: ProjectTask[];
     createdAt: string;
     updatedAt: string;
 }
 
-const STATUS_STYLES: Record<string, { bg: string; text: string; label: string; gradient: string }> = {
-    ACTIVE: { bg: "bg-emerald-50", text: "text-emerald-700", label: "Actif", gradient: "from-emerald-500 to-emerald-600" },
-    COMPLETED: { bg: "bg-blue-50", text: "text-blue-700", label: "Terminé", gradient: "from-blue-500 to-blue-600" },
-    ARCHIVED: { bg: "bg-slate-100", text: "text-slate-600", label: "Archivé", gradient: "from-slate-400 to-slate-500" },
-};
-
-const PRIORITY_STYLES: Record<string, { bg: string; text: string; icon: string }> = {
-    LOW: { bg: "bg-slate-100", text: "text-slate-600", icon: "↓" },
-    MEDIUM: { bg: "bg-blue-100", text: "text-blue-700", icon: "→" },
-    HIGH: { bg: "bg-amber-100", text: "text-amber-700", icon: "↑" },
-    URGENT: { bg: "bg-red-100", text: "text-red-700", icon: "⚡" },
-};
-
-const TASK_STATUS_COLORS: Record<string, string> = {
-    TODO: "bg-slate-400",
-    IN_PROGRESS: "bg-blue-500",
-    IN_REVIEW: "bg-amber-500",
-    DONE: "bg-emerald-500",
+const STATUS_BADGE: Record<string, { variant: "success" | "primary" | "default"; label: string }> = {
+    ACTIVE: { variant: "success", label: "Actif" },
+    COMPLETED: { variant: "primary", label: "Terminé" },
+    ARCHIVED: { variant: "default", label: "Archivé" },
 };
 
 export default function ProjectDetailsPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
+    const { error: toastError } = useToast();
     const [project, setProject] = useState<ProjectDetail | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [view, setView] = useState<"kanban" | "list">("kanban");
     const [showNewTaskModal, setShowNewTaskModal] = useState(false);
+    const [newTaskStatus, setNewTaskStatus] = useState<string | undefined>();
+    const [selectedTask, setSelectedTask] = useState<string | null>(null);
+    const [showDrawer, setShowDrawer] = useState(false);
 
-    useEffect(() => {
-        loadProject();
-    }, [id]);
+    useEffect(() => { loadProject(); }, [id]);
 
     const loadProject = async () => {
         try {
             const res = await fetch(`/api/projects/${id}`);
             const json = await res.json();
-            if (json.success) {
-                setProject(json.data);
-            }
+            if (json.success) setProject(json.data);
         } catch (error) {
             console.error("Failed to load project:", error);
+            toastError("Erreur", "Impossible de charger le projet");
         } finally {
             setIsLoading(false);
         }
     };
 
-    if (isLoading) {
-        return (
-            <div className="flex items-center justify-center h-64">
-                <div className="flex flex-col items-center gap-3">
-                    <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
-                    <p className="text-sm text-slate-500">Chargement du projet...</p>
-                </div>
-            </div>
-        );
-    }
+    const members = useMemo(() => project?.members.map((m) => ({ id: m.user.id, name: m.user.name })) || [], [project]);
+
+    const kanbanTasks = useMemo(
+        () => (project?.tasks || [])
+            .filter((t) => !t.parentTaskId)
+            .map((t) => ({ ...t, labels: t.labels || [], position: t.position ?? 0 })),
+        [project]
+    );
+
+    const handleStatusChange = async (taskId: string, newStatus: string, newPosition: number) => {
+        setProject((prev) => prev ? { ...prev, tasks: prev.tasks.map((t) => t.id === taskId ? { ...t, status: newStatus, position: newPosition } : t) } : prev);
+        try {
+            await fetch(`/api/tasks/${taskId}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ status: newStatus, position: newPosition }),
+            });
+        } catch (e) {
+            console.error(e);
+            loadProject();
+        }
+    };
+
+    const handleReorder = async (updates: { id: string; position: number; status?: string }[]) => {
+        try {
+            await fetch("/api/tasks/reorder", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ updates }),
+            });
+        } catch (e) { console.error(e); }
+    };
+
+    const handleTaskClick = (taskId: string) => { setSelectedTask(taskId); setShowDrawer(true); };
+    const handleAddTask = (status?: string) => { setNewTaskStatus(status); setShowNewTaskModal(true); };
+
+    if (isLoading) return <LoadingState message="Chargement du projet..." />;
 
     if (!project) {
         return (
-            <div className="text-center py-16 bg-white rounded-2xl border border-slate-200">
-                <h2 className="text-xl font-semibold text-slate-900 mb-2">Projet non trouvé</h2>
-                <p className="text-slate-500 mb-4">Ce projet n'existe pas ou a été supprimé.</p>
-                <Link href="/developer/projects" className="dev-btn-primary inline-flex items-center gap-2">
-                    <ArrowLeft className="w-4 h-4" />
-                    Retour aux projets
+            <div className="text-center py-16 bg-[var(--elan-surface)] rounded-2xl border border-[var(--elan-line)]">
+                <h2 className="text-xl font-semibold text-[var(--elan-ink)] mb-2">Projet non trouvé</h2>
+                <p className="text-[var(--elan-slate)] mb-4">Ce projet n&apos;existe pas ou a été supprimé.</p>
+                <Link href="/developer/projects" className="inline-flex items-center gap-2 text-sm text-[var(--elan-petrol)] hover:underline">
+                    <ArrowLeft className="w-4 h-4" /> Retour aux projets
                 </Link>
             </div>
         );
     }
 
-    const statusStyle = STATUS_STYLES[project.status];
-    const completedTasks = project.tasks.filter(t => t.status === "DONE").length;
+    const accent = project.color || "#0c3b38";
+    const badge = STATUS_BADGE[project.status];
+    const completedTasks = project.tasks.filter((t) => t.status === "DONE").length;
     const totalTasks = project.tasks.length;
     const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
     return (
         <div className="space-y-6">
-            {/* Back Link */}
+            {/* Back */}
             <Link
                 href="/developer/projects"
-                className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-slate-900 transition-colors group"
+                className="inline-flex items-center gap-2 text-sm text-[var(--elan-slate)] hover:text-[var(--elan-ink)] transition-colors group"
             >
                 <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                 Retour aux projets
             </Link>
 
-            {/* Premium Hero Header */}
-            <div className="relative overflow-hidden bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-2xl p-8 text-white">
-                <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMSIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjAzKSIvPjwvc3ZnPg==')] opacity-50" />
-
-                <div className="relative z-10 flex items-start justify-between">
-                    <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-3">
-                            <span className={`px-3 py-1 text-xs font-medium rounded-full bg-gradient-to-r ${statusStyle.gradient} text-white`}>
-                                {statusStyle.label}
-                            </span>
-                        </div>
-                        <h1 className="text-3xl font-bold mb-3">{project.name}</h1>
-                        {project.description && (
-                            <p className="text-slate-300 max-w-2xl mb-6">{project.description}</p>
-                        )}
-
-                        <div className="flex flex-wrap items-center gap-6 text-sm text-slate-400">
-                            {project.client && (
-                                <div className="flex items-center gap-2">
-                                    <Building2 className="w-4 h-4" />
-                                    <span>Client: <span className="text-white font-medium">{project.client.name}</span></span>
+            {/* Header */}
+            <div className="bg-[var(--elan-surface)] border border-[var(--elan-line)] rounded-2xl overflow-hidden">
+                <div className="h-1.5" style={{ backgroundColor: accent }} />
+                <div className="p-6">
+                    <div className="flex items-start justify-between gap-4 flex-wrap">
+                        <div className="flex items-start gap-4">
+                            <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: accent + "1a" }}>
+                                <CheckSquare className="w-6 h-6" style={{ color: accent }} />
+                            </div>
+                            <div>
+                                <div className="flex items-center gap-2 mb-1">
+                                    <h1 className="text-2xl font-bold text-[var(--elan-ink)]">{project.name}</h1>
+                                    <Badge variant={badge.variant}>{badge.label}</Badge>
                                 </div>
-                            )}
-                            <div className="flex items-center gap-2">
-                                <User className="w-4 h-4" />
-                                <span>Resp: <span className="text-white font-medium">{project.owner.name}</span></span>
+                                {project.description && (
+                                    <p className="text-sm text-[var(--elan-slate)] max-w-2xl mb-3">{project.description}</p>
+                                )}
+                                <div className="flex flex-wrap items-center gap-5 text-sm text-[var(--elan-slate)]">
+                                    {project.client && (
+                                        <span className="flex items-center gap-1.5"><Building2 className="w-4 h-4" /> {project.client.name}</span>
+                                    )}
+                                    <span className="flex items-center gap-1.5"><User className="w-4 h-4" /> {project.owner.name}</span>
+                                    <span className="flex items-center gap-1.5"><Calendar className="w-4 h-4" /> {new Date(project.createdAt).toLocaleDateString("fr-FR")}</span>
+                                </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <Calendar className="w-4 h-4" />
-                                <span>Créé le: {new Date(project.createdAt).toLocaleDateString('fr-FR')}</span>
-                            </div>
+                        </div>
+                        <div className="text-right">
+                            <div className="text-3xl font-bold text-[var(--elan-ink)]">{progress}%</div>
+                            <div className="text-xs text-[var(--elan-slate)]">{completedTasks}/{totalTasks} terminées</div>
                         </div>
                     </div>
-
-                    {/* Animated Progress Ring */}
-                    <div className="hidden lg:flex flex-col items-center">
-                        <div className="relative w-32 h-32">
-                            <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
-                                <circle
-                                    cx="50"
-                                    cy="50"
-                                    r="45"
-                                    fill="none"
-                                    stroke="rgba(255,255,255,0.1)"
-                                    strokeWidth="8"
-                                />
-                                <circle
-                                    cx="50"
-                                    cy="50"
-                                    r="45"
-                                    fill="none"
-                                    stroke="url(#progressGradient)"
-                                    strokeWidth="8"
-                                    strokeLinecap="round"
-                                    strokeDasharray="283"
-                                    strokeDashoffset={283 - (283 * progress) / 100}
-                                    className="dev-progress-ring"
-                                />
-                                <defs>
-                                    <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                                        <stop offset="0%" stopColor="#3b82f6" />
-                                        <stop offset="100%" stopColor="#60a5fa" />
-                                    </linearGradient>
-                                </defs>
-                            </svg>
-                            <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                <span className="text-3xl font-bold">{progress}%</span>
-                                <span className="text-xs text-slate-400">Terminé</span>
-                            </div>
-                        </div>
+                    {/* Progress bar */}
+                    <div className="mt-4 h-2 bg-[var(--elan-paper-2)] rounded-full overflow-hidden">
+                        <div className="h-full rounded-full transition-all" style={{ width: `${progress}%`, backgroundColor: accent }} />
                     </div>
                 </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Main Content - Tasks */}
-                <div className="lg:col-span-2 space-y-6">
-                    <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-                        <div className="flex items-center justify-between mb-6">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
-                                    <CheckSquare className="w-5 h-5 text-blue-600" />
-                                </div>
-                                <div>
-                                    <h2 className="text-lg font-semibold text-slate-900">Tâches du projet</h2>
-                                    <p className="text-sm text-slate-500">{completedTasks}/{totalTasks} terminées</p>
-                                </div>
+                {/* Tasks */}
+                <div className="lg:col-span-2 space-y-4">
+                    <div className="flex items-center justify-between gap-3 flex-wrap">
+                        <h2 className="text-lg font-semibold text-[var(--elan-ink)]">Tâches</h2>
+                        <div className="flex items-center gap-3">
+                            <div className="flex items-center bg-[var(--elan-paper-2)] rounded-xl p-1 border border-[var(--elan-line)]">
+                                {([["kanban", LayoutGrid], ["list", List]] as const).map(([key, Icon]) => (
+                                    <button
+                                        key={key}
+                                        onClick={() => setView(key)}
+                                        className={cn("flex items-center px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
+                                            view === key ? "bg-[var(--elan-surface)] text-[var(--elan-ink)] shadow-sm" : "text-[var(--elan-slate)] hover:text-[var(--elan-ink)]")}
+                                    >
+                                        <Icon className="w-4 h-4" />
+                                    </button>
+                                ))}
                             </div>
                             <button
-                                onClick={() => setShowNewTaskModal(true)}
-                                className="dev-btn-primary flex items-center gap-2 h-9 px-4 text-sm"
+                                onClick={() => handleAddTask()}
+                                className="flex items-center gap-2 h-9 px-4 text-sm font-semibold text-[var(--elan-ink)] bg-[var(--elan-amber)] hover:bg-[#f29113] rounded-xl transition-colors"
                             >
-                                <Plus className="w-4 h-4" />
-                                Ajouter
+                                <Plus className="w-4 h-4" /> Ajouter
                             </button>
                         </div>
+                    </div>
 
-                        <div className="space-y-3">
-                            {project.tasks.length === 0 ? (
-                                <div className="text-center py-12 text-slate-500">
-                                    <CheckSquare className="w-12 h-12 mx-auto mb-3 text-slate-300" />
-                                    <p className="text-sm">Aucune tâche pour le moment</p>
-                                    <button
-                                        onClick={() => setShowNewTaskModal(true)}
-                                        className="mt-4 text-sm text-blue-600 hover:text-blue-700 font-medium"
-                                    >
-                                        Ajouter une tâche
-                                    </button>
-                                </div>
-                            ) : (
-                                project.tasks.map(task => {
-                                    const priority = PRIORITY_STYLES[task.priority];
-                                    const statusColor = TASK_STATUS_COLORS[task.status] || "bg-slate-400";
-                                    return (
-                                        <div key={task.id} className="dev-task-card flex items-center justify-between">
-                                            <div className="flex items-center gap-3 flex-1 min-w-0">
-                                                <div className={`w-2 h-8 rounded-full ${statusColor}`} />
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="text-sm font-medium text-slate-900 truncate">{task.title}</p>
-                                                    <div className="flex items-center gap-3 mt-1">
-                                                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded ${priority.bg} ${priority.text}`}>
-                                                            {priority.icon} {task.priority}
-                                                        </span>
-                                                        {task.dueDate && (
-                                                            <span className="flex items-center gap-1 text-xs text-slate-500">
-                                                                <Clock className="w-3 h-3" />
-                                                                {new Date(task.dueDate).toLocaleDateString('fr-FR')}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            {task.assignee && (
-                                                <div className="flex items-center gap-2 ml-4">
-                                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center text-xs font-medium text-blue-700">
-                                                        {task.assignee.name.charAt(0)}
-                                                    </div>
-                                                </div>
+                    {totalTasks === 0 ? (
+                        <div className="text-center py-16 bg-[var(--elan-surface)] rounded-2xl border border-[var(--elan-line)]">
+                            <CheckSquare className="w-12 h-12 mx-auto mb-3 text-[var(--elan-paper-3)]" />
+                            <p className="text-sm text-[var(--elan-slate)] mb-4">Aucune tâche pour le moment</p>
+                            <button onClick={() => handleAddTask()} className="text-sm text-[var(--elan-petrol)] hover:underline font-medium">
+                                Ajouter une tâche
+                            </button>
+                        </div>
+                    ) : view === "kanban" ? (
+                        <KanbanBoard
+                            tasks={kanbanTasks as any}
+                            onStatusChange={handleStatusChange}
+                            onReorder={handleReorder}
+                            onTaskClick={handleTaskClick}
+                            onAddTask={handleAddTask}
+                        />
+                    ) : (
+                        <div className="bg-[var(--elan-surface)] border border-[var(--elan-line)] rounded-2xl divide-y divide-[var(--elan-line)] overflow-hidden">
+                            {project.tasks.map((task) => (
+                                <button
+                                    key={task.id}
+                                    onClick={() => handleTaskClick(task.id)}
+                                    className="w-full flex items-center justify-between gap-3 p-4 text-left hover:bg-[var(--elan-paper-2)] transition-colors"
+                                >
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <span className={cn("w-2 h-8 rounded-full flex-shrink-0",
+                                            task.status === "DONE" ? "bg-emerald-500" : task.status === "IN_PROGRESS" ? "bg-blue-500" : task.status === "IN_REVIEW" ? "bg-amber-500" : "bg-slate-400")} />
+                                        <div className="min-w-0">
+                                            <p className="text-sm font-medium text-[var(--elan-ink)] truncate">{task.title}</p>
+                                            {task.dueDate && (
+                                                <span className="text-xs text-[var(--elan-slate)]">{new Date(task.dueDate).toLocaleDateString("fr-FR")}</span>
                                             )}
                                         </div>
-                                    );
-                                })
-                            )}
+                                    </div>
+                                    {task.assignee && (
+                                        <div className="w-8 h-8 rounded-full bg-[var(--elan-eucalyptus)] flex items-center justify-center text-xs font-bold text-[var(--elan-petrol)] flex-shrink-0">
+                                            {task.assignee.name.charAt(0).toUpperCase()}
+                                        </div>
+                                    )}
+                                </button>
+                            ))}
                         </div>
-                    </div>
+                    )}
                 </div>
 
-                {/* Sidebar - Team */}
+                {/* Team + Stats */}
                 <div className="space-y-6">
-                    <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center">
-                                <Users className="w-5 h-5 text-violet-600" />
-                            </div>
-                            <div>
-                                <h2 className="text-lg font-semibold text-slate-900">Équipe</h2>
-                                <p className="text-sm text-slate-500">{project.members.length} membre{project.members.length > 1 ? 's' : ''}</p>
-                            </div>
+                    <div className="bg-[var(--elan-surface)] border border-[var(--elan-line)] rounded-2xl p-5">
+                        <div className="flex items-center gap-2 mb-4">
+                            <Users className="w-5 h-5 text-[var(--elan-petrol)]" />
+                            <h2 className="text-base font-semibold text-[var(--elan-ink)]">Équipe</h2>
+                            <span className="text-xs text-[var(--elan-slate)]">· {project.members.length}</span>
                         </div>
-
-                        <div className="space-y-3">
-                            {project.members.map(member => (
-                                <div key={member.id} className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors">
-                                    <div className="relative">
-                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center text-sm font-medium text-slate-600">
-                                            {member.user.name.charAt(0)}
-                                        </div>
-                                        <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white" />
+                        <div className="space-y-2">
+                            {project.members.map((member) => (
+                                <div key={member.id} className="flex items-center gap-3 p-2 rounded-xl hover:bg-[var(--elan-paper-2)] transition-colors">
+                                    <div className="w-9 h-9 rounded-full bg-[var(--elan-eucalyptus)] flex items-center justify-center text-sm font-bold text-[var(--elan-petrol)]">
+                                        {member.user.name.charAt(0).toUpperCase()}
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-medium text-slate-900 truncate">{member.user.name}</p>
-                                        <p className="text-xs text-slate-500 truncate">{member.user.email}</p>
+                                        <p className="text-sm font-medium text-[var(--elan-ink)] truncate">{member.user.name}</p>
+                                        <p className="text-xs text-[var(--elan-slate)] truncate">{member.user.email}</p>
                                     </div>
-                                    <span className="text-xs text-slate-400 capitalize px-2 py-1 bg-slate-100 rounded-full">
-                                        {member.role}
-                                    </span>
+                                    <span className="text-xs text-[var(--elan-slate)] capitalize px-2 py-1 bg-[var(--elan-paper-2)] rounded-full">{member.role.toLowerCase()}</span>
                                 </div>
                             ))}
                         </div>
                     </div>
 
-                    {/* Quick Stats */}
-                    <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-                        <h3 className="text-sm font-semibold text-slate-900 mb-4">Statistiques</h3>
+                    <div className="bg-[var(--elan-surface)] border border-[var(--elan-line)] rounded-2xl p-5">
+                        <h3 className="text-sm font-semibold text-[var(--elan-ink)] mb-3">Statistiques</h3>
                         <div className="grid grid-cols-2 gap-3">
-                            <div className="p-3 rounded-xl bg-slate-50">
-                                <p className="text-2xl font-bold text-slate-900">{totalTasks}</p>
-                                <p className="text-xs text-slate-500">Tâches totales</p>
+                            <div className="p-3 rounded-xl bg-[var(--elan-paper-2)]">
+                                <p className="text-2xl font-bold text-[var(--elan-ink)]">{totalTasks}</p>
+                                <p className="text-xs text-[var(--elan-slate)]">Tâches totales</p>
                             </div>
                             <div className="p-3 rounded-xl bg-emerald-50">
                                 <p className="text-2xl font-bold text-emerald-600">{completedTasks}</p>
-                                <p className="text-xs text-slate-500">Terminées</p>
+                                <p className="text-xs text-[var(--elan-slate)]">Terminées</p>
                             </div>
                         </div>
                     </div>
@@ -327,11 +292,18 @@ export default function ProjectDetailsPage({ params }: { params: Promise<{ id: s
                 isOpen={showNewTaskModal}
                 onClose={() => setShowNewTaskModal(false)}
                 defaultProjectId={id}
-                lockProject={true}
-                onSuccess={() => {
-                    loadProject();
-                    setShowNewTaskModal(false);
-                }}
+                lockProject
+                defaultStatus={newTaskStatus}
+                members={members}
+                onSuccess={() => { loadProject(); setShowNewTaskModal(false); }}
+            />
+
+            <TaskDetailDrawer
+                taskId={selectedTask}
+                isOpen={showDrawer}
+                onClose={() => { setShowDrawer(false); setSelectedTask(null); }}
+                onUpdate={loadProject}
+                members={members}
             />
         </div>
     );

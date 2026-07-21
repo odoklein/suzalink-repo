@@ -121,26 +121,27 @@ export function Select({
         }
     }, [isOpen, searchable]);
 
-    // For header-dark: measure trigger position when dropdown opens, so we can portal with fixed position
+    // Measure trigger position when dropdown opens, so we can portal it with a
+    // fixed position that escapes any overflow-hidden / stacking-context ancestor.
     const updateDropdownRect = useCallback(() => {
-        if (triggerRef.current && variant === "header-dark") {
+        if (triggerRef.current) {
             const rect = triggerRef.current.getBoundingClientRect();
             setDropdownRect({ top: rect.bottom + 8, left: rect.left, width: rect.width });
         } else {
             setDropdownRect(null);
         }
-    }, [variant]);
+    }, []);
 
     useLayoutEffect(() => {
-        if (isOpen && variant === "header-dark") {
+        if (isOpen) {
             updateDropdownRect();
         } else {
             setDropdownRect(null);
         }
-    }, [isOpen, variant, updateDropdownRect]);
+    }, [isOpen, updateDropdownRect]);
 
     useEffect(() => {
-        if (isOpen && variant === "header-dark") {
+        if (isOpen) {
             const onScrollOrResize = () => updateDropdownRect();
             window.addEventListener("scroll", onScrollOrResize, true);
             window.addEventListener("resize", onScrollOrResize);
@@ -149,7 +150,7 @@ export function Select({
                 window.removeEventListener("resize", onScrollOrResize);
             };
         }
-    }, [isOpen, variant, updateDropdownRect]);
+    }, [isOpen, updateDropdownRect]);
 
     return (
         <div className={cn("relative", className)} ref={containerRef}>
@@ -274,7 +275,7 @@ export function Select({
                     </>
                 );
 
-                if (variant === "header-dark" && dropdownRect && typeof document !== "undefined") {
+                if (dropdownRect && typeof document !== "undefined") {
                     return createPortal(
                         <div
                             data-select-dropdown
@@ -285,7 +286,7 @@ export function Select({
                                 left: dropdownRect.left,
                                 width: dropdownRect.width,
                                 minWidth: "10rem",
-                                zIndex: 9999,
+                                zIndex: 1100,
                             }}
                         >
                             {dropdownContent}
@@ -294,11 +295,7 @@ export function Select({
                     );
                 }
 
-                return (
-                    <div className="absolute z-50 w-full mt-2 bg-white border border-slate-200 rounded-xl shadow-xl shadow-slate-200/50 overflow-hidden animate-scale-in origin-top">
-                        {dropdownContent}
-                    </div>
-                );
+                return null;
             })()}
         </div>
     );
@@ -333,7 +330,9 @@ export function MultiSelect({
 }: MultiSelectProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
+    const [dropdownRect, setDropdownRect] = useState<{ top: number; left: number; width: number } | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
+    const triggerRef = useRef<HTMLButtonElement>(null);
 
     const selectedOptions = options.filter((opt) => value.includes(opt.value));
 
@@ -341,10 +340,13 @@ export function MultiSelect({
         opt.label.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    // Close on outside click
+    // Close on outside click (dropdown is portaled, so also check for it)
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
-            if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+            const target = e.target as Node;
+            const isInsideTrigger = containerRef.current?.contains(target);
+            const isInsidePortaledDropdown = (target as Element).closest?.("[data-multiselect-dropdown]");
+            if (!isInsideTrigger && !isInsidePortaledDropdown) {
                 setIsOpen(false);
             }
         };
@@ -352,6 +354,34 @@ export function MultiSelect({
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
+
+    // Measure trigger position so the dropdown can be portaled with a fixed
+    // position that escapes any overflow-hidden / stacking-context ancestor.
+    const updateDropdownRect = useCallback(() => {
+        if (triggerRef.current) {
+            const rect = triggerRef.current.getBoundingClientRect();
+            setDropdownRect({ top: rect.bottom + 8, left: rect.left, width: rect.width });
+        } else {
+            setDropdownRect(null);
+        }
+    }, []);
+
+    useLayoutEffect(() => {
+        if (isOpen) updateDropdownRect();
+        else setDropdownRect(null);
+    }, [isOpen, updateDropdownRect]);
+
+    useEffect(() => {
+        if (isOpen) {
+            const onScrollOrResize = () => updateDropdownRect();
+            window.addEventListener("scroll", onScrollOrResize, true);
+            window.addEventListener("resize", onScrollOrResize);
+            return () => {
+                window.removeEventListener("scroll", onScrollOrResize, true);
+                window.removeEventListener("resize", onScrollOrResize);
+            };
+        }
+    }, [isOpen, updateDropdownRect]);
 
     const toggleOption = (optionValue: string) => {
         if (value.includes(optionValue)) {
@@ -376,6 +406,7 @@ export function MultiSelect({
 
             {/* Trigger */}
             <button
+                ref={triggerRef}
                 type="button"
                 onClick={() => !disabled && setIsOpen(!isOpen)}
                 disabled={disabled}
@@ -422,9 +453,20 @@ export function MultiSelect({
 
             {error && <p className="text-sm text-red-500 mt-1">{error}</p>}
 
-            {/* Dropdown */}
-            {isOpen && (
-                <div className="absolute z-50 w-full mt-2 bg-white border border-slate-200 rounded-xl shadow-xl shadow-slate-200/50 overflow-hidden animate-scale-in origin-top">
+            {/* Dropdown — portaled to escape overflow-hidden ancestors */}
+            {isOpen && dropdownRect && typeof document !== "undefined" && createPortal(
+                <div
+                    data-multiselect-dropdown
+                    className="bg-white border border-slate-200 rounded-xl shadow-xl shadow-slate-200/50 overflow-hidden animate-scale-in origin-top"
+                    style={{
+                        position: "fixed",
+                        top: dropdownRect.top,
+                        left: dropdownRect.left,
+                        width: dropdownRect.width,
+                        minWidth: "10rem",
+                        zIndex: 1100,
+                    }}
+                >
                     {/* Search */}
                     <div className="p-2 border-b border-slate-100">
                         <input
@@ -480,7 +522,8 @@ export function MultiSelect({
                             ))
                         )}
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );

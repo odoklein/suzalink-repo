@@ -45,7 +45,7 @@ export default function DeveloperLayout({ children }: { children: React.ReactNod
         return (
             <div className="min-h-screen flex items-center justify-center bg-slate-50">
                 <div className="flex flex-col items-center gap-3">
-                    <div className="w-10 h-10 border-3 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                    <div className="w-10 h-10 border-3 border-[#0C3B38] border-t-transparent rounded-full animate-spin" />
                     <p className="text-sm text-slate-500">Chargement...</p>
                 </div>
             </div>
@@ -85,8 +85,8 @@ export default function DeveloperLayout({ children }: { children: React.ReactNod
                                 className={cn(
                                     "dev-nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
                                     isActive
-                                        ? "active text-blue-400"
-                                        : "text-slate-400 hover:text-white"
+                                        ? "active text-[#FF9E1B] bg-white/5"
+                                        : "text-slate-400 hover:text-white hover:bg-white/5"
                                 )}
                             >
                                 <item.icon className={cn(
@@ -95,7 +95,7 @@ export default function DeveloperLayout({ children }: { children: React.ReactNod
                                 )} />
                                 <span className="flex-1">{item.label}</span>
                                 {isActive && (
-                                    <ChevronRight className="w-4 h-4 text-blue-500/50" />
+                                    <ChevronRight className="w-4 h-4 text-[#FF9E1B]/50" />
                                 )}
                             </Link>
                         );
@@ -106,7 +106,7 @@ export default function DeveloperLayout({ children }: { children: React.ReactNod
                 <div className="p-4 border-t border-white/5">
                     <div className="flex items-center gap-3 px-3 py-3 rounded-lg bg-white/5 mb-3">
                         <div className="relative">
-                            <div className="dev-avatar w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 text-white text-sm">
+                            <div className="dev-avatar w-10 h-10 bg-gradient-to-br from-[#FF9E1B] to-[#f29113] text-[#0C3B38] font-bold text-sm">
                                 {session?.user?.name?.charAt(0).toUpperCase()}
                             </div>
                             <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-slate-800" />

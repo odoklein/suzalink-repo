@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { PageHeader, Badge, Modal, ModalFooter, ConfirmModal, EmptyState, LoadingState, useToast } from "@/components/ui";
+import { PageHeader, Badge, Modal, ModalFooter, ConfirmModal, EmptyState, LoadingState, useToast, DropdownMenu } from "@/components/ui";
 
 // ============================================
 // TYPES
@@ -506,7 +506,6 @@ function KpiCard({ icon: Icon, label, value, subtitle, iconColor, iconBg, accent
 function ProjectCard({ project, onDuplicate, onArchive, onDelete }: {
     project: Project; onDuplicate: () => void; onArchive: () => void; onDelete: () => void;
 }) {
-    const [showMenu, setShowMenu] = useState(false);
     const stats = project.taskStats;
     const status = STATUS_CONFIG[project.status] || STATUS_CONFIG.ACTIVE;
     const progress = stats?.completionPercent || 0;
@@ -538,28 +537,19 @@ function ProjectCard({ project, onDuplicate, onArchive, onDelete }: {
                             <span className={cn("w-1.5 h-1.5 rounded-full", status.dot)} />
                             {status.label}
                         </span>
-                        <div className="relative">
-                            <button
-                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowMenu(!showMenu); }}
-                                className="p-1.5 text-slate-300 hover:text-slate-500 rounded-lg hover:bg-slate-50 transition-colors opacity-0 group-hover:opacity-100"
-                            >
-                                <MoreHorizontal className="w-4 h-4" />
-                            </button>
-                            {showMenu && (
-                                <div className="absolute right-0 top-9 z-20 bg-white border border-slate-200 rounded-xl shadow-xl py-1.5 w-44" onClick={(e) => e.preventDefault()}>
-                                    <button onClick={(e) => { e.stopPropagation(); onDuplicate(); setShowMenu(false); }} className="flex items-center gap-2.5 w-full px-3.5 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
-                                        <Copy className="w-3.5 h-3.5 text-slate-400" /> Dupliquer
-                                    </button>
-                                    <button onClick={(e) => { e.stopPropagation(); onArchive(); setShowMenu(false); }} className="flex items-center gap-2.5 w-full px-3.5 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
-                                        <Archive className="w-3.5 h-3.5 text-slate-400" /> Archiver
-                                    </button>
-                                    <div className="my-1 border-t border-slate-100" />
-                                    <button onClick={(e) => { e.stopPropagation(); onDelete(); setShowMenu(false); }} className="flex items-center gap-2.5 w-full px-3.5 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors">
-                                        <Trash2 className="w-3.5 h-3.5" /> Supprimer
-                                    </button>
-                                </div>
-                            )}
-                        </div>
+                        <DropdownMenu
+                            width={176}
+                            trigger={
+                                <span className="p-1.5 text-slate-300 hover:text-slate-500 rounded-lg hover:bg-slate-50 transition-colors opacity-0 group-hover:opacity-100 inline-flex cursor-pointer">
+                                    <MoreHorizontal className="w-4 h-4" />
+                                </span>
+                            }
+                            items={[
+                                { label: "Dupliquer", icon: <Copy className="w-3.5 h-3.5 text-slate-400" />, onClick: onDuplicate },
+                                { label: "Archiver", icon: <Archive className="w-3.5 h-3.5 text-slate-400" />, onClick: onArchive },
+                                { label: "Supprimer", icon: <Trash2 className="w-3.5 h-3.5" />, onClick: onDelete, variant: "danger", divider: true },
+                            ]}
+                        />
                     </div>
                 </div>
 

@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Loader2, Sparkles, Plus, X } from "lucide-react";
+import { Loader2, Sparkles, Plus, X, AlertTriangle, CheckCircle2, CalendarOff, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Modal, ModalFooter } from "@/components/ui/Modal";
+import type { AvailabilityCheck } from "@/lib/availability";
 
 interface NewTaskModalProps {
     isOpen: boolean;
@@ -37,6 +38,9 @@ export function NewTaskModal({
     const [aiLoading, setAiLoading] = useState(false);
     const [showAdvanced, setShowAdvanced] = useState(false);
     const [labelInput, setLabelInput] = useState("");
+    const [availCheck, setAvailCheck] = useState<(AvailabilityCheck & { userName?: string }) | null>(null);
+    const [availLoading, setAvailLoading] = useState(false);
+    const [overrideBooking, setOverrideBooking] = useState(false);
 
     const [form, setForm] = useState({
         title: "",
@@ -101,8 +105,38 @@ export function NewTaskModal({
         }
     }, [form.projectId, propMembers]);
 
+    // Block-booking: check assignee availability when assignee + due date are set
+    useEffect(() => {
+        setOverrideBooking(false);
+        if (!form.assigneeId || !form.dueDate) {
+            setAvailCheck(null);
+            return;
+        }
+        let cancelled = false;
+        setAvailLoading(true);
+        const handle = setTimeout(() => {
+            fetch("/api/availability/check", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    userId: form.assigneeId,
+                    date: form.dueDate,
+                    addedHours: form.estimatedHours ? Number(form.estimatedHours) : 2,
+                }),
+            })
+                .then((res) => res.json())
+                .then((json) => { if (!cancelled && json.success) setAvailCheck(json.data); })
+                .catch(() => { if (!cancelled) setAvailCheck(null); })
+                .finally(() => { if (!cancelled) setAvailLoading(false); });
+        }, 350);
+        return () => { cancelled = true; clearTimeout(handle); };
+    }, [form.assigneeId, form.dueDate, form.estimatedHours]);
+
+    const isBlocked = availCheck && (availCheck.status === "off" || availCheck.status === "overbooked") && !overrideBooking;
+
     const handleSubmit = async () => {
         if (!form.title.trim() || !form.projectId) return;
+        if (isBlocked) return;
 
         setIsLoading(true);
         try {
@@ -275,6 +309,23 @@ export function NewTaskModal({
                         onChange={(e) => setForm({ ...form, dueDate: e.target.value })}
                         className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-indigo-400"
                     />
+
+                    {/* Block-booking availability banner */}
+                    {form.assigneeId && form.dueDate && (
+                        <div className="mt-2">
+                            {availLoading ? (
+                                <div className="flex items-center gap-2 text-xs text-slate-400">
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin" /> Vérification de la disponibilité...
+                                </div>
+                            ) : availCheck ? (
+                                <AvailabilityBanner
+                                    check={availCheck}
+                                    override={overrideBooking}
+                                    onOverride={() => setOverrideBooking(true)}
+                                />
+                            ) : null}
+                        </div>
+                    )}
                 </div>
 
                 {/* Description */}
@@ -368,13 +419,65 @@ export function NewTaskModal({
                 </button>
                 <button
                     onClick={handleSubmit}
-                    disabled={!form.title.trim() || !form.projectId || isLoading}
-                    className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg disabled:opacity-50 flex items-center gap-2 transition-colors"
+                    disabled={!form.title.trim() || !form.projectId || isLoading || !!isBlocked}
+                    title={isBlocked ? "Membre indisponible — confirmez la réservation forcée pour continuer" : undefined}
+                    className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
                 >
                     {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
                     Créer
                 </button>
             </ModalFooter>
         </Modal>
+    );
+}
+
+// ============================================
+// AVAILABILITY BANNER (block-booking feedback)
+// ============================================
+
+function AvailabilityBanner({
+    check,
+    override,
+    onOverride,
+}: {
+    check: AvailabilityCheck & { userName?: string; conflictingTasks?: { id: string; title: string; hours: number }[] };
+    override: boolean;
+    onOverride: () => void;
+}) {
+    const STYLE: Record<string, { bg: string; border: string; text: string; icon: React.ReactNode }> = {
+        available: { bg: "bg-emerald-50", border: "border-emerald-200", text: "text-emerald-700", icon: <CheckCircle2 className="w-4 h-4" /> },
+        tight: { bg: "bg-amber-50", border: "border-amber-200", text: "text-amber-700", icon: <Clock className="w-4 h-4" /> },
+        overbooked: { bg: "bg-red-50", border: "border-red-200", text: "text-red-700", icon: <AlertTriangle className="w-4 h-4" /> },
+        off: { bg: "bg-red-50", border: "border-red-200", text: "text-red-700", icon: <CalendarOff className="w-4 h-4" /> },
+    };
+    const s = STYLE[check.status] || STYLE.available;
+    const blocking = (check.status === "off" || check.status === "overbooked") && !override;
+
+    return (
+        <div className={cn("rounded-lg border px-3 py-2 text-xs", s.bg, s.border, s.text)}>
+            <div className="flex items-start gap-2">
+                <span className="mt-0.5 flex-shrink-0">{s.icon}</span>
+                <div className="flex-1 min-w-0">
+                    <p className="font-semibold">{check.message}</p>
+                    {check.conflictingTasks && check.conflictingTasks.length > 0 && (
+                        <p className="mt-0.5 opacity-80">
+                            {check.conflictingTasks.length} tâche{check.conflictingTasks.length > 1 ? "s" : ""} déjà prévue{check.conflictingTasks.length > 1 ? "s" : ""} ce jour
+                        </p>
+                    )}
+                    {blocking && (
+                        <button
+                            type="button"
+                            onClick={onOverride}
+                            className="mt-1.5 font-semibold underline hover:no-underline"
+                        >
+                            Réserver quand même
+                        </button>
+                    )}
+                    {override && (check.status === "off" || check.status === "overbooked") && (
+                        <p className="mt-1 font-medium opacity-90">⚠ Réservation forcée activée</p>
+                    )}
+                </div>
+            </div>
+        </div>
     );
 }

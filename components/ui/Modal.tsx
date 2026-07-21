@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useCallback, useRef } from "react";
+import { useEffect, useCallback, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -43,6 +44,11 @@ export function Modal({
 }: ModalProps) {
     const modalRef = useRef<HTMLDivElement>(null);
     const overlayPointerDownRef = useRef(false);
+    const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
+
+    useEffect(() => {
+        setPortalContainer(document.body);
+    }, []);
 
     // Handle ESC key
     const handleKeyDown = useCallback(
@@ -104,11 +110,11 @@ export function Modal({
         }
     }, [isOpen]);
 
-    if (!isOpen) return null;
+    if (!isOpen || !portalContainer) return null;
 
-    return (
+    return createPortal(
         <div
-            className="fixed inset-0 z-[120] flex items-center justify-center p-4 sm:p-6"
+            className="fixed inset-0 z-[1000] flex items-center justify-center p-4 sm:p-6"
             onPointerDown={handleOverlayPointerDown}
             onClick={handleOverlayClick}
         >
@@ -157,7 +163,8 @@ export function Modal({
                 {/* Content - explicit bg and text so content is never white-on-white */}
                 <div className="p-6 md:p-8 overflow-y-auto custom-scrollbar flex-1 bg-[var(--elan-surface)] text-[var(--elan-ink)]">{children}</div>
             </div>
-        </div>
+        </div>,
+        portalContainer
     );
 }
 

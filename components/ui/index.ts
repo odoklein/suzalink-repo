@@ -25,6 +25,8 @@ export {
     ListSkeleton,
 } from "./Skeleton";
 export { ContextMenu, useContextMenu } from "./ContextMenu";
+export { DropdownMenu } from "./DropdownMenu";
+export type { DropdownMenuItem } from "./DropdownMenu";
 
 // Page Scaffolding Components
 export { PageHeader } from "./PageHeader";

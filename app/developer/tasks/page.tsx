@@ -1,19 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
-import {
-    Plus,
-    CheckSquare,
-    Clock,
-    Loader2,
-    Calendar,
-    User,
-    LayoutGrid,
-    List,
-    X,
-    Sparkles,
-} from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { Plus, LayoutGrid, List, CheckSquare } from "lucide-react";
+import { KanbanBoard } from "@/components/tasks/KanbanBoard";
+import { TaskDetailDrawer } from "@/components/tasks/TaskDetailDrawer";
+import { TaskFilters, TaskFilterState } from "@/components/tasks/TaskFilters";
+import { NewTaskModal } from "@/components/tasks/NewTaskModal";
+import { LoadingState, EmptyState, useToast } from "@/components/ui";
+import { cn } from "@/lib/utils";
 
 interface Task {
     id: string;
@@ -22,492 +16,255 @@ interface Task {
     status: "TODO" | "IN_PROGRESS" | "IN_REVIEW" | "DONE";
     priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
     dueDate: string | null;
+    position: number;
+    labels: string[];
+    parentTaskId?: string | null;
     project: { id: string; name: string };
     assignee: { id: string; name: string; email: string } | null;
     createdBy: { id: string; name: string };
-    _count: { comments: number };
+    _count: { comments: number; subtasks?: number };
     createdAt: string;
 }
 
-const STATUS_COLUMNS = [
-    { key: "TODO", label: "À faire", color: "slate", headerClass: "dev-kanban-header-todo" },
-    { key: "IN_PROGRESS", label: "En cours", color: "blue", headerClass: "dev-kanban-header-progress" },
-    { key: "IN_REVIEW", label: "En revue", color: "amber", headerClass: "dev-kanban-header-review" },
-    { key: "DONE", label: "Terminé", color: "emerald", headerClass: "dev-kanban-header-done" },
-];
+const STATUS_LABELS: Record<string, string> = {
+    TODO: "À faire",
+    IN_PROGRESS: "En cours",
+    IN_REVIEW: "En revue",
+    DONE: "Terminé",
+};
 
-const PRIORITY_STYLES: Record<string, { bg: string; text: string; icon: string }> = {
-    LOW: { bg: "dev-priority-low", text: "text-slate-600", icon: "↓" },
-    MEDIUM: { bg: "dev-priority-medium", text: "text-blue-700", icon: "→" },
-    HIGH: { bg: "dev-priority-high", text: "text-amber-700", icon: "↑" },
-    URGENT: { bg: "dev-priority-urgent", text: "text-red-700", icon: "⚡" },
+const PRIORITY_LABELS: Record<string, string> = {
+    LOW: "Basse", MEDIUM: "Moyenne", HIGH: "Haute", URGENT: "Urgent",
 };
 
 export default function TasksPage() {
-    const { data: session } = useSession();
+    const { error: toastError } = useToast();
     const [tasks, setTasks] = useState<Task[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [view, setView] = useState<"kanban" | "list">("kanban");
-    const [updatingTaskId, setUpdatingTaskId] = useState<string | null>(null);
-    const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
     const [showNewTaskModal, setShowNewTaskModal] = useState(false);
+    const [newTaskStatus, setNewTaskStatus] = useState<string | undefined>();
+    const [selectedTask, setSelectedTask] = useState<string | null>(null);
+    const [showDrawer, setShowDrawer] = useState(false);
+    const [filters, setFilters] = useState<TaskFilterState>({
+        search: "", statuses: [], priorities: [], assigneeIds: [], labels: [],
+    });
 
-    useEffect(() => {
-        loadTasks();
-    }, []);
+    useEffect(() => { loadTasks(); }, []);
 
     const loadTasks = async () => {
         try {
             const res = await fetch("/api/tasks");
             const json = await res.json();
             if (json.success) {
-                setTasks(json.data);
+                setTasks((json.data as Task[]).map((t) => ({
+                    ...t,
+                    labels: t.labels || [],
+                    position: t.position ?? 0,
+                })));
             }
         } catch (error) {
             console.error("Failed to load tasks:", error);
+            toastError("Erreur", "Impossible de charger les tâches");
         } finally {
             setIsLoading(false);
         }
     };
 
-    const updateTaskStatus = async (taskId: string, newStatus: string) => {
-        setUpdatingTaskId(taskId);
+    const members = useMemo(() => {
+        const map = new Map<string, { id: string; name: string }>();
+        tasks.forEach((t) => { if (t.assignee) map.set(t.assignee.id, { id: t.assignee.id, name: t.assignee.name }); });
+        return Array.from(map.values());
+    }, [tasks]);
+
+    const matchesFilter = (t: Task) => {
+        if (filters.search && !t.title.toLowerCase().includes(filters.search.toLowerCase()) &&
+            !t.project.name.toLowerCase().includes(filters.search.toLowerCase())) return false;
+        if (filters.statuses.length && !filters.statuses.includes(t.status)) return false;
+        if (filters.priorities.length && !filters.priorities.includes(t.priority)) return false;
+        if (filters.assigneeIds.length && (!t.assignee || !filters.assigneeIds.includes(t.assignee.id))) return false;
+        return true;
+    };
+
+    const filteredKanban = tasks.filter((t) => !t.parentTaskId && matchesFilter(t));
+    const filteredList = tasks.filter(matchesFilter);
+
+    const handleStatusChange = async (taskId: string, newStatus: string, newPosition: number) => {
+        setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, status: newStatus as Task["status"], position: newPosition } : t)));
         try {
-            const res = await fetch(`/api/tasks/${taskId}`, {
+            await fetch(`/api/tasks/${taskId}`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ status: newStatus }),
+                body: JSON.stringify({ status: newStatus, position: newPosition }),
             });
-            const json = await res.json();
-            if (json.success) {
-                setTasks(tasks.map((t) => (t.id === taskId ? { ...t, status: newStatus as Task["status"] } : t)));
-            }
-        } catch (error) {
-            console.error("Failed to update task:", error);
-        } finally {
-            setUpdatingTaskId(null);
+        } catch (e) {
+            console.error(e);
+            toastError("Erreur", "Mise à jour impossible");
+            loadTasks();
         }
     };
 
-    const formatDate = (date: string) => {
-        const d = new Date(date);
-        return d.toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
+    const handleReorder = async (updates: { id: string; position: number; status?: string }[]) => {
+        try {
+            await fetch("/api/tasks/reorder", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ updates }),
+            });
+        } catch (e) { console.error(e); }
     };
 
-    const isOverdue = (dueDate: string | null) => {
-        if (!dueDate) return false;
-        return new Date(dueDate) < new Date();
-    };
+    const handleTaskClick = (taskId: string) => { setSelectedTask(taskId); setShowDrawer(true); };
+    const handleAddTask = (status?: string) => { setNewTaskStatus(status); setShowNewTaskModal(true); };
 
-    if (isLoading) {
-        return (
-            <div className="flex items-center justify-center h-64">
-                <div className="flex flex-col items-center gap-3">
-                    <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
-                    <p className="text-sm text-slate-500">Chargement des tâches...</p>
-                </div>
-            </div>
-        );
-    }
+    const formatDate = (date: string) =>
+        new Date(date).toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
+    const isOverdue = (d: string | null) => (d ? new Date(d) < new Date() : false);
+
+    if (isLoading) return <LoadingState message="Chargement des tâches..." />;
 
     return (
         <div className="space-y-6">
-            {/* Premium Header */}
-            <div className="flex items-center justify-between">
+            {/* Header */}
+            <div className="flex items-center justify-between gap-4 flex-wrap">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900">Mes tâches</h1>
-                    <p className="text-sm text-slate-500 mt-1">
+                    <h1 className="text-2xl font-bold text-[var(--elan-ink)]">Mes tâches</h1>
+                    <p className="text-sm text-[var(--elan-slate)] mt-1">
                         {tasks.length} tâche{tasks.length !== 1 ? "s" : ""} au total
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
                     <button
-                        onClick={() => setShowNewTaskModal(true)}
-                        className="dev-btn-primary flex items-center gap-2 h-10 px-5 text-sm font-medium"
+                        onClick={() => handleAddTask()}
+                        className="flex items-center gap-2 h-10 px-5 text-sm font-semibold text-[var(--elan-ink)] bg-[var(--elan-amber)] hover:bg-[#f29113] rounded-xl transition-colors shadow-sm"
                     >
                         <Plus className="w-4 h-4" />
                         Nouvelle tâche
                     </button>
-
-                    {/* View Toggle */}
-                    <div className="flex items-center bg-slate-100 rounded-lg p-1">
-                        <button
-                            onClick={() => setView("kanban")}
-                            className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${view === "kanban"
-                                    ? "bg-white text-slate-900 shadow-sm"
-                                    : "text-slate-500 hover:text-slate-700"
-                                }`}
-                        >
-                            <LayoutGrid className="w-4 h-4" />
-                            Kanban
-                        </button>
-                        <button
-                            onClick={() => setView("list")}
-                            className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${view === "list"
-                                    ? "bg-white text-slate-900 shadow-sm"
-                                    : "text-slate-500 hover:text-slate-700"
-                                }`}
-                        >
-                            <List className="w-4 h-4" />
-                            Liste
-                        </button>
+                    <div className="flex items-center bg-[var(--elan-paper-2)] rounded-xl p-1 border border-[var(--elan-line)]">
+                        {([["kanban", LayoutGrid, "Kanban"], ["list", List, "Liste"]] as const).map(([key, Icon, label]) => (
+                            <button
+                                key={key}
+                                onClick={() => setView(key)}
+                                className={cn(
+                                    "flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
+                                    view === key ? "bg-[var(--elan-surface)] text-[var(--elan-ink)] shadow-sm" : "text-[var(--elan-slate)] hover:text-[var(--elan-ink)]"
+                                )}
+                            >
+                                <Icon className="w-4 h-4" />
+                                {label}
+                            </button>
+                        ))}
                     </div>
                 </div>
             </div>
 
-            {/* Premium Kanban View */}
+            {/* Filters */}
+            <TaskFilters onFiltersChange={setFilters} members={members} />
+
+            {/* Kanban */}
             {view === "kanban" && (
-                <div className="grid grid-cols-4 gap-4">
-                    {STATUS_COLUMNS.map((column) => {
-                        const columnTasks = tasks.filter((t) => t.status === column.key);
-                        const isDragOver = dragOverColumn === column.key;
-
-                        return (
-                            <div
-                                key={column.key}
-                                className={`dev-kanban-column ${isDragOver ? 'drag-over' : ''}`}
-                                onDragOver={(e) => {
-                                    e.preventDefault();
-                                    setDragOverColumn(column.key);
-                                }}
-                                onDragLeave={() => setDragOverColumn(null)}
-                                onDrop={(e) => {
-                                    e.preventDefault();
-                                    setDragOverColumn(null);
-                                    const taskId = e.dataTransfer.getData("taskId");
-                                    if (taskId) {
-                                        updateTaskStatus(taskId, column.key);
-                                    }
-                                }}
+                filteredKanban.length === 0 ? (
+                    <EmptyState
+                        icon={CheckSquare}
+                        title="Aucune tâche"
+                        description="Créez votre première tâche pour commencer"
+                        action={
+                            <button
+                                onClick={() => handleAddTask()}
+                                className="inline-flex items-center gap-2 h-10 px-5 text-sm font-semibold text-[var(--elan-ink)] bg-[var(--elan-amber)] hover:bg-[#f29113] rounded-xl transition-colors"
                             >
-                                <div className={`dev-kanban-header ${column.headerClass}`}>
-                                    <h3 className="text-sm font-semibold text-slate-700">{column.label}</h3>
-                                    <span className="text-xs font-medium text-slate-500 bg-white px-2 py-0.5 rounded-full shadow-sm">
-                                        {columnTasks.length}
-                                    </span>
-                                </div>
-                                <div className="space-y-2">
-                                    {columnTasks.map((task) => {
-                                        const priority = PRIORITY_STYLES[task.priority];
-                                        const isUpdating = updatingTaskId === task.id;
-
-                                        return (
-                                            <div
-                                                key={task.id}
-                                                draggable={!isUpdating}
-                                                onDragStart={(e) => {
-                                                    e.dataTransfer.setData("taskId", task.id);
-                                                    e.dataTransfer.effectAllowed = "move";
-                                                    (e.target as HTMLElement).classList.add('dragging');
-                                                }}
-                                                onDragEnd={(e) => {
-                                                    (e.target as HTMLElement).classList.remove('dragging');
-                                                }}
-                                                className={`dev-task-card relative ${isUpdating ? 'opacity-50' : ''}`}
-                                            >
-                                                <div className="flex items-start gap-2 mb-2">
-                                                    <span className={`w-6 h-6 rounded-lg text-xs flex items-center justify-center font-medium ${priority.bg}`}>
-                                                        {priority.icon}
-                                                    </span>
-                                                    <p className="text-sm font-medium text-slate-900 flex-1 line-clamp-2">
-                                                        {task.title}
-                                                    </p>
-                                                </div>
-
-                                                <p className="text-xs text-slate-500 mb-3 pl-8">{task.project.name}</p>
-
-                                                <div className="flex items-center justify-between text-xs text-slate-400 pl-8">
-                                                    {task.dueDate && (
-                                                        <span className={`flex items-center gap-1 ${isOverdue(task.dueDate) && task.status !== "DONE" ? "text-red-500 font-medium" : ""}`}>
-                                                            <Calendar className="w-3 h-3" />
-                                                            {formatDate(task.dueDate)}
-                                                        </span>
-                                                    )}
-                                                    {task.assignee && (
-                                                        <div className="flex items-center gap-1">
-                                                            <div className="w-5 h-5 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center text-[10px] font-medium text-blue-700">
-                                                                {task.assignee.name.charAt(0)}
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                </div>
-
-                                                {isUpdating && (
-                                                    <div className="absolute inset-0 bg-white/80 flex items-center justify-center rounded-xl">
-                                                        <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
-                                                    </div>
-                                                )}
-                                            </div>
-                                        );
-                                    })}
-
-                                    {columnTasks.length === 0 && (
-                                        <div className="py-8 text-center">
-                                            <p className="text-xs text-slate-400">Aucune tâche</p>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
+                                <Plus className="w-4 h-4" /> Nouvelle tâche
+                            </button>
+                        }
+                    />
+                ) : (
+                    <KanbanBoard
+                        tasks={filteredKanban as any}
+                        onStatusChange={handleStatusChange}
+                        onReorder={handleReorder}
+                        onTaskClick={handleTaskClick}
+                        onAddTask={handleAddTask}
+                    />
+                )
             )}
 
-            {/* Premium List View */}
+            {/* List */}
             {view === "list" && (
-                <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-                    <table className="w-full">
-                        <thead className="bg-slate-50 border-b border-slate-200">
-                            <tr>
-                                <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-6 py-4">Tâche</th>
-                                <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 py-4">Projet</th>
-                                <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 py-4">Statut</th>
-                                <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 py-4">Priorité</th>
-                                <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 py-4">Échéance</th>
-                                <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 py-4">Assigné</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100">
-                            {tasks.map((task) => {
-                                const priority = PRIORITY_STYLES[task.priority];
-                                const status = STATUS_COLUMNS.find((s) => s.key === task.status);
-                                return (
-                                    <tr key={task.id} className="hover:bg-slate-50 transition-colors">
-                                        <td className="px-6 py-4">
-                                            <p className="text-sm font-medium text-slate-900">{task.title}</p>
+                <div className="bg-[var(--elan-surface)] border border-[var(--elan-line)] rounded-2xl overflow-hidden shadow-sm">
+                    <div className="overflow-x-auto">
+                        <table className="w-full min-w-[720px]">
+                            <thead className="bg-[var(--elan-paper-2)] border-b border-[var(--elan-line)]">
+                                <tr>
+                                    {["Tâche", "Projet", "Statut", "Priorité", "Échéance", "Assigné"].map((h) => (
+                                        <th key={h} className="text-left text-xs font-semibold text-[var(--elan-slate)] uppercase tracking-wider px-5 py-3.5">{h}</th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-[var(--elan-line)]">
+                                {filteredList.map((task) => (
+                                    <tr
+                                        key={task.id}
+                                        onClick={() => handleTaskClick(task.id)}
+                                        className="hover:bg-[var(--elan-paper-2)] transition-colors cursor-pointer"
+                                    >
+                                        <td className="px-5 py-3.5">
+                                            <p className="text-sm font-medium text-[var(--elan-ink)]">{task.title}</p>
                                         </td>
-                                        <td className="px-4 py-4">
-                                            <span className="text-sm text-slate-600">{task.project.name}</span>
-                                        </td>
-                                        <td className="px-4 py-4">
-                                            <select
-                                                value={task.status}
-                                                onChange={(e) => updateTaskStatus(task.id, e.target.value)}
-                                                className="text-sm text-slate-900 border border-slate-200 rounded-lg px-3 py-1.5 bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
-                                            >
-                                                {STATUS_COLUMNS.map((s) => (
-                                                    <option key={s.key} value={s.key}>{s.label}</option>
-                                                ))}
-                                            </select>
-                                        </td>
-                                        <td className="px-4 py-4">
-                                            <span className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-lg ${priority.bg}`}>
-                                                {priority.icon} {task.priority}
+                                        <td className="px-5 py-3.5"><span className="text-sm text-[var(--elan-slate)]">{task.project.name}</span></td>
+                                        <td className="px-5 py-3.5">
+                                            <span className="inline-flex items-center gap-1.5 text-sm text-[var(--elan-ink-soft)]">
+                                                <span className={cn("w-1.5 h-1.5 rounded-full",
+                                                    task.status === "DONE" ? "bg-emerald-500" : task.status === "IN_PROGRESS" ? "bg-blue-500" : task.status === "IN_REVIEW" ? "bg-amber-500" : "bg-slate-400")} />
+                                                {STATUS_LABELS[task.status]}
                                             </span>
                                         </td>
-                                        <td className="px-4 py-4">
+                                        <td className="px-5 py-3.5"><span className="text-sm text-[var(--elan-slate)]">{PRIORITY_LABELS[task.priority]}</span></td>
+                                        <td className="px-5 py-3.5">
                                             {task.dueDate ? (
-                                                <span className={`text-sm ${isOverdue(task.dueDate) && task.status !== "DONE" ? "text-red-500 font-medium" : "text-slate-600"}`}>
+                                                <span className={cn("text-sm", isOverdue(task.dueDate) && task.status !== "DONE" ? "text-red-500 font-medium" : "text-[var(--elan-slate)]")}>
                                                     {formatDate(task.dueDate)}
                                                 </span>
-                                            ) : (
-                                                <span className="text-sm text-slate-400">—</span>
-                                            )}
+                                            ) : <span className="text-sm text-[var(--elan-ink-soft)]">—</span>}
                                         </td>
-                                        <td className="px-4 py-4">
+                                        <td className="px-5 py-3.5">
                                             {task.assignee ? (
                                                 <div className="flex items-center gap-2">
-                                                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center text-xs font-medium text-blue-700">
-                                                        {task.assignee.name.charAt(0)}
+                                                    <div className="w-7 h-7 rounded-full bg-[var(--elan-eucalyptus)] flex items-center justify-center text-xs font-bold text-[var(--elan-petrol)]">
+                                                        {task.assignee.name.charAt(0).toUpperCase()}
                                                     </div>
-                                                    <span className="text-sm text-slate-600">{task.assignee.name}</span>
+                                                    <span className="text-sm text-[var(--elan-slate)]">{task.assignee.name}</span>
                                                 </div>
-                                            ) : (
-                                                <span className="text-sm text-slate-400">Non assigné</span>
-                                            )}
+                                            ) : <span className="text-sm text-[var(--elan-ink-soft)]">Non assigné</span>}
                                         </td>
                                     </tr>
-                                );
-                            })}
-                        </tbody>
-                    </table>
-
-                    {tasks.length === 0 && (
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                    {filteredList.length === 0 && (
                         <div className="py-16 text-center">
-                            <CheckSquare className="w-12 h-12 mx-auto mb-3 text-slate-300" />
-                            <p className="text-sm text-slate-500">Aucune tâche pour le moment</p>
+                            <CheckSquare className="w-12 h-12 mx-auto mb-3 text-[var(--elan-paper-3)]" />
+                            <p className="text-sm text-[var(--elan-slate)]">Aucune tâche</p>
                         </div>
                     )}
                 </div>
             )}
 
-            {/* Premium New Task Modal */}
             <NewTaskModal
                 isOpen={showNewTaskModal}
                 onClose={() => setShowNewTaskModal(false)}
-                onSuccess={(newTask) => {
-                    setTasks([newTask, ...tasks]);
-                    setShowNewTaskModal(false);
-                }}
+                defaultStatus={newTaskStatus}
+                onSuccess={() => { setShowNewTaskModal(false); loadTasks(); }}
             />
-        </div>
-    );
-}
 
-function NewTaskModal({
-    isOpen,
-    onClose,
-    onSuccess,
-}: {
-    isOpen: boolean;
-    onClose: () => void;
-    onSuccess: (task: Task) => void;
-}) {
-    const [projects, setProjects] = useState<{ id: string; name: string }[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
-    const [formData, setFormData] = useState({
-        title: "",
-        description: "",
-        projectId: "",
-        priority: "MEDIUM",
-        dueDate: "",
-    });
-
-    useEffect(() => {
-        if (isOpen) {
-            fetch("/api/projects")
-                .then((res) => res.json())
-                .then((json) => {
-                    if (json.success) setProjects(json.data);
-                })
-                .catch(console.error);
-        }
-    }, [isOpen]);
-
-    const handleSubmit = async () => {
-        if (!formData.title || !formData.projectId) return;
-
-        setIsLoading(true);
-        try {
-            const res = await fetch("/api/tasks", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(formData),
-            });
-            const json = await res.json();
-            if (json.success) {
-                onSuccess(json.data);
-                setFormData({ title: "", description: "", projectId: "", priority: "MEDIUM", dueDate: "" });
-            }
-        } catch (error) {
-            console.error("Failed to create task:", error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    if (!isOpen) return null;
-
-    return (
-        <div className="fixed inset-0 dev-modal-overlay z-50 flex items-center justify-center p-4">
-            <div className="dev-modal w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
-                <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
-                        <Sparkles className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                        <h2 className="text-lg font-semibold text-slate-900">Nouvelle tâche</h2>
-                        <p className="text-sm text-slate-500">Créez une nouvelle tâche</p>
-                    </div>
-                </div>
-
-                <div className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">Titre *</label>
-                        <input
-                            type="text"
-                            value={formData.title}
-                            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                            className="dev-input"
-                            placeholder="Titre de la tâche"
-                            autoFocus
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">Projet *</label>
-                        <select
-                            value={formData.projectId}
-                            onChange={(e) => setFormData({ ...formData, projectId: e.target.value })}
-                            className="dev-input"
-                        >
-                            <option value="">Sélectionner un projet</option>
-                            {projects.map((p) => (
-                                <option key={p.id} value={p.id}>{p.name}</option>
-                            ))}
-                        </select>
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">Priorité</label>
-                        <div className="flex gap-2">
-                            {["LOW", "MEDIUM", "HIGH", "URGENT"].map((p) => {
-                                const style = PRIORITY_STYLES[p];
-                                return (
-                                    <button
-                                        key={p}
-                                        type="button"
-                                        onClick={() => setFormData({ ...formData, priority: p })}
-                                        className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium border transition-all ${formData.priority === p
-                                                ? "border-blue-500 bg-blue-50 text-blue-700"
-                                                : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-                                            }`}
-                                    >
-                                        {style.icon} {p}
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">Échéance</label>
-                        <input
-                            type="date"
-                            value={formData.dueDate}
-                            onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
-                            className="dev-input"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">Description</label>
-                        <textarea
-                            value={formData.description}
-                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                            rows={3}
-                            className="dev-input resize-none"
-                            placeholder="Description détaillée..."
-                        />
-                    </div>
-                </div>
-
-                <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-slate-200">
-                    <button
-                        onClick={onClose}
-                        className="h-10 px-5 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
-                    >
-                        Annuler
-                    </button>
-                    <button
-                        onClick={handleSubmit}
-                        disabled={!formData.title || !formData.projectId || isLoading}
-                        className="dev-btn-primary h-10 px-5 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                    >
-                        {isLoading ? (
-                            <>
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                                Création...
-                            </>
-                        ) : (
-                            <>
-                                <Plus className="w-4 h-4" />
-                                Créer
-                            </>
-                        )}
-                    </button>
-                </div>
-            </div>
+            <TaskDetailDrawer
+                taskId={selectedTask}
+                isOpen={showDrawer}
+                onClose={() => { setShowDrawer(false); setSelectedTask(null); }}
+                onUpdate={loadTasks}
+                members={members}
+            />
         </div>
     );
 }

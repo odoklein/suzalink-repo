@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo } from "react";
-import { Users } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Users, CalendarCog } from "lucide-react";
 import { toLocalDateKey, getDaysInRange, getLoadLevel, LOAD_COLORS } from "../_lib/calendar-utils";
 import type { CalendarMember } from "../_lib/types";
+import { AvailabilityEditor } from "@/components/availability/AvailabilityEditor";
 
 interface AvailabilityViewProps {
   calendarDate: Date;
@@ -22,19 +23,36 @@ export function AvailabilityView({ calendarDate, members, dateRange }: Availabil
   const days = useMemo(() => getDaysInRange(dateRange.from, dateRange.to), [dateRange]);
   const todayKey = toLocalDateKey(new Date());
   const month = calendarDate.getMonth();
+  const [editorOpen, setEditorOpen] = useState(false);
 
   const dayWidth = 38;
   const labelWidth = 200;
   const totalWidth = labelWidth + days.length * dayWidth;
 
+  const availabilityBtn = (
+    <button
+      onClick={() => setEditorOpen(true)}
+      style={{
+        display: "inline-flex", alignItems: "center", gap: 6,
+        fontSize: 12, fontWeight: 600, fontFamily: "var(--font-elan-sans)",
+        color: "var(--elan-petrol)", background: "var(--elan-eucalyptus)",
+        border: "none", borderRadius: 8, padding: "6px 12px", cursor: "pointer",
+      }}
+    >
+      <CalendarCog size={14} /> Mes disponibilités
+    </button>
+  );
+
   if (members.length === 0) {
     return (
-      <div className="cal-avail" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div className="cal-avail" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16 }}>
         <div className="cal-empty">
           <div className="cal-empty-icon"><Users size={26} /></div>
           <div className="cal-empty-title">Aucun membre</div>
           <div className="cal-empty-text">Ajoutez des membres à vos projets pour voir leur disponibilité</div>
         </div>
+        {availabilityBtn}
+        <AvailabilityEditor isOpen={editorOpen} onClose={() => setEditorOpen(false)} />
       </div>
     );
   }
@@ -84,14 +102,17 @@ export function AvailabilityView({ calendarDate, members, dateRange }: Availabil
         </div>
 
         {/* Legend */}
-        <div className="cal-avail-legend">
-          <span className="cal-avail-legend-label">Charge :</span>
-          {LEGEND.map(({ level, label }) => (
-            <div key={level} className="cal-avail-legend-item">
-              <span className="cal-avail-legend-dot" style={{ background: LOAD_COLORS[level], opacity: level === "available" ? 0.4 : 0.75 }} />
-              <span className="cal-avail-legend-text">{label}</span>
-            </div>
-          ))}
+        <div className="cal-avail-legend" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <span className="cal-avail-legend-label">Charge :</span>
+            {LEGEND.map(({ level, label }) => (
+              <div key={level} className="cal-avail-legend-item">
+                <span className="cal-avail-legend-dot" style={{ background: LOAD_COLORS[level], opacity: level === "available" ? 0.4 : 0.75 }} />
+                <span className="cal-avail-legend-text">{label}</span>
+              </div>
+            ))}
+          </div>
+          {availabilityBtn}
         </div>
 
         {/* Member rows */}
@@ -145,6 +166,8 @@ export function AvailabilityView({ calendarDate, members, dateRange }: Availabil
           );
         })}
       </div>
+
+      <AvailabilityEditor isOpen={editorOpen} onClose={() => setEditorOpen(false)} />
     </div>
   );
 }
