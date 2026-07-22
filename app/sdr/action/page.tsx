@@ -2392,158 +2392,50 @@ export default function SDRActionPage() {
                     size="sm"
                 >
                     <div className="space-y-4">
-                            </Button>
+                        <p className="text-sm text-slate-600">
+                            Enregistrer une note (Mail à envoyer) ou envoyer un email maintenant (Mail envoyé).
+                        </p>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Note *</label>
+                            <textarea
+                                value={mailToSendChoiceNote}
+                                onChange={(e) => setMailToSendChoiceNote(e.target.value)}
+                                placeholder="Ex: Mail à envoyer après validation du devis..."
+                                rows={3}
+                                maxLength={500}
+                                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[rgba(255,158,27,0.35)]"
+                            />
                         </div>
-                    </div>
-                </div>
-
-                {/* Bulk delete bar */}
-                {tableSelectedIds.size > 0 && (
-                    <div className="flex items-center justify-between gap-4 px-4 py-3 rounded-xl bg-[rgba(255,158,27,0.1)] border border-[rgba(224,124,0,0.22)] mb-4">
-                        <span className="text-sm font-medium text-[var(--elan-petrol)]">
-                            {tableSelectedIds.size} élément(s) sélectionné(s)
-                        </span>
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap gap-2 justify-end pt-2">
                             <Button
                                 variant="ghost"
-                                size="sm"
-                                onClick={() => setTableSelectedIds(new Set())}
-                                disabled={isBulkDisqualifying}
+                                onClick={() => {
+                                    setShowMailToSendChoiceModal(false);
+                                    setMailToSendChoiceRow(null);
+                                    setMailToSendChoiceNote("");
+                                }}
                             >
                                 Annuler
                             </Button>
                             <Button
-                                variant="danger"
-                                size="sm"
-                                onClick={handleBulkDisqualify}
-                                disabled={isBulkDisqualifying}
-                                className="gap-2"
+                                variant="outline"
+                                onClick={() => handleMailToSendChoiceOpenComposer()}
+                                className="gap-2 border-[rgba(12,59,56,0.18)] text-[var(--elan-petrol)] bg-[rgba(12,59,56,0.08)] hover:bg-[rgba(12,59,56,0.12)]"
                             >
-                                {isBulkDisqualifying ? (
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                ) : (
-                                    <Trash2 className="w-4 h-4" />
-                                )}
-                                Disqualifier la sélection
+                                <Send className="w-4 h-4" />
+                                Envoyer un email
+                            </Button>
+                            <Button
+                                variant="primary"
+                                onClick={handleMailToSendChoiceSaveOnly}
+                                disabled={!mailToSendChoiceNote.trim() || submittingRowKey !== null}
+                                isLoading={submittingRowKey !== null}
+                            >
+                                Enregistrer (Mail à envoyer)
                             </Button>
                         </div>
                     </div>
-                )}
-
-                {/* Data Table */}
-                <div className="bg-white rounded-2xl border border-slate-200/60 shadow-lg shadow-slate-200/50 overflow-hidden">
-                    {queueInitialLoading ? (
-                        <TableSkeleton columns={6} rows={12} className="rounded-2xl" />
-                    ) : queueFetchError ? (
-                        <EmptyState
-                            icon={RefreshCw}
-                            title={queueFetchErrorMsg ?? "Erreur"}
-                            description="Vérifiez votre connexion et réessayez."
-                            action={
-                                <Button
-                                    variant="secondary"
-                                    onClick={() => refreshQueue()}
-                                    className="gap-2"
-                                >
-                                    <RefreshCw className="w-4 h-4" />
-                                    Réessayer
-                                </Button>
-                            }
-                            className="rounded-2xl border-0"
-                        />
-                    ) : filteredQueueItems.length === 0 ? (
-                        <EmptyState
-                            icon={emptyTableReason.icon}
-                            title={emptyTableReason.title}
-                            description={emptyTableReason.description}
-                            action={
-                                hasTableFiltersActive ? (
-                                    <Button variant="secondary" onClick={clearTableFilters} className="gap-2">
-                                        <RotateCcw className="w-4 h-4" />
-                                        Réinitialiser les filtres
-                                    </Button>
-                                ) : selectedMissionId ? (
-                                    <Button variant="secondary" onClick={() => refreshQueue()} className="gap-2">
-                                        <RefreshCw className="w-4 h-4" />
-                                        Actualiser
-                                    </Button>
-                                ) : undefined
-                            }
-                            className="rounded-2xl border-0"
-                        />
-                    ) : (
-                        <DataTable
-                            data={filteredQueueItems}
-                            columns={queueColumns}
-                            keyField={(row) => queueRowKey(row)}
-                            searchable
-                            searchPlaceholder="Rechercher contact, société, téléphone, note..."
-                            searchFields={["_displayName", "_companyName", "_phone", "_searchNote", "missionName"]}
-                            pagination
-                            pageSize={15}
-                            emptyMessage="Aucun contact dans la file. Changez de mission ou liste."
-                            onRowClick={openDrawerForRow}
-                            enableSecondaryColumnsToggle
-                            selectable
-                            selectedIds={tableSelectedIds}
-                            onSelectionChange={(ids) => setTableSelectedIds(new Set(ids))}
-                            getRowClassName={(row) => {
-                                if (recentlyUpdatedRowKeys.has(queueRowKey(row))) {
-                                    return "!bg-emerald-50/80 border-l-4 border-l-emerald-500 animate-fade-in";
-                                }
-                                const isCallbackRow = !!row.lastAction && isCallbackResult(row.lastAction.result);
-                                if (!isCallbackRow) return "";
-                                const callbackTs = row.lastAction?.callbackDate ? new Date(row.lastAction.callbackDate).getTime() : NaN;
-                                const in3Days = Number.isFinite(callbackTs) && callbackTs <= Date.now() + 3 * 24 * 60 * 60 * 1000;
-                                return in3Days
-                                    ? "!bg-amber-100/80 border-l-8 border-l-amber-500 ring-1 ring-amber-200/70"
-                                    : "!bg-amber-50/60 border-l-8 border-l-amber-300 ring-1 ring-amber-100/70";
-                            }}
-                        />
-                    )}
-                </div>
-
-                {/* Unified Action Drawer — mount only when open to avoid heavy effects when closed */}
-                {unifiedDrawerOpen && unifiedDrawerCompanyId && (
-                        <UnifiedActionDrawer
-                            isOpen={unifiedDrawerOpen}
-                            onClose={closeUnifiedDrawer}
-                            contactId={unifiedDrawerContactId}
-                            companyId={unifiedDrawerCompanyId}
-                            missionId={unifiedDrawerMissionId}
-                            missionName={unifiedDrawerMissionName}
-                            clientBookingUrl={unifiedDrawerClientBookingUrl || undefined}
-                            clientInterlocuteurs={unifiedDrawerInterlocuteurs}
-                            onBookingDialogOpenChange={setUnifiedBookingDialogOpen}
-                            onAlloDialogOpenChange={setUnifiedAlloDialogOpen}
-                            onContactSelect={(newContactId) => {
-                                setUnifiedDrawerContactId(newContactId);
-                            }}
-                            onActionRecorded={() => {
-                                const rowKey = unifiedDrawerContactId ?? unifiedDrawerCompanyId ?? "";
-                                if (rowKey) {
-                                    queryClient.invalidateQueries({ queryKey: queueQueryKey });
-                                    setActionsCompleted((c) => c + 1);
-                                }
-                                refreshQueue();
-                            }}
-                            onValidateAndNext={() => {
-                                if (!drawerRow) return;
-                                const key = queueRowKey(drawerRow);
-                                const idx = filteredQueueItems.findIndex((row) => queueRowKey(row) === key);
-                                queryClient.invalidateQueries({ queryKey: queueQueryKey });
-                                setActionsCompleted((c) => c + 1);
-                                if (idx >= 0 && idx < filteredQueueItems.length - 1) {
-                                    const nextRow = filteredQueueItems[idx + 1];
-                                    openDrawerForRow(nextRow);
-                                } else {
-                                    closeUnifiedDrawer();
-                                }
-                                refreshQueue();
-                            }}
-                        />
-                    )
-                }
+                </Modal>
 
                 {/* Stats modal: summary + list of contacts with status (click to open drawer) */}
                 <Modal

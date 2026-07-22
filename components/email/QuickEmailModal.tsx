@@ -236,9 +236,7 @@ export function QuickEmailModal({
                 if (json.success) {
                     const list: MissionTemplate[] = json.data || [];
                     setTemplates(list);
-                    if (list.length > 0 && !selectedTemplateId) {
-                        setSelectedTemplateId(list[0].template.id);
-                    }
+                    setSelectedTemplateId((currentId) => currentId || list[0]?.template.id || "");
                 }
             } catch (err) {
                 console.error("Failed to fetch templates:", err);
