@@ -20,39 +20,17 @@ import {
     LayoutTemplate,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/Card";
+import { ConfirmModal } from "@/components/ui";
 import { SUPPORTED_TEMPLATE_VARIABLES } from "@/lib/email/constants";
+import { sampleVariables, substituteVariables, stripScripts } from "@/lib/email/template-format";
 
-// Sample values for preview (no API call)
-const PREVIEW_SAMPLE: Record<string, string> = {
-    firstName: "Jean",
-    lastName: "Dupont",
-    fullName: "Jean Dupont",
-    title: "Directeur commercial",
-    email: "jean.dupont@exemple.fr",
-    phone: "+33 6 12 34 56 78",
-    linkedin: "https://linkedin.com/in/jeandupont",
-    company: "Acme SAS",
-    companyName: "Acme SAS",
-    industry: "Technologie",
-    website: "https://acme.fr",
-    country: "France",
-    companySize: "50-200",
-    currentDate: new Date().toLocaleDateString("fr-FR"),
-    currentDay: new Date().toLocaleDateString("fr-FR", { weekday: "long" }),
-    currentMonth: new Date().toLocaleDateString("fr-FR", { month: "long" }),
-    currentYear: String(new Date().getFullYear()),
-};
-
+// Preview using shared engine with sample values (no API call)
 function substitutePreview(html: string, subject: string): { subject: string; body: string } {
-    let outSub = subject;
-    let outBody = html;
-    SUPPORTED_TEMPLATE_VARIABLES.forEach(({ name }) => {
-        const val = PREVIEW_SAMPLE[name] ?? "";
-        const regex = new RegExp(`\\{\\{${name}\\}\\}`, "g");
-        outSub = outSub.replace(regex, val);
-        outBody = outBody.replace(regex, val);
-    });
-    return { subject: outSub, body: outBody };
+    const vars = sampleVariables();
+    return {
+        subject: substituteVariables(subject, vars),
+        body: substituteVariables(html, vars),
+    };
 }
 
 // ============================================
@@ -154,7 +132,7 @@ function TemplateEditor({ template, onClose, onSave }: TemplateEditorProps) {
             <div className="fixed inset-0 bg-black/50 z-50" onClick={onClose} />
             <div className="fixed right-0 top-0 bottom-0 z-50 w-full max-w-4xl bg-white shadow-2xl flex flex-col animate-slide-in-right">
                 <form onSubmit={handleSubmit} className="flex flex-col h-full">
-                    <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-gradient-to-r from-indigo-600 to-violet-600">
+                    <div className="flex items-center justify-between px-6 py-4 border-b border-[#173A35] bg-[#1F4D47]">
                         <h2 className="text-lg font-semibold text-white">
                             {template ? "Modifier le template" : "Nouveau template"}
                         </h2>
@@ -307,7 +285,7 @@ function TemplateEditor({ template, onClose, onSave }: TemplateEditorProps) {
                                         className="p-4 prose prose-slate max-w-none prose-p:my-2 text-sm"
                                         dangerouslySetInnerHTML={{
                                             __html: preview.body
-                                                ? preview.body.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
+                                                ? stripScripts(preview.body)
                                                 : "<p class='text-slate-400'>Aucun contenu à prévisualiser.</p>",
                                         }}
                                     />
@@ -328,7 +306,7 @@ function TemplateEditor({ template, onClose, onSave }: TemplateEditorProps) {
                         <button
                             type="submit"
                             disabled={isSaving}
-                            className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-xl hover:bg-indigo-500 disabled:opacity-50 transition-colors"
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-[#1F4D47] text-white text-sm font-medium rounded-xl hover:bg-[#173A35] disabled:opacity-50 transition-colors"
                         >
                             {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                             {template ? "Mettre à jour" : "Créer"}
@@ -352,6 +330,8 @@ export default function EmailTemplatesPage() {
     const [editorOpen, setEditorOpen] = useState(false);
     const [editingTemplate, setEditingTemplate] = useState<EmailTemplate | null>(null);
     const [previewTemplate, setPreviewTemplate] = useState<EmailTemplate | null>(null);
+    const [deleteTarget, setDeleteTarget] = useState<EmailTemplate | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const categories = [
         { value: "", label: "Toutes" },
@@ -395,15 +375,18 @@ export default function EmailTemplatesPage() {
         return () => clearTimeout(timer);
     }, [search]);
 
-    // Delete template
-    const handleDelete = async (id: string) => {
-        if (!confirm("Êtes-vous sûr de vouloir supprimer ce template ?")) return;
-
+    // Delete template (confirmed via modal)
+    const confirmDelete = async () => {
+        if (!deleteTarget) return;
+        setIsDeleting(true);
         try {
-            await fetch(`/api/email/templates/${id}`, { method: "DELETE" });
-            setTemplates(templates.filter(t => t.id !== id));
+            await fetch(`/api/email/templates/${deleteTarget.id}`, { method: "DELETE" });
+            setTemplates(templates.filter(t => t.id !== deleteTarget.id));
+            setDeleteTarget(null);
         } catch (error) {
             console.error("Failed to delete template:", error);
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -469,7 +452,7 @@ export default function EmailTemplatesPage() {
                         setEditingTemplate(null);
                         setEditorOpen(true);
                     }}
-                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-br from-indigo-500 to-indigo-600 text-white text-sm font-medium rounded-xl hover:from-indigo-400 hover:to-indigo-500 hover:shadow-lg hover:shadow-indigo-500/30 transition-all"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#FF9E1B] text-[#15201E] text-sm font-bold rounded-xl hover:bg-[#F09212] hover:shadow-lg hover:shadow-[#FF9E1B]/25 transition-all"
                 >
                     <Plus className="w-4 h-4" />
                     Nouveau template
@@ -553,24 +536,31 @@ export default function EmailTemplatesPage() {
                                     </div>
                                     <div className="flex items-center gap-1">
                                         <button
+                                            onClick={() => setPreviewTemplate(template)}
+                                            className="p-1.5 text-slate-400 hover:text-[#1F4D47] hover:bg-[#EDF4F2] rounded-lg transition-colors"
+                                            title="Aperçu"
+                                        >
+                                            <Eye className="w-4 h-4" />
+                                        </button>
+                                        <button
                                             onClick={() => {
                                                 setEditingTemplate(template);
                                                 setEditorOpen(true);
                                             }}
-                                            className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                                            className="p-1.5 text-slate-400 hover:text-[#1F4D47] hover:bg-[#EDF4F2] rounded-lg transition-colors"
                                             title="Modifier"
                                         >
                                             <Edit className="w-4 h-4" />
                                         </button>
                                         <button
                                             onClick={() => handleDuplicate(template)}
-                                            className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                                            className="p-1.5 text-slate-400 hover:text-[#1F4D47] hover:bg-[#EDF4F2] rounded-lg transition-colors"
                                             title="Dupliquer"
                                         >
                                             <Copy className="w-4 h-4" />
                                         </button>
                                         <button
-                                            onClick={() => handleDelete(template.id)}
+                                            onClick={() => setDeleteTarget(template)}
                                             className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                                             title="Supprimer"
                                         >
@@ -644,15 +634,25 @@ export default function EmailTemplatesPage() {
                             <div
                                 className="flex-1 overflow-y-auto p-6 prose prose-slate max-w-none prose-p:my-2 text-sm"
                                 dangerouslySetInnerHTML={{
-                                    __html: body
-                                        ? body.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
-                                        : "<p class='text-slate-400'>Aucun contenu.</p>",
+                                    __html: body ? stripScripts(body) : "<p class='text-slate-400'>Aucun contenu.</p>",
                                 }}
                             />
                         </div>
                     </>
                 );
             })()}
+
+            {/* Delete confirmation */}
+            <ConfirmModal
+                isOpen={!!deleteTarget}
+                onClose={() => setDeleteTarget(null)}
+                onConfirm={confirmDelete}
+                title="Supprimer le template"
+                message={deleteTarget ? `Voulez-vous vraiment supprimer « ${deleteTarget.name} » ? Cette action est irréversible.` : ""}
+                confirmText="Supprimer"
+                variant="danger"
+                isLoading={isDeleting}
+            />
         </div>
     );
 }

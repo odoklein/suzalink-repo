@@ -28,6 +28,8 @@ import {
     Pencil,
     Save,
     X,
+    Eye,
+    Edit3,
     Calendar,
     Plus,
     Trash2,
@@ -61,6 +63,7 @@ import {
     sdrUnifiedDrawerMailboxesKey,
     sdrUnifiedDrawerTemplatesKey,
 } from "@/lib/query-keys";
+import { buildPreviewVariables, substituteVariables, highlightVariables, stripScripts } from "@/lib/email/template-format";
 
 // ============================================
 // TYPES
@@ -601,7 +604,10 @@ export function UnifiedActionDrawer({
     // ── Inline email panel (ENVOIE_MAIL) ──────────────────────────────────────
     const [emailSelectedMailboxId, setEmailSelectedMailboxId] = useState<string>("");
     const [emailSelectedTemplateId, setEmailSelectedTemplateId] = useState<string>("");
-    const [emailPreviewTemplateId, setEmailPreviewTemplateId] = useState<string>("");
+    // Edit-before-send: when the SDR tweaks the rendered email
+    const [emailIsEditing, setEmailIsEditing] = useState(false);
+    const [emailEditSubject, setEmailEditSubject] = useState<string>("");
+    const [emailEditBody, setEmailEditBody] = useState<string>("");
 
     // Auto-focus note textarea when result requiring note is selected
     useEffect(() => {
@@ -794,9 +800,37 @@ export function UnifiedActionDrawer({
     useEffect(() => {
         if (!isEmailMode) {
             setEmailSelectedTemplateId("");
-            setEmailPreviewTemplateId("");
+            setEmailIsEditing(false);
         }
     }, [isEmailMode]);
+
+    // Variable context for live preview + substitution (real contact/company data)
+    const emailVariables = useMemo(
+        () => buildPreviewVariables(contact ?? null, company ?? null),
+        [contact, company]
+    );
+
+    const chosenEmailTemplate = useMemo(() => {
+        const id = emailSelectedTemplateId || emailTemplates[0]?.templateId || "";
+        return emailTemplates.find((t) => t.templateId === id)?.template ?? null;
+    }, [emailTemplates, emailSelectedTemplateId]);
+
+    // Rendered (variable-substituted) subject/body for the chosen template
+    const renderedEmailSubject = useMemo(
+        () => (chosenEmailTemplate ? substituteVariables(chosenEmailTemplate.subject, emailVariables) : ""),
+        [chosenEmailTemplate, emailVariables]
+    );
+    const renderedEmailBody = useMemo(
+        () => (chosenEmailTemplate ? substituteVariables(chosenEmailTemplate.bodyHtml, emailVariables) : ""),
+        [chosenEmailTemplate, emailVariables]
+    );
+
+    // Keep the editable buffers in sync with the rendered template until the SDR edits
+    useEffect(() => {
+        setEmailIsEditing(false);
+        setEmailEditSubject(renderedEmailSubject);
+        setEmailEditBody(renderedEmailBody);
+    }, [renderedEmailSubject, renderedEmailBody]);
 
     // ── Derived state ──────────────────────────────────────────────────────────
 
@@ -980,6 +1014,10 @@ export function UnifiedActionDrawer({
                     contactId: contactId || undefined,
                     companyId: contactId ? undefined : companyId,
                     missionId: missionId || undefined,
+                    // Send the rendered (and possibly hand-edited) content so variables
+                    // are resolved and the SDR's edits are preserved.
+                    customSubject: emailEditSubject || undefined,
+                    customBodyHtml: emailEditBody || undefined,
                 }),
             });
             const sendJson = await sendRes.json();
@@ -1007,7 +1045,7 @@ export function UnifiedActionDrawer({
             success("Email envoyé", `Email envoyé avec succès à ${recipientEmail}`);
             setNewActionResult("");
             setEmailSelectedTemplateId("");
-            setEmailPreviewTemplateId("");
+            setEmailIsEditing(false);
             onActionRecorded?.();
             queryClient.invalidateQueries({ queryKey: actionsQueryKey });
             if (andNext && onValidateAndNext) onValidateAndNext();
@@ -2720,12 +2758,15 @@ export function UnifiedActionDrawer({
                                         </div>
                                     </fieldset>
 
-                                    {/* ── Inline email panel: mailbox + template picker ── */}
+                                    {/* ── Inline email panel: mailbox + template + edit-before-send ── */}
                                     {newActionResult === "ENVOIE_MAIL" && (
-                                        <div className="rounded-xl border border-blue-200 bg-blue-50/40 p-3.5 space-y-3">
+                                        <div className="rounded-xl border border-[#CBD8D4] bg-[#F7F9F8] p-3.5 space-y-3">
                                             <div className="flex items-center gap-2 mb-0.5">
-                                                <Mail className="w-4 h-4 text-blue-600" aria-hidden="true" />
-                                                <span className="text-sm font-semibold text-blue-800">Envoyer un email</span>
+                                                <div className="w-6 h-6 rounded-lg bg-[#1F4D47] flex items-center justify-center">
+                                                    <Mail className="w-3.5 h-3.5 text-white" aria-hidden="true" />
+                                                </div>
+                                                <span className="text-sm font-semibold text-[#1F4D47]">Envoyer un email</span>
+                                                {missionName && <span className="text-xs text-slate-400 truncate">· {missionName}</span>}
                                             </div>
 
                                             {/* Recipient display */}
@@ -2742,7 +2783,7 @@ export function UnifiedActionDrawer({
                                                 </div>
                                             )}
 
-                                            {/* Mailbox selector */}
+                                            {/* Mailbox selector — defaults to the mission's attached mailbox */}
                                             <div>
                                                 <label className="block text-xs font-semibold text-slate-600 mb-1">Boîte d&apos;envoi <span className="text-red-500">*</span></label>
                                                 {emailMailboxesLoading ? (
@@ -2756,7 +2797,7 @@ export function UnifiedActionDrawer({
                                                     <select
                                                         value={emailSelectedMailboxId}
                                                         onChange={e => setEmailSelectedMailboxId(e.target.value)}
-                                                        className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-400"
+                                                        className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#1F4D47]/25 focus:border-[#1F4D47]"
                                                     >
                                                         {emailMailboxes.map(mb => (
                                                             <option key={mb.id} value={mb.id}>
@@ -2778,68 +2819,41 @@ export function UnifiedActionDrawer({
                                                         Aucun template assigné à cette mission
                                                     </div>
                                                 ) : (
-                                                    <div className="space-y-1.5 max-h-52 overflow-y-auto pr-0.5">
+                                                    <div className="space-y-1.5 max-h-40 overflow-y-auto pr-0.5 email-scrollbar">
                                                         {emailTemplates.map(mt => {
-                                                            const isSelected = emailSelectedTemplateId === mt.templateId;
-                                                            const isPreviewing = emailPreviewTemplateId === mt.templateId;
+                                                            const isSelected = (emailSelectedTemplateId || emailTemplates[0]?.templateId) === mt.templateId;
                                                             const catColors: Record<string, string> = {
-                                                                OUTREACH: "bg-blue-100 text-blue-700",
+                                                                OUTREACH: "bg-[#EDF4F2] text-[#1F4D47]",
                                                                 FOLLOW_UP: "bg-amber-100 text-amber-700",
                                                                 NURTURE: "bg-violet-100 text-violet-700",
                                                                 CLOSING: "bg-emerald-100 text-emerald-700",
                                                                 OTHER: "bg-slate-100 text-slate-600",
                                                             };
                                                             return (
-                                                                <div key={mt.id}>
-                                                                    <div
-                                                                        role="button"
-                                                                        tabIndex={0}
-                                                                        onClick={() => {
-                                                                            setEmailSelectedTemplateId(mt.templateId);
-                                                                            setEmailPreviewTemplateId("");
-                                                                        }}
-                                                                        onKeyDown={e => e.key === "Enter" && setEmailSelectedTemplateId(mt.templateId)}
-                                                                        className={cn(
-                                                                            "flex items-start gap-2.5 px-3 py-2.5 rounded-lg border cursor-pointer transition-all",
-                                                                            isSelected
-                                                                                ? "border-blue-400 bg-blue-50 ring-1 ring-blue-300"
-                                                                                : "border-slate-200 bg-white hover:border-blue-300 hover:bg-blue-50/40"
-                                                                        )}
-                                                                    >
-                                                                        <div className={cn("mt-0.5 w-4 h-4 rounded-full border-2 shrink-0 flex items-center justify-center transition-all", isSelected ? "border-blue-500 bg-blue-500" : "border-slate-300")}>
-                                                                            {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
-                                                                        </div>
-                                                                        <div className="flex-1 min-w-0">
-                                                                            <div className="flex items-center gap-2 flex-wrap">
-                                                                                <span className="text-sm font-medium text-slate-800 truncate">{mt.template.name}</span>
-                                                                                <span className={cn("text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0", catColors[mt.template.category] ?? catColors.OTHER)}>
-                                                                                    {mt.template.category}
-                                                                                </span>
-                                                                            </div>
-                                                                            <p className="text-xs text-slate-500 truncate mt-0.5">Objet : {mt.template.subject}</p>
-                                                                        </div>
-                                                                        <button
-                                                                            type="button"
-                                                                            onClick={e => { e.stopPropagation(); setEmailPreviewTemplateId(isPreviewing ? "" : mt.templateId); }}
-                                                                            className="shrink-0 p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
-                                                                            title={isPreviewing ? "Masquer l'aperçu" : "Voir l'aperçu"}
-                                                                        >
-                                                                            {isPreviewing ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-                                                                        </button>
-                                                                    </div>
-                                                                    {isPreviewing && (
-                                                                        <div className="mt-1 border border-blue-200 rounded-lg overflow-hidden">
-                                                                            <div className="bg-slate-50 border-b border-slate-200 px-3 py-1.5 flex items-center gap-1.5">
-                                                                                <div className="w-2 h-2 rounded-full bg-red-400" /><div className="w-2 h-2 rounded-full bg-amber-400" /><div className="w-2 h-2 rounded-full bg-emerald-400" />
-                                                                                <span className="text-[11px] text-slate-500 ml-1">Aperçu</span>
-                                                                            </div>
-                                                                            <div
-                                                                                className="bg-white p-3 max-h-48 overflow-y-auto text-sm prose prose-sm max-w-none"
-                                                                                style={{ fontFamily: "Arial, sans-serif", fontSize: "13px", lineHeight: "1.5" }}
-                                                                                dangerouslySetInnerHTML={{ __html: mt.template.bodyHtml }}
-                                                                            />
-                                                                        </div>
+                                                                <div
+                                                                    key={mt.id}
+                                                                    role="button"
+                                                                    tabIndex={0}
+                                                                    onClick={() => setEmailSelectedTemplateId(mt.templateId)}
+                                                                    onKeyDown={e => e.key === "Enter" && setEmailSelectedTemplateId(mt.templateId)}
+                                                                    className={cn(
+                                                                        "flex items-start gap-2.5 px-3 py-2 rounded-lg border cursor-pointer transition-all",
+                                                                        isSelected
+                                                                            ? "border-[#1F4D47] bg-[#EDF4F2] ring-1 ring-[#1F4D47]/30"
+                                                                            : "border-slate-200 bg-white hover:border-[#9DBBB4] hover:bg-[#F1F4F3]"
                                                                     )}
+                                                                >
+                                                                    <div className={cn("mt-0.5 w-4 h-4 rounded-full border-2 shrink-0 flex items-center justify-center transition-all", isSelected ? "border-[#1F4D47] bg-[#1F4D47]" : "border-slate-300")}>
+                                                                        {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                                                                    </div>
+                                                                    <div className="flex-1 min-w-0">
+                                                                        <div className="flex items-center gap-2 flex-wrap">
+                                                                            <span className="text-sm font-medium text-slate-800 truncate">{mt.template.name}</span>
+                                                                            <span className={cn("text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0", catColors[mt.template.category] ?? catColors.OTHER)}>
+                                                                                {mt.template.category}
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
                                                                 </div>
                                                             );
                                                         })}
@@ -2847,13 +2861,74 @@ export function UnifiedActionDrawer({
                                                 )}
                                             </div>
 
-                                            {/* Send button */}
-                                            <div className="flex gap-2 pt-1 border-t border-blue-200">
+                                            {/* Rendered preview + edit-before-send */}
+                                            {chosenEmailTemplate && (
+                                                <div className="rounded-lg border border-slate-200 overflow-hidden bg-white">
+                                                    <div className="flex items-center justify-between gap-2 bg-[#F1F4F3] border-b border-slate-200 px-3 py-1.5">
+                                                        <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
+                                                            <Eye className="w-3.5 h-3.5" />
+                                                            {emailIsEditing ? "Édition" : "Aperçu"}
+                                                            <span className="text-slate-300">·</span>
+                                                            <span className="text-[10px]">variables remplies avec ce contact</span>
+                                                        </div>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setEmailIsEditing(v => !v)}
+                                                            className={cn(
+                                                                "flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-md transition-colors",
+                                                                emailIsEditing ? "text-white bg-[#1F4D47] hover:bg-[#173A35]" : "text-[#1F4D47] hover:bg-[#EDF4F2]"
+                                                            )}
+                                                        >
+                                                            <Edit3 className="w-3 h-3" />
+                                                            {emailIsEditing ? "Terminé" : "Modifier"}
+                                                        </button>
+                                                    </div>
+
+                                                    {/* Subject */}
+                                                    <div className="px-3 py-2 border-b border-slate-100">
+                                                        {emailIsEditing ? (
+                                                            <input
+                                                                type="text"
+                                                                value={emailEditSubject}
+                                                                onChange={e => setEmailEditSubject(e.target.value)}
+                                                                placeholder="Objet"
+                                                                className="w-full text-sm font-medium text-slate-800 bg-transparent focus:outline-none"
+                                                            />
+                                                        ) : (
+                                                            <p className="text-sm font-medium text-slate-800">
+                                                                <span className="text-slate-400 font-normal">Objet : </span>
+                                                                {emailEditSubject || <span className="text-slate-400 italic">(vide)</span>}
+                                                            </p>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Body */}
+                                                    {emailIsEditing ? (
+                                                        <div
+                                                            contentEditable
+                                                            suppressContentEditableWarning
+                                                            onInput={e => setEmailEditBody(e.currentTarget.innerHTML)}
+                                                            className="p-3 max-h-56 overflow-y-auto text-sm text-slate-700 focus:outline-none email-scrollbar"
+                                                            style={{ fontFamily: "Arial, sans-serif", fontSize: "13px", lineHeight: "1.55" }}
+                                                            dangerouslySetInnerHTML={{ __html: emailEditBody }}
+                                                        />
+                                                    ) : (
+                                                        <div
+                                                            className="p-3 max-h-56 overflow-y-auto text-sm text-slate-700 email-scrollbar"
+                                                            style={{ fontFamily: "Arial, sans-serif", fontSize: "13px", lineHeight: "1.55" }}
+                                                            dangerouslySetInnerHTML={{ __html: stripScripts(highlightVariables(chosenEmailTemplate.bodyHtml, emailVariables)) }}
+                                                        />
+                                                    )}
+                                                </div>
+                                            )}
+
+                                            {/* Send buttons */}
+                                            <div className="flex gap-2 pt-1 border-t border-[#CBD8D4]">
                                                 <button
                                                     type="button"
                                                     onClick={() => handleSendEmailAndRecord(false)}
                                                     disabled={sendEmailMutation.isPending || !contact?.email || !emailSelectedMailboxId || !getChosenTemplateId()}
-                                                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-all"
+                                                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-[#1F4D47] hover:bg-[#173A35] disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-colors"
                                                 >
                                                     {sendEmailMutation.isPending ? (
                                                         <><Loader2 className="w-4 h-4 animate-spin" /> Envoi...</>
@@ -2866,7 +2941,7 @@ export function UnifiedActionDrawer({
                                                         type="button"
                                                         onClick={() => handleSendEmailAndRecord(true)}
                                                         disabled={sendEmailMutation.isPending || !contact?.email || !emailSelectedMailboxId || !getChosenTemplateId()}
-                                                        className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-blue-700 bg-blue-100 hover:bg-blue-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-all"
+                                                        className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-[#1F4D47] bg-[#EDF4F2] hover:bg-[#DDE9E5] disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-colors"
                                                     >
                                                         {sendEmailMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <ChevronRight className="w-4 h-4" />}
                                                         Envoyer &amp; Suivant

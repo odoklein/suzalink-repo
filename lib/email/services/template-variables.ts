@@ -1,5 +1,6 @@
 import prisma from '@/lib/prisma';
 import { SUPPORTED_TEMPLATE_VARIABLES } from '../constants';
+import { extractVariables as extractVariablesPure, substituteVariables as substituteVariablesPure } from '../template-format';
 
 // ============================================
 // TEMPLATE VARIABLE SUBSTITUTION SERVICE
@@ -19,19 +20,9 @@ export interface SubstitutionResult {
     variables: Record<string, string>;
 }
 
-// Extract all variable names from text
+// Extract all variable names from text (delegates to the shared client-safe helper)
 export function extractVariables(text: string): string[] {
-    const regex = /\{\{(\w+(?:\.\w+)?)\}\}/g;
-    const variables: string[] = [];
-    let match;
-
-    while ((match = regex.exec(text)) !== null) {
-        if (!variables.includes(match[1])) {
-            variables.push(match[1]);
-        }
-    }
-
-    return variables;
+    return extractVariablesPure(text);
 }
 
 // Build variable map from contact and company data
@@ -123,11 +114,9 @@ export async function buildVariableMap(context: VariableContext): Promise<Record
     return variables;
 }
 
-// Replace variables in text
+// Replace variables in text (delegates to the shared client-safe helper)
 export function substituteVariables(text: string, variables: Record<string, string>): string {
-    return text.replace(/\{\{(\w+(?:\.\w+)?)\}\}/g, (match, varName) => {
-        return variables[varName] ?? '';
-    });
+    return substituteVariablesPure(text, variables);
 }
 
 // Main function: substitute all variables in template

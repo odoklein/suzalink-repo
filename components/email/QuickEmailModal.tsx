@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
+import { buildPreviewVariables, substituteVariables } from "@/lib/email/template-format";
 import {
     X,
     Send,
@@ -112,6 +114,8 @@ export function QuickEmailModal({
 
     const editorRef = useRef<HTMLDivElement>(null);
     const modalRef = useRef<HTMLDivElement>(null);
+    const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
+    useEffect(() => { setPortalContainer(document.body); }, []);
     const recipientInputRef = useRef<HTMLInputElement>(null);
     const selectedSuggestionRef = useRef(false);
 
@@ -248,29 +252,10 @@ export function QuickEmailModal({
         const missionTemplate = templates.find(t => t.template.id === selectedTemplateId);
         if (missionTemplate) {
             const tpl = missionTemplate.template;
-            // Apply variable substitution preview
-            let subjectWithVars = tpl.subject;
-            let bodyWithVars = tpl.bodyHtml;
-
-            const variables: Record<string, string> = {
-                firstName: contact?.firstName || '',
-                lastName: contact?.lastName || '',
-                fullName: [contact?.firstName, contact?.lastName].filter(Boolean).join(' '),
-                title: contact?.title || '',
-                email: contact?.email || '',
-                company: contact?.company?.name || company?.name || '',
-                companyName: contact?.company?.name || company?.name || '',
-            };
-
-            // Replace variables
-            Object.entries(variables).forEach(([key, value]) => {
-                const regex = new RegExp(`\\{\\{${key}\\}\\}`, 'g');
-                subjectWithVars = subjectWithVars.replace(regex, value);
-                bodyWithVars = bodyWithVars.replace(regex, value);
-            });
-
-            setSubject(subjectWithVars);
-            setBodyHtml(bodyWithVars);
+            // Full variable substitution via the shared engine (contact + company + date vars)
+            const variables = buildPreviewVariables(contact ?? null, company ?? null);
+            setSubject(substituteVariables(tpl.subject, variables));
+            setBodyHtml(substituteVariables(tpl.bodyHtml, variables));
         }
     }, [selectedTemplateId, templates, contact, company]);
 
@@ -374,13 +359,13 @@ export function QuickEmailModal({
     // RENDER
     // ============================================
 
-    if (!isOpen) return null;
+    if (!isOpen || !portalContainer) return null;
 
     const selectedMailbox = mailboxes.find(m => m.id === selectedMailboxId);
     const hasNoMailboxes = !isLoadingMailboxes && !fetchMailboxError && mailboxes.length === 0;
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    return createPortal(
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
             {/* Overlay */}
             <div
                 className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm animate-fade-in"
@@ -398,9 +383,9 @@ export function QuickEmailModal({
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-gradient-to-r from-indigo-600 to-violet-600">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-[#173A35] bg-[#1F4D47]">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center">
                             <Send className="w-5 h-5 text-white" />
                         </div>
                         <div>
@@ -539,7 +524,7 @@ export function QuickEmailModal({
                                 </label>
                                 <div className="flex flex-wrap items-center gap-2 min-h-11 px-3 py-2 bg-white border border-slate-200 rounded-xl focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-transparent transition-all">
                                     {recipientEmail && (
-                                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-sm font-medium">
+                                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#1F4D47] text-white text-sm font-medium">
                                             {recipientEmail}
                                             <button
                                                 type="button"
@@ -626,14 +611,14 @@ export function QuickEmailModal({
                                                 className={cn(
                                                     "flex items-center gap-3 p-3 rounded-xl border text-left transition-all",
                                                     selectedTemplateId === mt.template.id
-                                                        ? "border-indigo-500 bg-indigo-50 ring-2 ring-indigo-500/20"
-                                                        : "border-slate-200 bg-white hover:border-indigo-300 hover:bg-indigo-50/50"
+                                                        ? "border-[#1F4D47] bg-[#EDF4F2] ring-2 ring-[#1F4D47]/20"
+                                                        : "border-slate-200 bg-white hover:border-[#9DBBB4] hover:bg-[#F1F4F3]"
                                                 )}
                                             >
                                                 <div className={cn(
                                                     "w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0",
                                                     selectedTemplateId === mt.template.id
-                                                        ? "bg-indigo-500 text-white"
+                                                        ? "bg-[#1F4D47] text-white"
                                                         : "bg-slate-100 text-slate-500"
                                                 )}>
                                                     <Sparkles className="w-5 h-5" />
@@ -647,7 +632,7 @@ export function QuickEmailModal({
                                                     </p>
                                                 </div>
                                                 {selectedTemplateId === mt.template.id && (
-                                                    <CheckCircle2 className="w-5 h-5 text-indigo-600 flex-shrink-0" />
+                                                    <CheckCircle2 className="w-5 h-5 text-[#1F4D47] flex-shrink-0" />
                                                 )}
                                             </button>
                                         ))}
@@ -766,8 +751,7 @@ export function QuickEmailModal({
                                 disabled={isSending || !selectedMailboxId || !effectiveRecipient || (!selectedTemplateId && !subject)}
                                 className={cn(
                                     "flex items-center gap-2 px-6 py-2.5 text-sm font-semibold rounded-xl transition-all",
-                                    "bg-gradient-to-r from-indigo-600 to-violet-600 text-white",
-                                    "hover:from-indigo-500 hover:to-violet-500 hover:shadow-lg hover:shadow-indigo-500/25",
+                                    "bg-[#1F4D47] text-white hover:bg-[#173A35] hover:shadow-lg hover:shadow-[#1F4D47]/20",
                                     "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none"
                                 )}
                             >
@@ -787,7 +771,8 @@ export function QuickEmailModal({
                     </>
                 )}
             </div>
-        </div>
+        </div>,
+        portalContainer
     );
 }
 

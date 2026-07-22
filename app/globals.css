@@ -315,6 +315,22 @@ textarea::placeholder {
     font-size: 13px;
 }
 
+/* Template variable highlight (live preview) */
+.tpl-var-ok {
+    background: #dcfce7;
+    color: #15803d;
+    padding: 0 3px;
+    border-radius: 4px;
+    font-weight: 600;
+}
+.tpl-var-missing {
+    background: #ffedd5;
+    color: #c2410c;
+    padding: 0 3px;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
 /* Slim scrollbar for email panels */
 .email-scrollbar::-webkit-scrollbar {
     width: 5px;
