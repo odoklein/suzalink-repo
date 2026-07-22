@@ -1612,6 +1612,242 @@ tbody tr:hover td {
     letter-spacing: 0.02em;
 }
 
+/* ── Recent Accounts Panel ───────────────────────────────────────────────── */
+
+.elan-recent-accounts {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 38px;
+}
+
+.elan-recent-accounts-label {
+    margin: 0 0 2px;
+    font-family: var(--font-elan-mono), monospace;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--elan-slate);
+}
+
+/* Account card */
+.elan-account-card {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    padding: 13px 14px;
+    border: 1px solid var(--elan-line-strong);
+    border-radius: 12px;
+    background: var(--elan-surface);
+    cursor: pointer;
+    text-align: left;
+    transition:
+        border-color 160ms ease,
+        box-shadow 160ms ease,
+        background-color 160ms ease,
+        transform 160ms ease;
+}
+
+.elan-account-card:hover:not(:disabled) {
+    border-color: var(--elan-petrol);
+    background: #f6f4ef;
+    box-shadow: 0 6px 20px rgba(12, 59, 56, 0.10);
+    transform: translateY(-1px);
+}
+
+.elan-account-card:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+.elan-account-card:focus-visible {
+    outline: 2px solid var(--elan-petrol);
+    outline-offset: 3px;
+}
+
+.elan-account-card:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* Loading state: subtle shimmer overlay on the card */
+.elan-account-card.is-loading {
+    border-color: var(--elan-amber-deep);
+    background: #fffbf3;
+    box-shadow: 0 0 0 3px rgba(255, 158, 27, 0.18);
+    pointer-events: none;
+}
+
+/* Avatar area */
+.elan-account-avatar {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+}
+
+.elan-account-avatar-img {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--elan-line);
+}
+
+.elan-account-avatar-initials {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    user-select: none;
+}
+
+.elan-account-spinner {
+    color: var(--elan-amber-deep);
+}
+
+/* Text info */
+.elan-account-info {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.elan-account-name {
+    display: block;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--elan-ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.elan-account-email {
+    display: block;
+    font-size: 12px;
+    color: var(--elan-slate);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Card right-hand actions */
+.elan-account-actions {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 160ms ease;
+}
+
+.elan-account-card:hover .elan-account-actions,
+.elan-account-card:focus-within .elan-account-actions {
+    opacity: 1;
+}
+
+/* Forget / remove button */
+.elan-account-remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--elan-slate);
+    cursor: pointer;
+    transition:
+        background-color 140ms ease,
+        border-color 140ms ease,
+        color 140ms ease;
+}
+
+.elan-account-remove:hover {
+    background: #fae9e6;
+    border-color: rgba(185, 67, 62, 0.24);
+    color: #8f302c;
+}
+
+.elan-account-remove:focus-visible {
+    outline: 2px solid #8f302c;
+    outline-offset: 2px;
+}
+
+/* "Use another account" row */
+.elan-account-other {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    width: 100%;
+    margin-top: 4px;
+    padding: 12px 14px;
+    border: 1px dashed var(--elan-line-strong);
+    border-radius: 12px;
+    background: transparent;
+    color: var(--elan-petrol);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition:
+        border-color 150ms ease,
+        background-color 150ms ease,
+        color 150ms ease;
+}
+
+.elan-account-other:hover {
+    border-color: var(--elan-petrol);
+    background: rgba(12, 59, 56, 0.05);
+}
+
+.elan-account-other:focus-visible {
+    outline: 2px solid var(--elan-petrol);
+    outline-offset: 3px;
+}
+
+/* Back-to-accounts link (inside the manual form view) */
+.elan-login-back-accounts {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 20px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--elan-petrol);
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 700;
+    font-family: var(--font-elan-mono), monospace;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    transition: color 140ms ease;
+}
+
+.elan-login-back-accounts:hover {
+    color: var(--elan-amber-deep);
+}
+
+.elan-login-back-accounts:focus-visible {
+    outline: 2px solid var(--elan-petrol);
+    outline-offset: 3px;
+    border-radius: 4px;
+}
+
 /* Password recovery screens share a legacy local stylesheet. These higher
    specificity rules bring them into the same identity without touching flow logic. */
 .elan-app .lp {
@@ -1729,12 +1965,34 @@ tbody tr:hover td {
     .elan-login-form {
         margin-top: 30px;
     }
+
+    .elan-account-card {
+        padding: 11px 12px;
+        gap: 12px;
+    }
+
+    .elan-account-avatar,
+    .elan-account-avatar-img,
+    .elan-account-avatar-initials {
+        width: 36px;
+        height: 36px;
+        font-size: 13px;
+    }
+
+    .elan-account-actions {
+        /* Always visible on touch devices (no hover) */
+        opacity: 1;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
     .cp-content > *,
     .elan-login-form-wrap,
     .elan-login-submit,
+    .elan-account-card,
+    .elan-account-remove,
+    .elan-account-other,
+    .elan-login-back-accounts,
     .card,
     .stat-card {
         animation: none !important;

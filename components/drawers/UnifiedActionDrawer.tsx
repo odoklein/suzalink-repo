@@ -1931,12 +1931,14 @@ export function UnifiedActionDrawer({
                                                 className="w-full mt-0.5 px-2.5 py-1.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-400"
                                             />
                                         ) : (
-                                            <a
-                                                href={`mailto:${contact.email}`}
-                                                className="text-sm font-medium text-indigo-600 hover:underline truncate block focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-400 rounded"
+                                            <button
+                                                type="button"
+                                                onClick={() => setNewActionResult("ENVOIE_MAIL")}
+                                                className="text-sm font-medium text-indigo-600 hover:underline truncate block text-left focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-400 rounded cursor-pointer"
+                                                title="Préparer un email"
                                             >
                                                 {contact.email}
-                                            </a>
+                                            </button>
                                         )}
                                     </InfoRow>
                                 )}

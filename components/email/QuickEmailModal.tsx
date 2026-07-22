@@ -234,7 +234,11 @@ export function QuickEmailModal({
                 const res = await fetch(`/api/missions/${missionId}/templates`);
                 const json = await res.json();
                 if (json.success) {
-                    setTemplates(json.data || []);
+                    const list: MissionTemplate[] = json.data || [];
+                    setTemplates(list);
+                    if (list.length > 0 && !selectedTemplateId) {
+                        setSelectedTemplateId(list[0].template.id);
+                    }
                 }
             } catch (err) {
                 console.error("Failed to fetch templates:", err);

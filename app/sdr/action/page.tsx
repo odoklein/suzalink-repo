@@ -1372,8 +1372,8 @@ export default function SDRActionPage() {
     };
 
     // Queue: open email composer (will record MAIL_ENVOYE when sent)
-    const handleMailToSendChoiceOpenComposer = () => {
-        const row = mailToSendChoiceRow;
+    const handleMailToSendChoiceOpenComposer = (targetRow?: QueueItem) => {
+        const row = targetRow || mailToSendChoiceRow;
         if (!row) return;
         const mission = missions.find(m => m.name === row.missionName);
         const missionId = mission?.id || selectedMissionId;
@@ -1773,9 +1773,7 @@ export default function SDRActionPage() {
         </button>
     );
 
-    // ========== TABLE VIEW ==========
-    if (viewMode === "table") {
-        const queueColumns: Column<QueueItem>[] = [
+    const queueColumns: Column<QueueItem>[] = [
             {
                 key: "name",
                 header: "Contact / Société",
@@ -1840,6 +1838,32 @@ export default function SDRActionPage() {
                             <PhoneCall className="w-3.5 h-3.5 text-emerald-600" />
                             <span className="font-mono tracking-tight">{phone}</span>
                         </a>
+                    );
+                },
+            },
+            {
+                key: "_email",
+                header: "Email",
+                render: (_, row) => {
+                    const email = row._email || row.contact?.email;
+                    if (!email) return (
+                        <span className="inline-flex items-center gap-1 text-xs text-slate-400 px-2 py-1 rounded-md bg-slate-50 border border-slate-100">
+                            <Mail className="w-3 h-3 text-slate-300" /> Aucun
+                        </span>
+                    );
+                    return (
+                        <button
+                            type="button"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleMailToSendChoiceOpenComposer(row);
+                            }}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-[#1F4D47] bg-[#EDF4F2] hover:bg-[#E2ECE8] border border-[#CBD8D4] rounded-lg transition-all duration-150 hover:shadow-sm group cursor-pointer"
+                            title="Envoyer un email (boîte & templates de la mission)"
+                        >
+                            <Mail className="w-3.5 h-3.5 text-[#1F4D47]" />
+                            <span className="truncate max-w-[160px] font-mono text-[11px]">{email}</span>
+                        </button>
                     );
                 },
             },
@@ -2047,24 +2071,212 @@ export default function SDRActionPage() {
 
                     <div className="relative flex flex-col lg:flex-row lg:items-center justify-between gap-3">
                         <div className="flex items-center gap-3">
+                    const cfg = channelConfig[v as string] || { icon: <Globe className="w-3.5 h-3.5" />, color: "bg-slate-50 text-slate-600 border-slate-200", label: v };
+                    return (
+                        <Badge className={cn("text-xs gap-1 font-medium border", cfg.color)}>
+                            {cfg.icon}
+                            {cfg.label}
+                        </Badge>
+                    );
+                },
+            },
+            {
+                key: "lastAction",
+                header: "Dernière action",
+                render: (_, row) => {
+                    if (!row.lastAction) {
+                        return (
+                            <span className="inline-flex items-center gap-1.5 text-xs text-slate-400 italic px-2 py-1 rounded-lg bg-slate-50 border border-slate-100">
+                                <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+                                Jamais contacté
+                            </span>
+                        );
+                    }
+                    const resultColor: Record<string, { badge: string; dot: string }> = {
+                        NO_RESPONSE: { badge: "bg-slate-50 text-slate-600 border-slate-200", dot: "bg-slate-400" },
+                        BAD_CONTACT: { badge: "bg-red-50 text-red-600 border-red-200", dot: "bg-red-400" },
+                        INTERESTED: { badge: "bg-emerald-50 text-emerald-700 border-emerald-200", dot: "bg-emerald-400" },
+                        CALLBACK_REQUESTED: { badge: "bg-amber-50 text-amber-700 border-amber-200", dot: "bg-amber-400" },
+                        RELANCE: { badge: "bg-amber-50 text-amber-700 border-amber-200", dot: "bg-amber-400" },
+                        RAPPEL: { badge: "bg-amber-50 text-amber-700 border-amber-200", dot: "bg-amber-400" },
+                        MEETING_BOOKED: { badge: "bg-[rgba(255,158,27,0.1)] text-[var(--elan-petrol)] border-[rgba(224,124,0,0.22)]", dot: "bg-[var(--elan-amber)]" },
+                        DISQUALIFIED: { badge: "bg-slate-100 text-slate-500 border-slate-200", dot: "bg-slate-400" },
+                        ENVOIE_MAIL: { badge: "bg-[rgba(12,59,56,0.08)] text-[var(--elan-petrol)] border-[rgba(12,59,56,0.18)]", dot: "bg-[#25745f]" },
+                        MAIL_ENVOYE: { badge: "bg-emerald-50 text-emerald-700 border-emerald-200", dot: "bg-emerald-400" },
+                    };
+                    const color = resultColor[row.lastAction.result] || { badge: "bg-slate-100 text-slate-600 border-slate-200", dot: "bg-slate-400" };
+                    const contactedByOther = row.lastActionBy?.id && row.lastActionBy.id !== session?.user?.id;
+                    return (
+                        <div className="space-y-1.5">
+                            <Badge className={cn("text-xs border font-medium", color.badge)}>
+                                {RESULT_ICON_MAP[row.lastAction.result]}
+                                <span className="ml-1">{statusLabels[row.lastAction.result] ?? row.lastAction.result}</span>
+                            </Badge>
+                            {contactedByOther && row.lastActionBy?.name && (
+                                <p className="text-[11px] text-amber-700 font-medium">
+                                    Contacté par {row.lastActionBy.name}
+                                </p>
+                            )}
+                            {row.lastAction.note && (
+                                <div className="flex items-start gap-1.5 max-w-[220px]" title={row.lastAction.note}>
+                                    <MessageSquare className="w-3 h-3 text-slate-400 shrink-0 mt-0.5" />
+                                    <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">
+                                        {row.lastAction.note}
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    );
+                },
+            },
+            {
+                key: "priority",
+                header: "Urgence",
+                render: (_, row) => {
+                    if (row.priority === "ABSENT_RDV") {
+                        return (
+                            <div className="space-y-1">
+                                <Badge className="text-xs font-bold border bg-red-100 text-red-800 border-red-300 animate-pulse gap-1">
+                                    <AlertCircle className="w-3 h-3" />
+                                    RDV ABSENT
+                                </Badge>
+                                <p className="text-[10px] font-semibold text-red-600">A rappeler en priorité</p>
+                            </div>
+                        );
+                    }
+                    const isCallbackRow = !!row.lastAction && isCallbackResult(row.lastAction.result);
+                    const callbackDateRaw = row.lastAction?.callbackDate;
+                    const callbackTs = callbackDateRaw ? new Date(callbackDateRaw).getTime() : NaN;
+                    const now = Date.now();
+                    const oneDayMs = 24 * 60 * 60 * 1000;
+                    const threeDaysMs = 3 * oneDayMs;
+
+                    if (!isCallbackRow || !Number.isFinite(callbackTs)) {
+                        return (
+                            <span className="inline-flex items-center gap-1.5 text-xs text-slate-500 px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200">
+                                Non planifié
+                            </span>
+                        );
+                    }
+
+                    const isOverdue = callbackTs < now;
+                    const isCritical = callbackTs <= now + oneDayMs;
+                    const isSoon = callbackTs <= now + threeDaysMs;
+                    const urgencyLabel = isOverdue ? "En retard" : isCritical ? "Urgent" : isSoon ? "Bientot" : "Planifié";
+                    const urgencyClass = isOverdue
+                        ? "bg-rose-50 text-rose-700 border-rose-200"
+                        : isCritical
+                            ? "bg-amber-50 text-amber-700 border-amber-200"
+                            : isSoon
+                                ? "bg-[rgba(255,158,27,0.1)] text-[var(--elan-petrol)] border-[rgba(224,124,0,0.22)]"
+                                : "bg-emerald-50 text-emerald-700 border-emerald-200";
+
+                    return (
+                        <div className="space-y-1">
+                            <time className="block text-[11px] font-medium text-slate-600">
+                                {new Date(callbackDateRaw as string).toLocaleDateString("fr-FR", {
+                                    day: "2-digit",
+                                    month: "short",
+                                    year: "numeric",
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                })}
+                            </time>
+                            <Badge className={cn("text-xs font-medium border", urgencyClass)}>
+                                {urgencyLabel}
+                            </Badge>
+                        </div>
+                    );
+                },
+            },
+            {
+                key: "quickActions",
+                header: "Actions rapides",
+                render: (_, row) => {
+                    const key = queueRowKey(row);
+                    const submitting = submittingRowKey === key;
+                    // Show only the most common 4 actions inline, rest via drawer  
+                    const primaryActions = resultOptions.slice(0, 5);
+                    return (
+                        <div className="flex items-center gap-1">
+                            {submitting && (
+                                <span className="flex items-center justify-center w-8 h-8 text-[var(--elan-amber)]">
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                </span>
+                            )}
+                            {primaryActions.map((opt) => {
+                                const actionColors: Record<string, string> = {
+                                    NO_RESPONSE: "hover:border-slate-400 hover:bg-slate-50 hover:text-slate-700 hover:shadow-sm",
+                                    BAD_CONTACT: "hover:border-red-300 hover:bg-red-50 hover:text-red-600 hover:shadow-sm hover:shadow-red-100",
+                                    INTERESTED: "hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-600 hover:shadow-sm hover:shadow-emerald-100",
+                                    CALLBACK_REQUESTED: "hover:border-amber-300 hover:bg-amber-50 hover:text-amber-600 hover:shadow-sm hover:shadow-amber-100",
+                                    RELANCE: "hover:border-amber-300 hover:bg-amber-50 hover:text-amber-600 hover:shadow-sm hover:shadow-amber-100",
+                                    RAPPEL: "hover:border-amber-300 hover:bg-amber-50 hover:text-amber-600 hover:shadow-sm hover:shadow-amber-100",
+                                    MEETING_BOOKED: "hover:border-[rgba(224,124,0,0.24)] hover:bg-[rgba(255,158,27,0.12)] hover:text-[var(--elan-petrol)] hover:shadow-sm hover:shadow-[rgba(255,158,27,0.12)]",
+                                    DISQUALIFIED: "hover:border-slate-400 hover:bg-slate-100 hover:text-slate-600 hover:shadow-sm",
+                                    ENVOIE_MAIL: "hover:border-[rgba(12,59,56,0.22)] hover:bg-[rgba(12,59,56,0.08)] hover:text-[var(--elan-petrol)] hover:shadow-sm hover:shadow-[rgba(12,59,56,0.08)]",
+                                    MAIL_ENVOYE: "hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-600 hover:shadow-sm hover:shadow-emerald-100",
+                                };
+                                return (
+                                    <button
+                                        key={opt.value}
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleQuickAction(row, opt.value);
+                                        }}
+                                        disabled={submitting}
+                                        title={`${opt.label} (${opt.key})`}
+                                        className={cn(
+                                            "w-8 h-8 rounded-lg border flex items-center justify-center transition-all duration-150",
+                                            "border-slate-200 text-slate-400 bg-white",
+                                            actionColors[opt.value] || "hover:border-[rgba(224,124,0,0.24)] hover:bg-[rgba(255,158,27,0.12)] hover:text-[var(--elan-petrol)]",
+                                            submitting && "opacity-40 pointer-events-none",
+                                            "active:scale-95"
+                                        )}
+                                    >
+                                        {opt.icon}
+                                    </button>
+                                );
+                            })}
+                            {/* Open drawer for full control */}
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    openDrawerForRow(row);
+                                }}
+                                title="Voir la fiche complète"
+                                className="w-8 h-8 rounded-lg border border-dashed border-slate-200 flex items-center justify-center text-slate-400 hover:border-[rgba(224,124,0,0.24)] hover:bg-[rgba(255,158,27,0.12)] hover:text-[var(--elan-petrol)] transition-all duration-150 active:scale-95"
+                            >
+                                <Eye className="w-4 h-4" />
+                            </button>
+                        </div>
+                    );
+                },
+            },
+        ];
+        return (
+            <div className="space-y-4">
+                {/* Header — Table View */}
+                <div className="relative overflow-hidden bg-gradient-to-br from-[#0c3b38] via-[#082c2a] to-[#0c3b38] rounded-2xl p-5 shadow-xl">
+                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-[rgba(255,158,27,0.12)] via-transparent to-transparent" />
+                    <div className="absolute -top-16 -right-16 w-48 h-48 bg-[rgba(255,158,27,0.06)] rounded-full blur-2xl" />
+
+                    <div className="relative flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                        <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-xl bg-[rgba(255,158,27,0.16)] flex items-center justify-center border border-[rgba(255,158,27,0.22)]">
                                 <Phone className="w-5 h-5 text-[rgba(244,240,232,0.7)]" />
                             </div>
                             <div>
                                 <h1 className="text-[22px] font-[500] text-white leading-tight">Actions</h1>
-                                <p className="text-[13px] text-white/50">File d&apos;actions - vue tableau</p>
+                                <p className="text-[13px] text-white/50">Gérez vos actions commerciales</p>
                             </div>
                         </div>
 
                         <div className="flex items-center gap-2 flex-wrap">
-                            <div className="flex rounded-xl border border-white/10 p-0.5 bg-white/5">
-                                <button type="button" onClick={() => setViewMode("card")} className={cn("px-3 py-1.5 text-[13px] font-[500] rounded-lg transition-all flex items-center gap-1.5", viewMode === "card" ? "bg-white text-slate-900 shadow-md" : "text-white/60 hover:text-white hover:bg-white/10")}>
-                                    <User className="w-3.5 h-3.5" /> Carte
-                                </button>
-                                <button type="button" onClick={() => setViewMode("table")} className={cn("px-3 py-1.5 text-[13px] font-[500] rounded-lg transition-all flex items-center gap-1.5", viewMode === "table" ? "bg-white text-slate-900 shadow-md" : "text-white/60 hover:text-white hover:bg-white/10")}>
-                                    <Building2 className="w-3.5 h-3.5" /> Tableau
-                                </button>
-                            </div>
+                            <Select variant="header-dark" value={selectedMissionId || ""} onChange={(id) => { setSelectedMissionId(id); localStorage.setItem("sdr_selected_mission", id); const firstList = lists.find((l) => l.mission.id === id); setSelectedListId(firstList?.id ?? null); }} options={selectableMissions.map((m) => ({ value: m.id, label: m.name }))} placeholder="Mission" className="min-w-[160px]" />
+                            <Select variant="header-dark" value={selectedListId || "all"} onChange={(id) => setSelectedListId(id === "all" ? null : id)} options={[{ value: "all", label: "Toutes les listes" }, ...filteredLists.map((l) => ({ value: l.id, label: l.name }))]} placeholder="Liste" className="min-w-[140px]" />
 
                             <Button type="button" onClick={() => setShowStatsModal(true)} className="rounded-xl border border-white/15 bg-white/8 hover:bg-white/15 text-white backdrop-blur-sm gap-1.5 px-3 py-1.5 h-auto text-[13px] font-[500]">
                                 <BarChart2 className="w-3.5 h-3.5" /> Stats
@@ -2374,41 +2586,158 @@ export default function SDRActionPage() {
                     size="sm"
                 >
                     <div className="space-y-4">
-                        <p className="text-sm text-slate-600">Enregistrer une note (Mail à envoyer) ou envoyer un email maintenant (Mail envoyé).</p>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Note *</label>
-                            <textarea
-                                value={mailToSendChoiceNote}
-                                onChange={(e) => setMailToSendChoiceNote(e.target.value)}
-                                placeholder="Ex: Mail à envoyer après validation du devis..."
-                                rows={3}
-                                maxLength={500}
-                                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[rgba(255,158,27,0.35)]"
-                            />
-                        </div>
-                        <div className="flex flex-wrap gap-2 justify-end pt-2">
-                            <Button variant="ghost" onClick={() => { setShowMailToSendChoiceModal(false); setMailToSendChoiceRow(null); setMailToSendChoiceNote(""); }}>
-                                Annuler
-                            </Button>
-                            <Button
-                                variant="outline"
-                                onClick={handleMailToSendChoiceOpenComposer}
-                                className="gap-2 border-[rgba(12,59,56,0.18)] text-[var(--elan-petrol)] bg-[rgba(12,59,56,0.08)] hover:bg-[rgba(12,59,56,0.12)]"
-                            >
-                                <Send className="w-4 h-4" />
-                                Envoyer un email
-                            </Button>
-                            <Button
-                                variant="primary"
-                                onClick={handleMailToSendChoiceSaveOnly}
-                                disabled={!mailToSendChoiceNote.trim() || submittingRowKey !== null}
-                                isLoading={submittingRowKey !== null}
-                            >
-                                Enregistrer (Mail à envoyer)
                             </Button>
                         </div>
                     </div>
-                </Modal>
+                </div>
+
+                {/* Bulk delete bar */}
+                {tableSelectedIds.size > 0 && (
+                    <div className="flex items-center justify-between gap-4 px-4 py-3 rounded-xl bg-[rgba(255,158,27,0.1)] border border-[rgba(224,124,0,0.22)] mb-4">
+                        <span className="text-sm font-medium text-[var(--elan-petrol)]">
+                            {tableSelectedIds.size} élément(s) sélectionné(s)
+                        </span>
+                        <div className="flex items-center gap-2">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setTableSelectedIds(new Set())}
+                                disabled={isBulkDisqualifying}
+                            >
+                                Annuler
+                            </Button>
+                            <Button
+                                variant="danger"
+                                size="sm"
+                                onClick={handleBulkDisqualify}
+                                disabled={isBulkDisqualifying}
+                                className="gap-2"
+                            >
+                                {isBulkDisqualifying ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                    <Trash2 className="w-4 h-4" />
+                                )}
+                                Disqualifier la sélection
+                            </Button>
+                        </div>
+                    </div>
+                )}
+
+                {/* Data Table */}
+                <div className="bg-white rounded-2xl border border-slate-200/60 shadow-lg shadow-slate-200/50 overflow-hidden">
+                    {queueInitialLoading ? (
+                        <TableSkeleton columns={6} rows={12} className="rounded-2xl" />
+                    ) : queueFetchError ? (
+                        <EmptyState
+                            icon={RefreshCw}
+                            title={queueFetchErrorMsg ?? "Erreur"}
+                            description="Vérifiez votre connexion et réessayez."
+                            action={
+                                <Button
+                                    variant="secondary"
+                                    onClick={() => refreshQueue()}
+                                    className="gap-2"
+                                >
+                                    <RefreshCw className="w-4 h-4" />
+                                    Réessayer
+                                </Button>
+                            }
+                            className="rounded-2xl border-0"
+                        />
+                    ) : filteredQueueItems.length === 0 ? (
+                        <EmptyState
+                            icon={emptyTableReason.icon}
+                            title={emptyTableReason.title}
+                            description={emptyTableReason.description}
+                            action={
+                                hasTableFiltersActive ? (
+                                    <Button variant="secondary" onClick={clearTableFilters} className="gap-2">
+                                        <RotateCcw className="w-4 h-4" />
+                                        Réinitialiser les filtres
+                                    </Button>
+                                ) : selectedMissionId ? (
+                                    <Button variant="secondary" onClick={() => refreshQueue()} className="gap-2">
+                                        <RefreshCw className="w-4 h-4" />
+                                        Actualiser
+                                    </Button>
+                                ) : undefined
+                            }
+                            className="rounded-2xl border-0"
+                        />
+                    ) : (
+                        <DataTable
+                            data={filteredQueueItems}
+                            columns={queueColumns}
+                            keyField={(row) => queueRowKey(row)}
+                            searchable
+                            searchPlaceholder="Rechercher contact, société, téléphone, note..."
+                            searchFields={["_displayName", "_companyName", "_phone", "_searchNote", "missionName"]}
+                            pagination
+                            pageSize={15}
+                            emptyMessage="Aucun contact dans la file. Changez de mission ou liste."
+                            onRowClick={openDrawerForRow}
+                            enableSecondaryColumnsToggle
+                            selectable
+                            selectedIds={tableSelectedIds}
+                            onSelectionChange={(ids) => setTableSelectedIds(new Set(ids))}
+                            getRowClassName={(row) => {
+                                if (recentlyUpdatedRowKeys.has(queueRowKey(row))) {
+                                    return "!bg-emerald-50/80 border-l-4 border-l-emerald-500 animate-fade-in";
+                                }
+                                const isCallbackRow = !!row.lastAction && isCallbackResult(row.lastAction.result);
+                                if (!isCallbackRow) return "";
+                                const callbackTs = row.lastAction?.callbackDate ? new Date(row.lastAction.callbackDate).getTime() : NaN;
+                                const in3Days = Number.isFinite(callbackTs) && callbackTs <= Date.now() + 3 * 24 * 60 * 60 * 1000;
+                                return in3Days
+                                    ? "!bg-amber-100/80 border-l-8 border-l-amber-500 ring-1 ring-amber-200/70"
+                                    : "!bg-amber-50/60 border-l-8 border-l-amber-300 ring-1 ring-amber-100/70";
+                            }}
+                        />
+                    )}
+                </div>
+
+                {/* Unified Action Drawer — mount only when open to avoid heavy effects when closed */}
+                {unifiedDrawerOpen && unifiedDrawerCompanyId && (
+                        <UnifiedActionDrawer
+                            isOpen={unifiedDrawerOpen}
+                            onClose={closeUnifiedDrawer}
+                            contactId={unifiedDrawerContactId}
+                            companyId={unifiedDrawerCompanyId}
+                            missionId={unifiedDrawerMissionId}
+                            missionName={unifiedDrawerMissionName}
+                            clientBookingUrl={unifiedDrawerClientBookingUrl || undefined}
+                            clientInterlocuteurs={unifiedDrawerInterlocuteurs}
+                            onBookingDialogOpenChange={setUnifiedBookingDialogOpen}
+                            onAlloDialogOpenChange={setUnifiedAlloDialogOpen}
+                            onContactSelect={(newContactId) => {
+                                setUnifiedDrawerContactId(newContactId);
+                            }}
+                            onActionRecorded={() => {
+                                const rowKey = unifiedDrawerContactId ?? unifiedDrawerCompanyId ?? "";
+                                if (rowKey) {
+                                    queryClient.invalidateQueries({ queryKey: queueQueryKey });
+                                    setActionsCompleted((c) => c + 1);
+                                }
+                                refreshQueue();
+                            }}
+                            onValidateAndNext={() => {
+                                if (!drawerRow) return;
+                                const key = queueRowKey(drawerRow);
+                                const idx = filteredQueueItems.findIndex((row) => queueRowKey(row) === key);
+                                queryClient.invalidateQueries({ queryKey: queueQueryKey });
+                                setActionsCompleted((c) => c + 1);
+                                if (idx >= 0 && idx < filteredQueueItems.length - 1) {
+                                    const nextRow = filteredQueueItems[idx + 1];
+                                    openDrawerForRow(nextRow);
+                                } else {
+                                    closeUnifiedDrawer();
+                                }
+                                refreshQueue();
+                            }}
+                        />
+                    )
+                }
 
                 {/* Stats modal: summary + list of contacts with status (click to open drawer) */}
                 <Modal
@@ -2418,929 +2747,19 @@ export default function SDRActionPage() {
                     description={selectedMissionId ? (missions.find((m) => m.id === selectedMissionId)?.name ?? "") + (selectedListId ? ` · ${filteredLists.find((l) => l.id === selectedListId)?.name ?? ""}` : "") : "Sélectionnez une mission"}
                     size="xl"
                 >
-                    {viewMode === "table" ? (
-                        <ActionStatsModalBody
-                            items={filteredQueueItems}
-                            loading={false}
-                            statusLabels={statusLabels}
-                            onRowClick={(row) => {
-                                openDrawerForRow(row);
-                                setShowStatsModal(false);
-                            }}
-                            priorityLabels={PRIORITY_LABELS}
-                            resultIconMap={RESULT_ICON_MAP}
-                            queueRowKey={queueRowKey}
-                        />
-                    ) : (
-                        <ActionStatsModalBody
-                            items={statsQueueItems}
-                            loading={statsLoading}
-                            statusLabels={statusLabels}
-                            onRowClick={(row) => {
-                                openDrawerForRow(row);
-                                setShowStatsModal(false);
-                            }}
-                            priorityLabels={PRIORITY_LABELS}
-                            resultIconMap={RESULT_ICON_MAP}
-                            queueRowKey={queueRowKey}
-                        />
-                    )}
+                    <ActionStatsModalBody
+                        items={filteredQueueItems}
+                        loading={false}
+                        statusLabels={statusLabels}
+                        onRowClick={(row) => {
+                            openDrawerForRow(row);
+                            setShowStatsModal(false);
+                        }}
+                        priorityLabels={PRIORITY_LABELS}
+                        resultIconMap={RESULT_ICON_MAP}
+                        queueRowKey={queueRowKey}
+                    />
                 </Modal>
-            </div >
-        );
-    }
-
-    // Loading (card view)
-    if (isLoading && !currentAction) {
-        return (
-            <div className="elan-page">
-                <CardSkeleton hasHeader hasImage={false} lines={4} />
-                <CardSkeleton hasHeader={false} lines={3} />
-                <div className="flex gap-4">
-                    <CardSkeleton hasHeader className="flex-1" lines={2} />
-                    <CardSkeleton hasHeader className="flex-1" lines={2} />
-                </div>
             </div>
         );
-    }
-
-    // Empty queue (card view)
-    if (!currentAction?.hasNext) {
-        return (
-            <div className="elan-page">
-                {/* Header — Empty Queue */}
-                <div className="relative overflow-hidden bg-gradient-to-br from-[#0c3b38] via-[#082c2a] to-[#0c3b38] rounded-2xl p-5 shadow-xl">
-                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-[rgba(255,158,27,0.12)] via-transparent to-transparent" />
-                    <div className="absolute -top-16 -right-16 w-48 h-48 bg-[rgba(255,158,27,0.06)] rounded-full blur-2xl" />
-                    <div className="relative flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-[rgba(255,158,27,0.16)] flex items-center justify-center border border-[rgba(255,158,27,0.22)]">
-                                <Phone className="w-5 h-5 text-[rgba(244,240,232,0.7)]" />
-                            </div>
-                            <div>
-                                <h1 className="text-[22px] font-[500] text-white leading-tight">Actions</h1>
-                                <p className="text-[13px] text-white/50">Gérez vos actions commerciales</p>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-2 flex-wrap">
-                            <div className="flex rounded-xl border border-white/10 p-0.5 bg-white/5">
-                                <button type="button" onClick={() => setViewMode("card")} className={cn("px-3 py-1.5 text-[13px] font-[500] rounded-lg transition-all flex items-center gap-1.5", viewMode === "card" ? "bg-white text-slate-900 shadow-md" : "text-white/60 hover:text-white hover:bg-white/10")}>
-                                    <User className="w-3.5 h-3.5" /> Carte
-                                </button>
-                                <button type="button" onClick={() => setViewMode("table")} className={cn("px-3 py-1.5 text-[13px] font-[500] rounded-lg transition-all flex items-center gap-1.5", viewMode === "table" ? "bg-white text-slate-900 shadow-md" : "text-white/60 hover:text-white hover:bg-white/10")}>
-                                    <Building2 className="w-3.5 h-3.5" /> Tableau
-                                </button>
-                            </div>
-                            <Select variant="header-dark" value={selectedMissionId || ""} onChange={(id) => { setSelectedMissionId(id); localStorage.setItem("sdr_selected_mission", id); const firstList = lists.find((l) => l.mission.id === id); setSelectedListId(firstList?.id ?? null); }} options={selectableMissions.map((m) => ({ value: m.id, label: m.name }))} placeholder="Mission" className="min-w-[160px]" />
-                            <Select variant="header-dark" value={selectedListId || "all"} onChange={(id) => setSelectedListId(id === "all" ? null : id)} options={[{ value: "all", label: "Toutes les listes" }, ...filteredLists.map((l) => ({ value: l.id, label: l.name }))]} placeholder="Liste" className="min-w-[140px]" />
-                            {syncCallsButton}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Empty State */}
-                <div className="bg-white rounded-2xl border border-[#e5e5e5] shadow-sm p-12">
-                    <EmptyState
-                        icon={CheckCircle2}
-                        title="File d'attente vide"
-                        description={
-                            missions.length === 0
-                                ? "Aucune mission active assignée. Contactez votre manager pour être assigné à une mission."
-                                : selectableMissions.length === 0
-                                    ? "Aucune mission planifiée (aujourd'hui ou cette semaine). Vous ne pouvez travailler que sur vos missions planifiées."
-                                : !selectedMissionId
-                                    ? "Sélectionnez une mission ci-dessus pour afficher le prochain contact à contacter."
-                                    : (currentAction?.message || "Aucun contact disponible pour le moment (listes vides, contacts sans téléphone/email/LinkedIn, ou tous en cooldown 24h).")
-                        }
-                        action={
-                            <Button variant="secondary" onClick={loadNextAction} className="gap-2">
-                                <RefreshCw className="w-4 h-4" />
-                                Actualiser
-                            </Button>
-                        }
-                    />
-                </div>
-            </div>
-        );
-    }
-
-    return (
-        <div className="elan-page pb-28">
-            {/* Success Overlay */}
-            {showSuccess && (
-                <div className="fixed inset-0 bg-white/80 backdrop-blur-md z-50 flex items-center justify-center">
-                    <div className="text-center animate-fade-in bg-white rounded-2xl border border-[#e5e5e5] shadow-xl px-10 py-8">
-                        <div className="w-14 h-14 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-4">
-                            <CheckCircle2 className="w-7 h-7 text-emerald-600" />
-                        </div>
-                        <p className="text-[18px] font-[500] text-[#1a1a1a]">Action enregistrée</p>
-                        <p className="text-[13px] text-slate-400 mt-1">Chargement du contact suivant…</p>
-                    </div>
-                </div>
-            )}
-
-            {/* Header */}
-            <div className="relative overflow-hidden bg-gradient-to-br from-[#0c3b38] via-[#082c2a] to-[#0c3b38] rounded-2xl p-5 shadow-xl">
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-[rgba(255,158,27,0.12)] via-transparent to-transparent" />
-                <div className="absolute -top-16 -right-16 w-48 h-48 bg-[rgba(255,158,27,0.06)] rounded-full blur-2xl" />
-                <div className="absolute bottom-0 left-1/4 w-32 h-32 bg-[rgba(219,228,223,0.04)] rounded-full blur-2xl" />
-
-                <div className="relative">
-                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-[rgba(255,158,27,0.16)] backdrop-blur-sm flex items-center justify-center border border-[rgba(255,158,27,0.22)] ring-1 ring-white/5">
-                                <Phone className="w-5 h-5 text-[rgba(244,240,232,0.7)]" />
-                            </div>
-                            <div>
-                                <h1 className="text-[22px] font-[500] text-white leading-tight tracking-tight">Actions</h1>
-                                <p className="text-[13px] text-white/50 mt-0.5 truncate max-w-[280px]">{currentAction.missionName || "Gérez vos actions commerciales"}</p>
-                            </div>
-                            {currentAction.priority && PRIORITY_LABELS[currentAction.priority] && (
-                                <Badge className={cn("text-[11px] font-[500] uppercase tracking-wide", PRIORITY_LABELS[currentAction.priority].color)}>
-                                    {PRIORITY_LABELS[currentAction.priority].label}
-                                </Badge>
-                            )}
-                        </div>
-
-                        {/* Right: Controls & Stats */}
-                        <div className="flex items-center gap-2 flex-wrap">
-                            {/* View Toggle */}
-                            <div className="flex rounded-xl border border-white/10 p-0.5 bg-white/5">
-                                <button type="button" onClick={() => setViewMode("card")} className={cn("px-3 py-1.5 text-[13px] font-[500] rounded-lg transition-all flex items-center gap-1.5", viewMode === "card" ? "bg-white text-slate-900 shadow-md" : "text-white/60 hover:text-white hover:bg-white/10")}>
-                                    <User className="w-3.5 h-3.5" /> Carte
-                                </button>
-                                <button type="button" onClick={() => setViewMode("table")} className={cn("px-3 py-1.5 text-[13px] font-[500] rounded-lg transition-all flex items-center gap-1.5", viewMode === "table" ? "bg-white text-slate-900 shadow-md" : "text-white/60 hover:text-white hover:bg-white/10")}>
-                                    <Building2 className="w-3.5 h-3.5" /> Tableau
-                                </button>
-                            </div>
-
-                            <Select variant="header-dark" value={selectedMissionId || ""} onChange={(id) => { setSelectedMissionId(id); localStorage.setItem("sdr_selected_mission", id); const firstList = lists.find((l) => l.mission.id === id); setSelectedListId(firstList?.id ?? null); }} options={selectableMissions.map((m) => ({ value: m.id, label: m.name }))} placeholder="Mission" className="min-w-[160px]" />
-                            <Select variant="header-dark" value={selectedListId || "all"} onChange={(id) => setSelectedListId(id === "all" ? null : id)} options={[{ value: "all", label: "Toutes les listes" }, ...filteredLists.map((l) => ({ value: l.id, label: l.name }))]} placeholder="Liste" className="min-w-[140px]" />
-
-                            <Button type="button" onClick={() => setShowStatsModal(true)} className="rounded-xl border border-white/15 bg-white/8 hover:bg-white/15 text-white backdrop-blur-sm gap-1.5 px-3 py-1.5 h-auto text-[13px] font-[500]">
-                                <BarChart2 className="w-3.5 h-3.5" /> Stats
-                            </Button>
-
-                            {syncCallsButton}
-
-                            {/* Session counter */}
-                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/8 border border-white/10">
-                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                                <span className="text-[22px] font-[500] text-white tabular-nums leading-none">{actionsCompleted}</span>
-                                <span className="text-[11px] text-white/50 uppercase tracking-wide font-[500]">actions</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Error Alert */}
-            {error && (
-                <div className="flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
-                    <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
-                    <p className="text-[13px] text-red-700 flex-1">{error}</p>
-                    <button onClick={() => setError(null)} className="w-6 h-6 rounded-lg flex items-center justify-center text-red-400 hover:text-red-600 hover:bg-red-100 transition-colors flex-shrink-0">
-                        <XCircle className="w-4 h-4" />
-                    </button>
-                </div>
-            )}
-
-            {/* Main Content Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-                {/* Left - Contact Panel (2 cols) */}
-                <div className="lg:col-span-2 space-y-3">
-                    {/* Company Card */}
-                    <div className="bg-white rounded-2xl border border-[#e5e5e5] shadow-sm overflow-hidden">
-                        <div className="p-4">
-                            <div className="flex items-start gap-3">
-                                {/* Company initials avatar */}
-                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-800 to-slate-700 flex items-center justify-center flex-shrink-0 shadow-md shadow-slate-800/20">
-                                    <span className="text-[15px] font-[500] text-white tracking-wide">
-                                        {getInitials(null, null, currentAction.company?.name)}
-                                    </span>
-                                </div>
-                                <div className="min-w-0 flex-1">
-                                    <div className="flex items-start justify-between gap-2">
-                                        <div>
-                                            <h2 className="text-[18px] font-[500] text-[#1a1a1a] truncate leading-tight">
-                                                {currentAction.company?.name}
-                                            </h2>
-                                            <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-                                                {currentAction.company?.industry && (
-                                                    <span className="text-[11px] font-[500] uppercase tracking-wide text-slate-500 bg-[#f5f5f5] border border-[#e5e5e5] px-2 py-0.5 rounded-md">
-                                                        {currentAction.company.industry}
-                                                    </span>
-                                                )}
-                                                {currentAction.company?.country && (
-                                                    <span className="text-[11px] font-[500] uppercase tracking-wide text-slate-500 bg-[#f5f5f5] border border-[#e5e5e5] px-2 py-0.5 rounded-md">
-                                                        {currentAction.company.country}
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </div>
-                                        {currentAction.company?.id && (
-                                            <Button variant="ghost" size="sm" onClick={() => setDrawerCompanyId(currentAction.company!.id)} className="shrink-0 h-7 w-7 p-0 text-slate-400 hover:text-[var(--elan-petrol)] hover:bg-[rgba(255,158,27,0.1)] rounded-lg" title="Modifier l'entreprise">
-                                                <PenLine className="w-3.5 h-3.5" />
-                                            </Button>
-                                        )}
-                                    </div>
-                                    {currentAction.company?.website && (
-                                        <a href={`https://${currentAction.company.website}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-2 text-[12px] text-[var(--elan-petrol)] hover:text-[#114b46] font-[400] transition-colors">
-                                            <Globe className="w-3 h-3" />
-                                            {currentAction.company.website}
-                                            <ExternalLink className="w-2.5 h-2.5 opacity-60" />
-                                        </a>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Contact/Company Card */}
-                    <Card className="border-[#e5e5e5] shadow-sm">
-                        {currentAction.contact ? (
-                            <>
-                                <div className="flex items-start gap-3 mb-4">
-                                    {/* Contact initials avatar */}
-                                    <div className="relative flex-shrink-0">
-                                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#0c3b38] to-[#114b46] flex items-center justify-center shadow-md shadow-[rgba(12,59,56,0.18)]">
-                                            <span className="text-[16px] font-[500] text-white tracking-wide">
-                                                {getInitials(currentAction.contact.firstName, currentAction.contact.lastName)}
-                                            </span>
-                                        </div>
-                                        {/* Channel indicator dot */}
-                                        <div className={cn("absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full flex items-center justify-center border-2 border-white",
-                                            currentAction.channel === 'CALL' ? "bg-[var(--elan-amber)]" :
-                                            currentAction.channel === 'EMAIL' ? "bg-[#25745f]" : "bg-sky-500"
-                                        )}>
-                                            {currentAction.channel === 'CALL' ? <Phone className="w-2 h-2 text-white" /> :
-                                             currentAction.channel === 'EMAIL' ? <Mail className="w-2 h-2 text-white" /> :
-                                             <Linkedin className="w-2 h-2 text-white" />}
-                                        </div>
-                                    </div>
-                                    <div className="min-w-0 flex-1">
-                                        <p className="text-[18px] font-[500] text-[#1a1a1a] leading-tight">
-                                            {currentAction.contact.firstName} {currentAction.contact.lastName}
-                                        </p>
-                                        {currentAction.contact.title && (
-                                            <p className="text-[13px] text-slate-500 mt-0.5 truncate">{currentAction.contact.title}</p>
-                                        )}
-                                    </div>
-                                    {currentAction.contact.id && (
-                                        <Button variant="ghost" size="sm" onClick={() => setDrawerContactId(currentAction.contact!.id)} className="shrink-0 h-7 w-7 p-0 text-slate-400 hover:text-[var(--elan-petrol)] hover:bg-[rgba(255,158,27,0.1)] rounded-lg" title="Modifier le contact">
-                                            <PenLine className="w-3.5 h-3.5" />
-                                        </Button>
-                                    )}
-                                </div>
-
-                                {/* Contact Actions */}
-                                <div className="space-y-2">
-                                    {/* Phone - validate it looks like a phone number (contains digits) */}
-                                    {(() => {
-                                        const phone = currentAction.contact.phone || (currentAction.channel === 'CALL' && currentAction.company?.phone ? currentAction.company.phone : null);
-                                        const isValidPhone = phone && /[\d+\-().\s]/.test(phone) && phone.length >= 8;
-                                        return isValidPhone ? (
-                                            <a
-                                                href={`tel:${phone}`}
-                                                onClick={(e) => handlePhoneCallAttempt(e, phone, {
-                                                    lastAction: currentAction.lastAction,
-                                                    lastActionBy: currentAction.lastActionBy ?? null,
-                                                })}
-                                                className="flex items-center justify-center gap-2.5 h-12 w-full text-[14px] font-[500] text-white bg-gradient-to-r from-[#0c3b38] to-[#114b46] hover:from-[#114b46] hover:to-[#25745f] rounded-xl transition-all shadow-md shadow-[rgba(12,59,56,0.18)] active:scale-[0.98]"
-                                            >
-                                                <Phone className="w-4 h-4" />
-                                                <span className="font-mono tracking-wide">{phone}</span>
-                                            </a>
-                                        ) : null;
-                                    })()}
-                                    {/* Email */}
-                                    {(() => {
-                                        const email = currentAction.contact.email;
-                                        const isValidEmail = email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-                                        return isValidEmail ? (
-                                            <a
-                                                href={`mailto:${email}`}
-                                                className="flex items-center justify-center gap-2 h-10 w-full text-[13px] font-[400] text-slate-600 bg-[#f5f5f5] border border-[#e5e5e5] hover:bg-[#ebebeb] hover:border-slate-300 rounded-xl transition-colors"
-                                            >
-                                                <Mail className="w-3.5 h-3.5 text-slate-500" />
-                                                <span className="truncate max-w-[200px]">{email}</span>
-                                            </a>
-                                        ) : null;
-                                    })()}
-                                    {currentAction.contact.linkedin && (
-                                        <a
-                                            href={currentAction.contact.linkedin.startsWith("http") ? currentAction.contact.linkedin : `https://${currentAction.contact.linkedin}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="flex items-center justify-center gap-2 h-10 w-full text-[13px] font-[400] text-sky-700 bg-sky-50 border border-sky-200/60 hover:bg-sky-100 rounded-xl transition-colors"
-                                        >
-                                            <Linkedin className="w-3.5 h-3.5" />
-                                            LinkedIn
-                                        </a>
-                                    )}
-                                    {/* Warnings for missing contact info */}
-                                    {(() => {
-                                        const phone = currentAction.contact.phone || (currentAction.channel === 'CALL' && currentAction.company?.phone ? currentAction.company.phone : null);
-                                        const isValidPhone = phone && /[\d+\-().\s]/.test(phone) && phone.length >= 8;
-                                        const email = currentAction.contact.email;
-                                        const isValidEmail = email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-
-                                        if (currentAction.channel === 'CALL' && !isValidPhone) {
-                                            return (
-                                                <div className="space-y-2">
-                                                    <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-xl text-[13px] text-amber-700">
-                                                        <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                                                        Aucun numéro de téléphone valide
-                                                    </div>
-                                                    <Button variant="outline" size="sm" onClick={() => setDrawerContactId(currentAction.contact!.id)} className="w-full gap-2 border-[#e5e5e5] text-slate-600 hover:border-[rgba(224,124,0,0.22)] hover:text-[var(--elan-petrol)]">
-                                                        <PenLine className="w-3.5 h-3.5" />
-                                                        Ajouter un numéro
-                                                    </Button>
-                                                </div>
-                                            );
-                                        }
-                                        if (currentAction.channel === 'EMAIL' && !isValidEmail) {
-                                            return (
-                                                <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-xl text-[13px] text-amber-700">
-                                                    <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                                                    Aucune adresse email valide
-                                                </div>
-                                            );
-                                        }
-                                        return null;
-                                    })()}
-                                    {(currentAction.clientBookingUrl || (currentAction.clientInterlocuteurs?.some(i => (i.bookingLinks?.length ?? 0) > 0))) && (
-                                        <div className="space-y-2">
-                                            <Button
-                                                variant="primary"
-                                                onClick={() => setShowBookingDrawer(true)}
-                                                className="w-full gap-2"
-                                            >
-                                                <Calendar className="w-4 h-4" />
-                                                Planifier le RDV en 2 étapes
-                                            </Button>
-                                        </div>
-                                    )}
-                                </div>
-                            </>
-                        ) : currentAction.company ? (
-                            <>
-                                <div className="flex items-start gap-3 mb-4">
-                                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center flex-shrink-0 shadow-md">
-                                        <span className="text-[15px] font-[500] text-white">{getInitials(null, null, currentAction.company.name)}</span>
-                                    </div>
-                                    <div className="min-w-0 flex-1">
-                                        <p className="text-[18px] font-[500] text-[#1a1a1a] leading-tight">{currentAction.company.name}</p>
-                                        <span className="text-[11px] font-[500] uppercase tracking-wide text-slate-500 bg-[#f5f5f5] border border-[#e5e5e5] px-2 py-0.5 rounded-md mt-1 inline-block">Entreprise</span>
-                                    </div>
-                                    {currentAction.company.id && (
-                                        <Button variant="ghost" size="sm" onClick={() => setDrawerCompanyId(currentAction.company!.id)} className="shrink-0 h-7 w-7 p-0 text-slate-400 hover:text-[var(--elan-petrol)] hover:bg-[rgba(255,158,27,0.1)] rounded-lg" title="Modifier l'entreprise">
-                                            <PenLine className="w-3.5 h-3.5" />
-                                        </Button>
-                                    )}
-                                </div>
-                                <div className="space-y-2">
-                                    {currentAction.company.phone ? (
-                                        <a href={`tel:${currentAction.company.phone}`} onClick={(e) => handlePhoneCallAttempt(e, currentAction.company.phone!, { lastAction: currentAction.lastAction, lastActionBy: currentAction.lastActionBy ?? null })} className="flex items-center justify-center gap-2 h-11 w-full text-[14px] font-[500] text-white bg-gradient-to-r from-[#0c3b38] to-[#114b46] hover:from-[#114b46] hover:to-[#25745f] rounded-xl transition-all shadow-md shadow-[rgba(12,59,56,0.18)] active:scale-[0.98]">
-                                            <Phone className="w-4 h-4" />
-                                            {currentAction.company.phone}
-                                        </a>
-                                    ) : (
-                                        <Button variant="outline" size="sm" onClick={() => setDrawerCompanyId(currentAction.company!.id)} className="w-full gap-2 border-[#e5e5e5] text-slate-600 hover:border-[rgba(224,124,0,0.22)] hover:text-[var(--elan-petrol)]">
-                                            <PenLine className="w-3.5 h-3.5" />
-                                            Ajouter un numéro
-                                        </Button>
-                                    )}
-                                </div>
-                            </>
-                        ) : null}
-
-                        {/* Previous Action Context */}
-                        {currentAction.lastAction && (
-                            <div className="mt-3 rounded-xl border border-amber-200/70 bg-amber-50 overflow-hidden">
-                                <div className="flex items-center gap-2 px-3 py-2 border-b border-amber-100">
-                                    <History className="w-3.5 h-3.5 text-amber-500" />
-                                    <span className="text-[11px] font-[500] uppercase tracking-wide text-amber-700">Dernière interaction</span>
-                                    <span className="ml-auto text-[11px] text-amber-500 font-[400]">
-                                        {new Date(currentAction.lastAction.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                                    </span>
-                                </div>
-                                <div className="px-3 py-2.5">
-                                    {currentAction.lastActionBy?.id && currentAction.lastActionBy.id !== session?.user?.id && currentAction.lastActionBy.name && (
-                                        <p className="text-[12px] text-amber-600 font-[500] mb-1.5">Par {currentAction.lastActionBy.name}</p>
-                                    )}
-                                    <div className="flex items-center gap-2">
-                                        {(() => {
-                                            const sem = RESULT_SEMANTIC[currentAction.lastAction.result];
-                                            return (
-                                                <span className={cn("inline-flex items-center gap-1 text-[12px] font-[500] px-2 py-1 rounded-lg border", sem ? cn(sem.selectedCls) : "bg-slate-100 text-slate-600 border-slate-200")}>
-                                                    {RESULT_ICON_MAP[currentAction.lastAction.result]}
-                                                    <span className="ml-0.5">{statusLabels[currentAction.lastAction.result] ?? currentAction.lastAction.result}</span>
-                                                </span>
-                                            );
-                                        })()}
-                                    </div>
-                                    {currentAction.lastAction.note && (
-                                        <p className="mt-2 text-[13px] text-amber-900 italic leading-relaxed pl-3 border-l-2 border-amber-300">
-                                            "{currentAction.lastAction.note}"
-                                        </p>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-                    </Card>
-                </div>
-
-                {/* Right - Script Panel (3 cols) */}
-                {!showBookingDrawer && (
-                <div className="lg:col-span-3">
-                    <div className="bg-white rounded-2xl border border-[#e5e5e5] shadow-sm h-full overflow-hidden">
-                        <div className="px-5 py-4 border-b border-[#e5e5e5] bg-gradient-to-r from-[#f5f5f5] to-white">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#0c3b38] to-[#114b46] flex items-center justify-center shadow-md shadow-[rgba(12,59,56,0.18)]">
-                                        <Sparkles className="w-4 h-4 text-white" />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-[16px] font-[500] text-[#1a1a1a]">Script d'appel</h3>
-                                        <p className="text-[12px] text-slate-400">Guide conversationnel</p>
-                                    </div>
-                                </div>
-                                {currentAction?.scriptDefaultTab && (
-                                    <span className="text-[11px] font-[500] uppercase tracking-wide text-[var(--elan-petrol)] bg-[rgba(255,158,27,0.1)] border border-[rgba(224,124,0,0.22)] px-2 py-1 rounded-lg">
-                                        {SCRIPT_TABS.find((t) => t.id === currentAction.scriptDefaultTab)?.label ?? "Script"}
-                                    </span>
-                                )}
-                            </div>
-                            {(currentAction?.strategyName || currentAction?.sourceListName) && (
-                                <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-500">
-                                    {currentAction.strategyName && (
-                                        <span>
-                                            Stratégie : <span className="font-medium text-slate-700">{currentAction.strategyName}</span>
-                                        </span>
-                                    )}
-                                    {currentAction.sourceListName && (
-                                        <span>
-                                            Liste source : <span className="font-medium text-slate-700">{currentAction.sourceListName}</span>
-                                        </span>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="p-4">
-                            {availableScriptTabs.length > 0 ? (
-                                <>
-                                    <Tabs tabs={availableScriptTabs} activeTab={activeTab} onTabChange={setActiveTab} className="mb-3" />
-                                    <div className="bg-[#f5f5f5] border border-[#e5e5e5] rounded-xl p-4 min-h-[200px] max-h-[420px] overflow-y-auto">
-                                        <p className="text-[14px] text-slate-700 leading-[1.65] whitespace-pre-wrap font-[400]">
-                                            {scriptPanelContent[activeTab as keyof typeof scriptPanelContent] || ""}
-                                        </p>
-                                    </div>
-                                </>
-                            ) : currentAction.script ? (
-                                <div className="bg-[#f5f5f5] border border-[#e5e5e5] rounded-xl p-4 max-h-[420px] overflow-y-auto">
-                                    <p className="text-[14px] text-slate-700 leading-[1.65] whitespace-pre-wrap font-[400]">
-                                        {currentAction.script}
-                                    </p>
-                                </div>
-                            ) : (
-                                <div className="text-center py-12">
-                                    <div className="w-12 h-12 rounded-2xl bg-[#f5f5f5] border border-[#e5e5e5] flex items-center justify-center mx-auto mb-3">
-                                        <Sparkles className="w-5 h-5 text-slate-300" />
-                                    </div>
-                                    <p className="text-[14px] text-slate-400">Aucun script configuré</p>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-                )}
-            </div>
-
-            {/* Action Results */}
-            <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden">
-                <div className="px-5 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#0c3b38] to-[#114b46] flex items-center justify-center shadow-md shadow-[rgba(12,59,56,0.18)]">
-                                <CheckCircle2 className="w-4.5 h-4.5 text-white" />
-                            </div>
-                            <div>
-                                <h3 className="text-[16px] font-[500] text-[#1a1a1a] leading-tight">Résultat de l'action</h3>
-                                <p className="text-[12px] text-slate-400 mt-0.5">Sélectionnez ou tapez le chiffre correspondant</p>
-                            </div>
-                        </div>
-                        {selectedResult && (
-                            <button
-                                type="button"
-                                onClick={() => setSelectedResult(null)}
-                                className="text-[11px] font-[500] uppercase tracking-wide text-slate-400 hover:text-slate-600 transition-colors"
-                            >
-                                Effacer
-                            </button>
-                        )}
-                    </div>
-                </div>
-                <div className="p-4">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
-                        {resultOptions.map((option) => {
-                            const sem = RESULT_SEMANTIC[option.value] ?? DEFAULT_SEMANTIC;
-                            const isSelected = selectedResult === option.value;
-                            return (
-                                <button
-                                    key={option.value}
-                                    onClick={() => setSelectedResult(option.value)}
-                                    title={STATUS_HOVER_HINTS[option.value]}
-                                    className={cn(
-                                        "relative flex items-center gap-2.5 p-3.5 rounded-xl border-2 transition-all duration-150 text-left group",
-                                        "border-l-[3px]",
-                                        isSelected
-                                            ? cn(sem.selectedCls, "shadow-md scale-[1.02]", sem.activeBorder)
-                                            : cn("bg-white border-[#e5e5e5]", sem.hoverCls, "hover:shadow-sm hover:scale-[1.01]", "border-l-transparent")
-                                    )}
-                                >
-                                    <span className={cn(
-                                        "w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors",
-                                        isSelected ? sem.iconCls : "bg-[#f5f5f5] text-slate-400 group-hover:text-slate-600"
-                                    )}>
-                                        {option.icon}
-                                    </span>
-                                    <span className={cn(
-                                        "text-[13px] font-[400] leading-snug",
-                                        isSelected ? "text-[#1a1a1a] font-[500]" : "text-slate-600"
-                                    )}>
-                                        {option.label}
-                                    </span>
-                                    <span className={cn(
-                                        "absolute top-2 right-2 w-4.5 h-4.5 flex items-center justify-center text-[10px] font-[500] font-mono rounded-md transition-colors",
-                                        isSelected ? "bg-white/70 text-slate-500" : "bg-[#f5f5f5] text-slate-400"
-                                    )}>
-                                        {option.key}
-                                    </span>
-                                </button>
-                            );
-                        })}
-                    </div>
-                </div>
-            </div>
-
-            {/* Note */}
-            <div className="bg-white rounded-2xl border border-[#e5e5e5] shadow-sm overflow-hidden">
-                <div className="px-4 py-3 border-b border-[#e5e5e5] bg-[#f5f5f5]/50">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <MessageSquare className="w-4 h-4 text-slate-400" />
-                            <h3 className="text-[14px] font-[500] text-[#1a1a1a]">
-                                Note
-                                {selectedResult && getRequiresNote(selectedResult) && (
-                                    <span className="text-red-500 ml-1">*</span>
-                                )}
-                            </h3>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <span className="text-[12px] text-slate-400 tabular-nums">{note.length}/500</span>
-                            {currentAction?.channel === 'CALL' && (
-                                <button
-                                    type="button"
-                                    onClick={openAlloDialog}
-                                    className={cn(
-                                        "flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[12px] font-[500] border transition-all",
-                                        linkedAlloCall
-                                            ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
-                                            : "bg-[rgba(255,158,27,0.1)] text-[var(--elan-petrol)] border-[rgba(224,124,0,0.22)] hover:bg-[rgba(255,158,27,0.16)]"
-                                    )}
-                                >
-                                    <PhoneCall className="w-3 h-3" />
-                                    {linkedAlloCall ? "Appel validé ✓" : "Valider appel (Allo)"}
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                </div>
-                <div className="p-4 space-y-3">
-                    <textarea
-                        value={note}
-                        onChange={(e) => setNote(e.target.value)}
-                        placeholder="Note sur l'échange..."
-                        rows={3}
-                        maxLength={500}
-                        className="w-full px-3 py-2.5 text-[14px] border border-[#e5e5e5] rounded-xl bg-[#f5f5f5]/30 text-[#1a1a1a] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[rgba(255,158,27,0.28)] focus:border-[var(--elan-amber-deep)] focus:bg-white resize-none transition-colors leading-relaxed"
-                    />
-                    {/* Linked call preview */}
-                    {linkedAlloCall && (
-                        <div className="flex items-start gap-3 p-3 rounded-xl bg-emerald-50 border border-emerald-200">
-                            <div className="w-7 h-7 rounded-lg bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                <PhoneCall className="w-3.5 h-3.5 text-emerald-600" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 flex-wrap">
-                                    <span className="text-xs font-semibold text-emerald-800">Appel Allo lié</span>
-                                    {linkedAlloCall.duration > 0 && (
-                                        <span className="text-[11px] text-emerald-600 bg-emerald-100 px-1.5 py-0.5 rounded-md font-medium">
-                                            {Math.floor(linkedAlloCall.duration / 60)}m{linkedAlloCall.duration % 60}s
-                                        </span>
-                                    )}
-                                    {linkedAlloCall.outcome && (
-                                        <span className="text-[11px] text-slate-500">{linkedAlloCall.outcome}</span>
-                                    )}
-                                </div>
-                                {linkedAlloCall.summary && (
-                                    <p className="text-xs text-emerald-700 mt-1 line-clamp-2">{linkedAlloCall.summary}</p>
-                                )}
-                            </div>
-                            <button
-                                type="button"
-                                onClick={() => setLinkedAlloCall(null)}
-                                className="w-5 h-5 rounded flex items-center justify-center text-emerald-400 hover:text-emerald-600 transition-colors flex-shrink-0"
-                                title="Retirer le lien"
-                            >
-                                <XCircle className="w-4 h-4" />
-                            </button>
-                        </div>
-                    )}
-                </div>
-            </div>
-
-            <AlloCallPickerModal
-                isOpen={alloDialogOpen}
-                onClose={() => setAlloDialogOpen(false)}
-                loading={alloDialogLoading}
-                calls={alloDialogCalls as unknown[]}
-                filterPhone={alloDialogFilterPhone}
-                alloLineCount={alloDialogAlloLineCount}
-                selectedId={alloDialogSelectedId}
-                onSelectId={setAlloDialogSelectedId}
-                onConfirm={confirmAlloCall}
-            />
-
-            {/* Callback date */}
-            {isCallbackResult(selectedResult) && (
-                <div className="rounded-2xl border border-amber-200/80 bg-amber-50 overflow-hidden">
-                    <div className="flex items-center gap-2.5 px-4 py-3 border-b border-amber-100">
-                        <div className="w-7 h-7 rounded-lg bg-amber-500 flex items-center justify-center">
-                            <Calendar className="w-3.5 h-3.5 text-white" />
-                        </div>
-                        <div>
-                            <h3 className="text-[14px] font-[500] text-[#1a1a1a]">Date de rappel</h3>
-                            <p className="text-[12px] text-amber-600">Optionnel : vous pouvez aussi l&apos;indiquer dans la note.</p>
-                        </div>
-                    </div>
-                    <div className="p-4">
-                        <DateTimePicker
-                            label=""
-                            value={callbackDateValue}
-                            onChange={setCallbackDateValue}
-                            placeholder="Choisir date et heure du rappel…"
-                            min={new Date().toISOString().slice(0, 16)}
-                            triggerClassName="border-amber-200 focus:ring-amber-400/40 focus:border-amber-400"
-                        />
-                    </div>
-                </div>
-            )}
-
-            {/* Meeting category (Exploratoire / Besoin) — only for MEETING_BOOKED */}
-            {selectedResult === "MEETING_BOOKED" && (
-                <div className="rounded-2xl border border-[rgba(224,124,0,0.22)] bg-gradient-to-r from-[rgba(255,158,27,0.1)] to-[rgba(12,59,56,0.06)] shadow-sm overflow-hidden">
-                    <div className="px-5 py-3 border-b border-[rgba(224,124,0,0.16)]">
-                        <h3 className="text-sm font-bold text-slate-900">Catégorie du RDV</h3>
-                        <p className="text-xs text-slate-500 mt-0.5">Optionnel : sinon, ce champ est détecté automatiquement depuis la note.</p>
-                    </div>
-                    <div className="px-5 py-4 flex gap-3">
-                        {([["EXPLORATOIRE", "Exploratoire", "Prise de contact / découverte"], ["BESOIN", "Besoin", "Projet concret / budget identifié"]] as const).map(([value, label, desc]) => (
-                            <button
-                                key={value}
-                                type="button"
-                                onClick={() => setMeetingCat(prev => prev === value ? "" : value)}
-                                className={cn(
-                                    "flex-1 rounded-xl border-2 p-3 text-left transition-all duration-150",
-                                    meetingCat === value
-                                        ? value === "BESOIN"
-                                            ? "border-emerald-400 bg-emerald-50 shadow-sm"
-                                            : "border-[rgba(12,59,56,0.22)] bg-[rgba(12,59,56,0.08)] shadow-sm"
-                                        : "border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm"
-                                )}
-                            >
-                                <span className={cn(
-                                    "text-sm font-semibold",
-                                    meetingCat === value
-                                        ? value === "BESOIN" ? "text-emerald-700" : "text-[var(--elan-petrol)]"
-                                        : "text-slate-700"
-                                )}>
-                                    {label}
-                                </span>
-                                <span className="block text-xs text-slate-500 mt-0.5">{desc}</span>
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            )}
-
-            {/* Sticky Submit Bar */}
-            <div className="sticky bottom-0 z-20 -mx-4 px-4 pb-4 pt-3 bg-gradient-to-t from-[#f5f5f5] via-[#f5f5f5]/95 to-transparent backdrop-blur-sm">
-                <div className="flex items-center justify-between gap-3 bg-white rounded-2xl border border-[#e5e5e5] shadow-lg shadow-slate-200/60 px-4 py-3">
-                    {/* Skip button + session timer */}
-                    <div className="flex items-center gap-3">
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={async () => {
-                                if (!currentAction?.campaignId) return;
-                                setIsSubmitting(true);
-                                try {
-                                    const res = await fetch("/api/actions", {
-                                        method: "POST",
-                                        headers: { "Content-Type": "application/json" },
-                                        body: JSON.stringify({
-                                            contactId: currentAction.contact?.id,
-                                            companyId: !currentAction.contact && currentAction.company ? currentAction.company.id : undefined,
-                                            campaignId: currentAction.campaignId,
-                                            channel: currentAction.channel,
-                                            result: "NO_RESPONSE",
-                                            note: "Passé (skip)",
-                                        }),
-                                    });
-                                    const json = await res.json();
-                                    if (!json.success) { showError(json.error || "Erreur lors du passage"); return; }
-                                    await loadNextAction();
-                                } catch { showError("Erreur de connexion"); } finally { setIsSubmitting(false); }
-                            }}
-                            disabled={isSubmitting}
-                            className="gap-1.5 text-slate-400 hover:text-slate-600 hover:bg-[#f5f5f5] border border-[#e5e5e5] h-9 px-3 text-[13px]"
-                        >
-                            <SkipForward className="w-3.5 h-3.5" />
-                            Passer
-                        </Button>
-                        {elapsedTime > 0 && (
-                            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#f5f5f5] border border-[#e5e5e5]">
-                                <Clock className="w-3 h-3 text-slate-400" />
-                                <span className="text-[12px] font-[500] text-slate-500 tabular-nums">{formatTime(elapsedTime)}</span>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Right CTA group */}
-                    <div className="flex items-center gap-2">
-                        {selectedResult && (
-                            <div className={cn(
-                                "hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-[500] border",
-                                (() => {
-                                    const sem = RESULT_SEMANTIC[selectedResult] ?? DEFAULT_SEMANTIC;
-                                    return sem.selectedCls + " " + sem.activeBorder + " border-l-2";
-                                })()
-                            )}>
-                                {RESULT_ICON_MAP[selectedResult]}
-                                <span className="text-[#1a1a1a]">{resultOptions.find(o => o.value === selectedResult)?.label}</span>
-                            </div>
-                        )}
-                        {selectedResult === "ENVOIE_MAIL" && (
-                            <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={openEmailModalForCard}
-                                disabled={isSubmitting}
-                                className="gap-1.5 border-[rgba(12,59,56,0.18)] text-[var(--elan-petrol)] bg-[rgba(12,59,56,0.08)] hover:bg-[rgba(12,59,56,0.12)] h-9 px-3 text-[13px]"
-                            >
-                                <Send className="w-3.5 h-3.5" />
-                                Envoyer un email
-                            </Button>
-                        )}
-                        <Button
-                            variant="primary"
-                            size="sm"
-                            onClick={handleSubmit}
-                            disabled={!selectedResult || isSubmitting || (getRequiresNote(selectedResult) && !note.trim())}
-                            isLoading={isSubmitting}
-                            className="gap-2 px-6 h-9 text-[14px] font-[500] shadow-md shadow-[rgba(12,59,56,0.18)] bg-gradient-to-r from-[#0c3b38] to-[#114b46] hover:from-[#114b46] hover:to-[#25745f] border-0"
-                        >
-                            {isSubmitting ? "Enregistrement…" : selectedResult === "ENVOIE_MAIL" ? "Enregistrer" : "Valider & Suivant"}
-                            {!isSubmitting && <ChevronRight className="w-4 h-4" />}
-                        </Button>
-                    </div>
-                </div>
-            </div>
-
-            {/* Quick Email Modal (card view) */}
-            <QuickEmailModal
-                isOpen={showQuickEmailModal}
-                onClose={() => {
-                    setShowQuickEmailModal(false);
-                    setPendingEmailAction(null);
-                    setEmailModalContact(null);
-                    setEmailModalCompany(null);
-                    setEmailModalMissionId(null);
-                    setEmailModalMissionName(null);
-                    setEmailModalPreferredMailboxId(null);
-                }}
-                onSent={handleEmailSent}
-                contact={emailModalContact}
-                company={emailModalCompany}
-                missionId={emailModalMissionId}
-                missionName={emailModalMissionName}
-                preferredMailboxId={emailModalPreferredMailboxId ?? undefined}
-            />
-
-            {/* Stats modal (card view) */}
-            <Modal
-                isOpen={showStatsModal}
-                onClose={() => setShowStatsModal(false)}
-                title="Statistiques"
-                description={selectedMissionId ? (missions.find((m) => m.id === selectedMissionId)?.name ?? "") + (selectedListId ? ` · ${filteredLists.find((l) => l.id === selectedListId)?.name ?? ""}` : "") : "Sélectionnez une mission"}
-                size="xl"
-            >
-                <ActionStatsModalBody
-                    items={statsQueueItems}
-                    loading={statsLoading}
-                    statusLabels={statusLabels}
-                    onRowClick={(row) => {
-                        openDrawerForRow(row);
-                        setShowStatsModal(false);
-                    }}
-                    priorityLabels={PRIORITY_LABELS}
-                    resultIconMap={RESULT_ICON_MAP}
-                    queueRowKey={queueRowKey}
-                />
-            </Modal>
-
-            {/* Unified Action Drawer (card view: when opened from Stats modal) */}
-            {unifiedDrawerOpen && unifiedDrawerCompanyId && (
-                <UnifiedActionDrawer
-                    isOpen={unifiedDrawerOpen}
-                    onClose={closeUnifiedDrawer}
-                    contactId={unifiedDrawerContactId}
-                    companyId={unifiedDrawerCompanyId}
-                    missionId={unifiedDrawerMissionId}
-                    missionName={unifiedDrawerMissionName}
-                    clientBookingUrl={unifiedDrawerClientBookingUrl || undefined}
-                    clientInterlocuteurs={unifiedDrawerInterlocuteurs}
-                    onBookingDialogOpenChange={setUnifiedBookingDialogOpen}
-                    onAlloDialogOpenChange={setUnifiedAlloDialogOpen}
-                    onContactSelect={(newContactId) => {
-                        setUnifiedDrawerContactId(newContactId);
-                    }}
-                    onActionRecorded={() => {
-                        const rowKey = unifiedDrawerContactId ?? unifiedDrawerCompanyId ?? "";
-                        if (rowKey) setActionsCompleted((c) => c + 1);
-                        loadNextAction();
-                    }}
-                    onValidateAndNext={() => {
-                        closeUnifiedDrawer();
-                        loadNextAction();
-                    }}
-                />
-            )}
-
-            {/* Booking Drawer */}
-            {currentAction?.contact && (currentAction.clientBookingUrl || (currentAction.clientInterlocuteurs?.some(i => (i.bookingLinks?.length ?? 0) > 0))) && (
-                <BookingDrawer
-                    isOpen={showBookingDrawer}
-                    onClose={() => setShowBookingDrawer(false)}
-                    bookingUrl={currentAction.clientBookingUrl || ""}
-                    contactId={currentAction.contact.id}
-                    contactName={`${currentAction.contact.firstName || ""} ${currentAction.contact.lastName || ""}`.trim() || "Contact"}
-                    contactInfo={{
-                        firstName: currentAction.contact.firstName,
-                        lastName: currentAction.contact.lastName,
-                        email: currentAction.contact.email,
-                        phone: currentAction.contact.phone,
-                        title: currentAction.contact.title,
-                        companyName: currentAction.company?.name,
-                    }}
-                    rdvDate={rdvDate ? new Date(rdvDate).toISOString() : undefined}
-                    meetingCategory={meetingCat || undefined}
-                    interlocuteurs={currentAction.clientInterlocuteurs}
-                    onBookingSuccess={() => {
-                        setShowBookingDrawer(false);
-                        setRdvDate("");
-                        loadNextAction();
-                    }}
-                />
-            )}
-
-            {/* Contact / Company edit drawers (card view: edit contact info, company info, add phone) */}
-            <ContactDrawer
-                isOpen={!!drawerContactId}
-                onClose={closeContactDrawer}
-                contact={drawerContact}
-                onUpdate={() => {
-                    refreshQueue();
-                }}
-                isManager={true}
-                listId={selectedListId ?? undefined}
-                companies={[]}
-            />
-            <CompanyDrawer
-                isOpen={!!drawerCompanyId}
-                onClose={closeCompanyDrawer}
-                company={drawerCompany}
-                onUpdate={() => {
-                    refreshQueue();
-                }}
-                onContactClick={handleContactFromCompany}
-                isManager={true}
-                listId={selectedListId ?? undefined}
-            />
-        </div>
-    );
 }
