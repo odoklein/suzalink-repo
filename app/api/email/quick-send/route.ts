@@ -3,6 +3,9 @@ import prisma from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { processTemplate } from '@/lib/email/services/template-variables';
+import { emailSendingService } from '@/lib/email/services/sending-service';
+
+type QuickSendRecipient = string | { email?: string; name?: string };
 
 // POST /api/email/quick-send - Send email using template with variable substitution
 export async function POST(req: NextRequest) {
@@ -33,7 +36,17 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        if (!to || !Array.isArray(to) || to.length === 0) {
+        const recipients = (Array.isArray(to) ? to : [])
+            .map((recipient: QuickSendRecipient) => {
+                if (typeof recipient === 'string') return { email: recipient.trim() };
+                return {
+                    email: recipient.email?.trim() || '',
+                    name: recipient.name?.trim() || undefined,
+                };
+            })
+            .filter((recipient: { email: string }) => recipient.email.length > 0);
+
+        if (recipients.length === 0) {
             return NextResponse.json(
                 { success: false, error: 'Destinataire requis' },
                 { status: 400 }
@@ -46,7 +59,7 @@ export async function POST(req: NextRequest) {
                 id: mailboxId,
                 OR: [
                     { ownerId: session.user.id },
-                    { permissions: { some: { userId: session.user.id } } },
+                    { permissions: { some: { userId: session.user.id, canSend: true } } },
                 ],
             },
         });
@@ -110,14 +123,6 @@ export async function POST(req: NextRequest) {
             bodyHtml = processed.bodyHtml;
             bodyText = processed.bodyText;
 
-            // Update template usage stats
-            await prisma.emailTemplate.update({
-                where: { id: templateId },
-                data: {
-                    useCount: { increment: 1 },
-                    lastUsedAt: new Date()
-                }
-            });
         } else {
             // Custom email without template
             if (!customSubject || !customBodyHtml) {
@@ -144,45 +149,71 @@ export async function POST(req: NextRequest) {
             bodyText = processed.bodyText;
         }
 
-        // Forward to the existing send email endpoint (JSON to avoid FormData boundary issues in server-side fetch)
-        // Use the current request origin instead of a hard-coded port, so it works on localhost:5000, etc.
-        const requestUrl = new URL(req.url);
-        const baseUrl = `${requestUrl.protocol}//${requestUrl.host}`;
-        const sendPayload = {
-            mailboxId,
-            to: to.map((e: { email?: string } | string) => (typeof e === 'string' ? { email: e } : { email: e.email })),
+        if (!subject.trim()) {
+            return NextResponse.json(
+                { success: false, error: 'Objet requis' },
+                { status: 400 }
+            );
+        }
+
+        if (!bodyHtml.trim() && !bodyText?.trim()) {
+            return NextResponse.json(
+                { success: false, error: 'Contenu requis' },
+                { status: 400 }
+            );
+        }
+
+        // Call the shared service directly. A server-to-self HTTP request is
+        // unreliable on serverless deployments and duplicates auth work.
+        const sendResult = await emailSendingService.sendEmail(mailboxId, {
+            to: recipients,
             subject,
-            bodyHtml,
+            bodyHtml: bodyHtml || undefined,
             bodyText: bodyText || undefined,
             contactId: contactId || undefined,
             missionId: missionId || undefined,
             sentById: session.user.id,
             templateId: templateId || undefined,
-        };
-        const sendResponse = await fetch(`${baseUrl}/api/email/send`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                cookie: req.headers.get('cookie') || ''
-            },
-            body: JSON.stringify(sendPayload),
         });
 
-        const sendResult = await sendResponse.json();
-
         if (!sendResult.success) {
+            console.error('Quick email send failed', {
+                mailboxId,
+                missionId: missionId || null,
+                contactId: contactId || null,
+                error: sendResult.error,
+            });
             return NextResponse.json(
                 { success: false, error: sendResult.error || 'Erreur d\'envoi' },
-                { status: 500 }
+                { status: 502 }
             );
+        }
+
+        if (templateId) {
+            try {
+                await prisma.emailTemplate.update({
+                    where: { id: templateId },
+                    data: {
+                        useCount: { increment: 1 },
+                        lastUsedAt: new Date()
+                    }
+                });
+            } catch (usageError) {
+                // Sending already succeeded. Do not turn analytics bookkeeping
+                // into a client-visible failure that could trigger a duplicate send.
+                console.warn('Email sent but template usage update failed', {
+                    templateId,
+                    error: usageError instanceof Error ? usageError.message : String(usageError),
+                });
+            }
         }
 
         return NextResponse.json({
             success: true,
             data: {
-                messageId: sendResult.data?.messageId,
+                messageId: sendResult.messageId,
                 subject,
-                to
+                to: recipients
             }
         });
     } catch (error) {

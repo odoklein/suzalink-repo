@@ -1021,8 +1021,10 @@ export function UnifiedActionDrawer({
                     customBodyHtml: emailEditBody || undefined,
                 }),
             });
-            const sendJson = await sendRes.json();
-            if (!sendJson.success) throw new Error(sendJson.error || "Impossible d'envoyer l'email");
+            const sendJson = await sendRes.json().catch(() => null);
+            if (!sendRes.ok || !sendJson?.success) {
+                throw new Error(sendJson?.error || `Impossible d'envoyer l'email (${sendRes.status})`);
+            }
 
             const campaignId = campaigns[0]?.id;
             if (campaignId) {

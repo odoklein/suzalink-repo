@@ -290,16 +290,16 @@ export function QuickEmailModal({
                 }),
             });
 
-            const json = await res.json();
+            const json = await res.json().catch(() => null);
 
-            if (json.success) {
+            if (res.ok && json?.success) {
                 setSentSuccess(true);
                 setTimeout(() => {
                     onClose();
                     onSent?.();
                 }, 1500);
             } else {
-                setError(json.error || "Erreur lors de l'envoi");
+                setError(json?.error || `Erreur lors de l'envoi (${res.status})`);
             }
         } catch (err) {
             console.error("Send error:", err);
