@@ -21,6 +21,7 @@ interface DrawerProps {
     closeOnOverlay?: boolean;
     closeOnEscape?: boolean;
     className?: string;
+    contentClassName?: string;
     footer?: React.ReactNode;
     /** Helper link shown above footer (e.g. "Learn more about...") */
     footerHelperLink?: { href: string; label: string };
@@ -69,6 +70,7 @@ export function Drawer({
     closeOnOverlay = true,
     closeOnEscape = true,
     className,
+    contentClassName,
     footer,
     footerHelperLink,
     headerCentered = false,
@@ -193,7 +195,7 @@ export function Drawer({
                 )}
 
                 {/* Content */}
-                <div className="flex-1 overflow-y-auto p-6 drawer-scrollbar">
+                <div className={cn("flex-1 overflow-y-auto p-6 drawer-scrollbar", contentClassName)}>
                     {children}
                 </div>
 

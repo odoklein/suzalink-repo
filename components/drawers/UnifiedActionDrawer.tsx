@@ -585,7 +585,8 @@ export function UnifiedActionDrawer({
     const [showAddContact, setShowAddContact] = useState(false);
     const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set());
     const notesDefaultInitializedForKeyRef = useRef<string | null>(null);
-    const [historyExpanded, setHistoryExpanded] = useState(true);
+    const [historyExpanded, setHistoryExpanded] = useState(false);
+    const [historySectionOpen, setHistorySectionOpen] = useState(false);
     const [expandedCompanyContactId, setExpandedCompanyContactId] = useState<string | null>(null);
     const [newInterlocutorContact, setNewInterlocutorContact] = useState({
         firstName: "",
@@ -1297,7 +1298,8 @@ export function UnifiedActionDrawer({
             title={displayName}
             description={missionName ? `Mission : ${missionName}` : undefined}
             size="lg"
-            className="top-2 bottom-2 right-2 rounded-[24px] border border-slate-200/80 shadow-[0_24px_64px_rgba(15,23,42,0.16)]"
+            className="unified-action-drawer top-0 bottom-0 right-0 rounded-none border-y-0 border-r-0 border-l border-[#dfe7e3] bg-white shadow-[-16px_0_40px_rgba(12,59,56,0.12)]"
+            contentClassName="!p-4 !bg-white"
         >
             <style>{`
                 @keyframes uadSectionIn {
@@ -1307,6 +1309,43 @@ export function UnifiedActionDrawer({
                 @keyframes uadPulse {
                     0%, 100% { opacity: 1; }
                     50% { opacity: 0.5; }
+                }
+                .unified-action-drawer [class~="text-indigo-500"],
+                .unified-action-drawer [class~="text-indigo-600"],
+                .unified-action-drawer [class~="text-indigo-700"],
+                .unified-action-drawer [class~="text-violet-600"],
+                .unified-action-drawer [class~="text-violet-700"],
+                .unified-action-drawer [class~="text-blue-600"],
+                .unified-action-drawer [class~="text-blue-700"] { color: #0c3b38 !important; }
+                .unified-action-drawer [class~="bg-indigo-50"],
+                .unified-action-drawer [class~="bg-indigo-100"],
+                .unified-action-drawer [class~="bg-violet-50"],
+                .unified-action-drawer [class~="bg-violet-100"],
+                .unified-action-drawer [class~="bg-blue-50"] { background-color: #eef5f3 !important; }
+                .unified-action-drawer [class~="bg-slate-50"],
+                .unified-action-drawer [class~="bg-slate-50/30"],
+                .unified-action-drawer [class~="bg-slate-50/40"],
+                .unified-action-drawer [class~="bg-slate-50/50"],
+                .unified-action-drawer [class~="bg-slate-50/60"],
+                .unified-action-drawer [class~="bg-slate-50/80"] { background-color: #f7f9f8 !important; }
+                .unified-action-drawer [class~="bg-slate-100"] { background-color: #eef2f0 !important; }
+                .unified-action-drawer [class~="bg-indigo-600"],
+                .unified-action-drawer [class~="bg-indigo-700"],
+                .unified-action-drawer [class~="bg-violet-600"],
+                .unified-action-drawer [class~="bg-violet-700"] { background-color: #0c3b38 !important; }
+                .unified-action-drawer [class*="border-indigo-"],
+                .unified-action-drawer [class*="border-violet-"] { border-color: #d6e2de !important; }
+                .unified-action-drawer [class*="ring-indigo-"],
+                .unified-action-drawer [class*="ring-violet-"] { --tw-ring-color: rgba(12, 59, 56, 0.24) !important; }
+                .unified-action-drawer [class~="from-indigo-400"],
+                .unified-action-drawer [class~="from-indigo-500"],
+                .unified-action-drawer [class~="from-violet-400"],
+                .unified-action-drawer [class~="from-violet-500"] { --tw-gradient-from: #0c3b38 var(--tw-gradient-from-position) !important; }
+                .unified-action-drawer [class~="to-indigo-600"],
+                .unified-action-drawer [class~="to-violet-600"] { --tw-gradient-to: #114b46 var(--tw-gradient-to-position) !important; }
+                .unified-action-drawer :where(input, select, textarea):focus {
+                    border-color: #0c3b38 !important;
+                    box-shadow: 0 0 0 3px rgba(12, 59, 56, 0.12) !important;
                 }
             `}</style>
             {loading ? (
@@ -1342,42 +1381,51 @@ export function UnifiedActionDrawer({
                     </Button>
                 </div>
             ) : (
-                <div className="flex flex-col gap-4 pb-4" role="main" aria-label="Actions sur le contact">
+                <div className="flex flex-col gap-3 pb-3" role="main" aria-label="Actions sur le contact">
 
                     {/* ── Unified history section (moved to top) ── */}
                     <section
                         aria-label="Historique des actions"
-                        className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden"
+                        className="overflow-hidden rounded-xl border border-[#dfe7e3] bg-white"
                         style={{ animation: "uadSectionIn 250ms cubic-bezier(0.16, 1, 0.3, 1)" }}
                     >
-                        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-slate-100 bg-gradient-to-r from-slate-50/80 to-white">
+                        <button
+                            type="button"
+                            className="flex w-full items-center gap-2.5 border-b border-[#e7ecea] bg-white px-3 py-2.5 text-left hover:bg-[#fafcfb] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#0c3b38]/20"
+                            onClick={() => setHistorySectionOpen((open) => !open)}
+                            aria-expanded={historySectionOpen}
+                            aria-controls="unified-action-history-content"
+                        >
                             <div
-                                className="w-7 h-7 rounded-lg bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center shadow-sm"
+                                className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#eaf2ef]"
                                 aria-hidden="true"
                             >
-                                <History className="w-3.5 h-3.5 text-white" />
+                                <History className="w-3.5 h-3.5 text-[var(--elan-petrol)]" />
                             </div>
                             <div className="min-w-0">
-                                <h2 className="text-sm font-bold text-slate-900" id="history-heading">Historique</h2>
-                                <p className="text-[11px] text-slate-500">Dernieres interactions et contextes utiles</p>
+                                <h2 className="text-[13px] font-semibold text-slate-900" id="history-heading">Historique</h2>
+                                <p className="text-[10px] text-slate-500">Dernières interactions</p>
                             </div>
                             {actionsLoading && (
                                 <div className="ml-1 w-3.5 h-3.5 rounded-full border-2 border-slate-400 border-t-transparent animate-spin" aria-hidden="true" />
                             )}
                             {actions.length > 0 && (
                                 <span
-                                    className="ml-auto text-xs font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 rounded-full px-2.5 py-0.5 tabular-nums"
+                                    className="ml-auto rounded-md border border-[#d6e2de] bg-[#eef5f3] px-2 py-0.5 text-[11px] font-semibold tabular-nums text-[var(--elan-petrol)]"
                                     aria-label={`${actions.length} action${actions.length > 1 ? "s" : ""}`}
                                 >
                                     {actions.length}
                                 </span>
                             )}
-                        </div>
+                            <ChevronDown className={cn("h-4 w-4 text-slate-400 transition-transform", historySectionOpen && "rotate-180")} aria-hidden="true" />
+                        </button>
 
+                        {historySectionOpen && (
+                            <div id="unified-action-history-content">
                         {hasPriorCall && (
-                            <div className="mx-4 mt-4 px-3 py-2.5 rounded-xl bg-gradient-to-r from-emerald-50 to-emerald-50/60 border border-emerald-200">
+                            <div className="mx-3 mt-3 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-2">
                                 <div className="flex items-center gap-2">
-                                    <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[11px] font-semibold">
+                                    <div className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700">
                                         <PhoneCall className="w-3 h-3" aria-hidden="true" />
                                         <span>Déjà appelé</span>
                                     </div>
@@ -1414,7 +1462,7 @@ export function UnifiedActionDrawer({
                             </div>
                         )}
 
-                        <div className="p-4" aria-live="polite">
+                        <div className="p-3" aria-live="polite">
                             {actionsLoading ? (
                                 <div role="status" aria-label="Chargement de l'historique">
                                     <ListSkeleton items={3} hasAvatar={false} className="py-1" />
@@ -1432,32 +1480,24 @@ export function UnifiedActionDrawer({
                                 </div>
                             ) : (
                                 <>
-                                    <ol className="space-y-2 pl-5 relative" aria-label="Liste des actions">
-                                        {/* Vertical timeline line */}
-                                        <div
-                                            className="absolute top-3 bottom-3 left-[9px] w-[2px] bg-gradient-to-b from-slate-200 via-slate-150 to-slate-100 rounded-full"
-                                            aria-hidden="true"
-                                        />
-
-                                        {visibleActions.map((a, index) => {
+                                    <ol className="relative divide-y divide-[#edf1ef]" aria-label="Liste des actions">
+                                        {visibleActions.map((a) => {
                                             const cfg =
                                                 RESULT_CHIP_CONFIG[a.result] ||
                                                 RESULT_CHIP_CONFIG.NO_RESPONSE;
                                             const Icon = cfg.icon;
                                             const isExpanded = expandedNotes.has(a.id);
-                                            const noteText = a.note;
-                                            const hasLongNote = noteText && noteText.length > 80;
                                             const hasContent = !!a.note?.trim();
 
                                             return (
                                                 <li
                                                     key={a.id}
-                                                    className="relative pb-3 last:pb-0"
+                                                    className="relative py-1 pl-6 first:pt-0 last:pb-0"
                                                 >
                                                     {/* Timeline dot */}
                                                     <div
                                                         className={cn(
-                                                            "absolute left-[-20px] top-2.5 w-4 h-4 rounded-full border-2 border-white shadow-md z-10 flex items-center justify-center ring-1 ring-black/5",
+                                                            "absolute left-0 top-3 flex h-4 w-4 items-center justify-center rounded-md",
                                                             cfg.dot
                                                         )}
                                                         aria-hidden="true"
@@ -1468,16 +1508,14 @@ export function UnifiedActionDrawer({
                                                     {/* Card */}
                                                     <div
                                                         className={cn(
-                                                            "rounded-2xl border transition-all duration-200",
-                                                            cfg.border,
-                                                            "bg-white/95 hover:shadow-lg hover:-translate-y-[1px]"
+                                                            "border-0 bg-white transition-colors duration-150"
                                                         )}
                                                     >
                                                         {/* Header row — clickable if has content */}
                                                         <button
                                                             type="button"
                                                             className={cn(
-                                                                "w-full flex items-center justify-between gap-3 px-3.5 py-3 text-left rounded-2xl transition-colors",
+                                                                "w-full flex items-center justify-between gap-3 rounded-lg px-2 py-2 text-left transition-colors",
                                                                 hasContent
                                                                     ? "cursor-pointer hover:bg-slate-50/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-300"
                                                                     : "cursor-default"
@@ -1617,12 +1655,14 @@ export function UnifiedActionDrawer({
                                 </>
                             )}
                         </div>
+                            </div>
+                        )}
                     </section>
 
                     {/* ── Quick Action Bar ── */}
                     <section
                         aria-label="Actions rapides"
-                        className="flex flex-wrap gap-2 p-3 rounded-2xl bg-gradient-to-r from-slate-50 via-white to-slate-50 border border-slate-200/60"
+                        className="flex flex-wrap gap-2 rounded-xl border border-[#dfe7e3] bg-white p-2"
                         style={{ animation: "uadSectionIn 250ms 50ms cubic-bezier(0.16, 1, 0.3, 1) both" }}
                     >
                         {primaryPhone && (
@@ -1632,7 +1672,7 @@ export function UnifiedActionDrawer({
                                 onClick={() => {
                                     window.open(`tel:${primaryPhone.number}`, "_self");
                                 }}
-                                className="flex-1 min-w-[130px] flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 active:from-emerald-700 active:to-emerald-800 text-white rounded-xl font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 active:scale-[0.98]"
+                                className="flex min-w-[130px] flex-1 items-center justify-center gap-2 rounded-lg bg-[var(--elan-petrol)] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#114b46] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0c3b38]/30 focus-visible:ring-offset-2 active:scale-[0.98]"
                             >
                                 <PhoneCall className="w-4 h-4" aria-hidden="true" />
                                 <span>Appeler</span>
@@ -1648,7 +1688,7 @@ export function UnifiedActionDrawer({
                             <a
                                 href={`mailto:${primaryEmail}`}
                                 aria-label={`Envoyer un email à ${primaryEmail}`}
-                                className="flex-1 min-w-[110px] flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 active:from-indigo-700 active:to-indigo-800 text-white rounded-xl font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 active:scale-[0.98]"
+                                className="flex min-w-[110px] flex-1 items-center justify-center gap-2 rounded-lg bg-[var(--elan-petrol)] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#114b46] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0c3b38]/30 focus-visible:ring-offset-2 active:scale-[0.98]"
                             >
                                 <Send className="w-4 h-4" aria-hidden="true" />
                                 Email
@@ -1669,7 +1709,7 @@ export function UnifiedActionDrawer({
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 aria-label={contact?.linkedin ? "Ouvrir le profil LinkedIn" : "Ouvrir le site web"}
-                                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-700 rounded-xl font-semibold text-sm shadow-sm hover:shadow-md transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-2 active:scale-[0.98]"
+                                className="flex items-center justify-center gap-2 rounded-lg border border-[#d6dfdc] bg-white px-4 py-2.5 text-sm font-semibold text-[var(--elan-petrol)] transition-colors hover:bg-[#f3f7f5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0c3b38]/20 focus-visible:ring-offset-2 active:scale-[0.98]"
                             >
                                 {contact?.linkedin ? (
                                     <Linkedin className="w-4 h-4 text-blue-600" aria-hidden="true" />
@@ -1686,7 +1726,7 @@ export function UnifiedActionDrawer({
                         <div
                             role="tablist"
                             aria-label="Informations contact ou société"
-                            className="flex rounded-xl bg-slate-100/80 p-1 gap-1 border border-slate-200/60"
+                            className="flex gap-1 rounded-xl border border-[#dfe7e3] bg-[#f3f6f5] p-1"
                             style={{ animation: "uadSectionIn 250ms 100ms cubic-bezier(0.16, 1, 0.3, 1) both" }}
                             onKeyDown={(e) => {
                                 if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
@@ -1707,7 +1747,7 @@ export function UnifiedActionDrawer({
                                 className={cn(
                                     "flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-1",
                                     activeTab === "contact"
-                                        ? "bg-white text-indigo-600 shadow-sm ring-1 ring-indigo-100"
+                                        ? "bg-white text-[var(--elan-petrol)] ring-1 ring-[#d6e2de]"
                                         : "text-slate-500 hover:text-slate-800 hover:bg-white/50"
                                 )}
                             >
@@ -1724,7 +1764,7 @@ export function UnifiedActionDrawer({
                                 className={cn(
                                     "flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-1",
                                     activeTab === "company"
-                                        ? "bg-white text-indigo-600 shadow-sm ring-1 ring-indigo-100"
+                                        ? "bg-white text-[var(--elan-petrol)] ring-1 ring-[#d6e2de]"
                                         : "text-slate-500 hover:text-slate-800 hover:bg-white/50"
                                 )}
                             >
@@ -1741,13 +1781,13 @@ export function UnifiedActionDrawer({
                             role="tabpanel"
                             aria-labelledby="tab-contact"
                             tabIndex={0}
-                            className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300 focus-visible:ring-offset-1"
+                            className="overflow-hidden rounded-xl border border-[#dfe7e3] bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0c3b38]/20 focus-visible:ring-offset-1"
                             style={{ animation: "uadSectionIn 200ms cubic-bezier(0.16, 1, 0.3, 1)" }}
                         >
                             {/* Contact header */}
-                            <div className="flex items-start gap-4 p-4 border-b border-slate-100 bg-gradient-to-r from-indigo-50/40 to-transparent">
+                            <div className="flex items-start gap-3 border-b border-[#e7ecea] bg-[#fafcfb] p-3.5">
                                 <div
-                                    className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-400 to-indigo-600 flex items-center justify-center text-base font-bold text-white shadow-md ring-2 ring-white shrink-0"
+                                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-[var(--elan-petrol)] text-base font-bold text-white"
                                     aria-hidden="true"
                                 >
                                     {(contact.firstName?.[0] || contact.lastName?.[0] || "?").toUpperCase()}
@@ -2238,7 +2278,7 @@ export function UnifiedActionDrawer({
                             role="tabpanel"
                             aria-labelledby="tab-company"
                             tabIndex={0}
-                            className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-300 focus-visible:ring-offset-1"
+                            className="overflow-hidden rounded-xl border border-[#dfe7e3] bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0c3b38]/20 focus-visible:ring-offset-1"
                             style={{ animation: "uadSectionIn 200ms cubic-bezier(0.16, 1, 0.3, 1)" }}
                         >
                             {/* No contact prompt */}
@@ -2270,9 +2310,9 @@ export function UnifiedActionDrawer({
                             )}
 
                             {/* Company header */}
-                            <div className="flex items-start gap-4 p-4 border-b border-slate-100 bg-gradient-to-r from-violet-50/40 to-transparent">
+                            <div className="flex items-start gap-3 border-b border-[#e7ecea] bg-[#fafcfb] p-3.5">
                                 <div
-                                    className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-400 to-violet-600 flex items-center justify-center shrink-0 shadow-md ring-2 ring-white"
+                                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-[var(--elan-petrol)]"
                                     aria-hidden="true"
                                 >
                                     <Building2 className="w-5 h-5 text-white" />
@@ -2657,12 +2697,12 @@ export function UnifiedActionDrawer({
                     {/* ── Record Action Section ── */}
                     <section
                         aria-label="Enregistrer une action"
-                        className="rounded-2xl border border-indigo-100 bg-white shadow-sm overflow-hidden ring-1 ring-indigo-50"
+                        className="overflow-hidden rounded-xl border border-[#dfe7e3] bg-white"
                         style={{ animation: "uadSectionIn 250ms 150ms cubic-bezier(0.16, 1, 0.3, 1) both" }}
                     >
-                        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-indigo-100 bg-gradient-to-r from-indigo-50/80 via-indigo-50/40 to-white">
+                        <div className="flex items-center gap-2.5 border-b border-[#e7ecea] bg-[#fafcfb] px-3.5 py-3">
                             <div
-                                className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center shadow-sm"
+                                className="flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--elan-petrol)]"
                                 aria-hidden="true"
                             >
                                 <MessageSquare className="w-3.5 h-3.5 text-white" />

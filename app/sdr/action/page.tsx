@@ -37,7 +37,7 @@ import {
     Trash2,
     Send,
 } from "lucide-react";
-import { Card, Badge, Button, LoadingState, EmptyState, Tabs, Drawer, DataTable, Select, useToast, TableSkeleton, CardSkeleton, Modal, DateTimePicker } from "@/components/ui";
+import { Card, Badge, Button, LoadingState, EmptyState, Tabs, Drawer, DataTable, useToast, TableSkeleton, CardSkeleton, Modal, DateTimePicker } from "@/components/ui";
 import type { Column } from "@/components/ui/DataTable";
 import dynamic from "next/dynamic";
 import { CompanyDrawer, ContactDrawer } from "@/components/drawers";
@@ -1751,8 +1751,8 @@ export default function SDRActionPage() {
             disabled={isSyncingCalls}
             title="Synchroniser les résumés et transcriptions d'appels Allo (24 dernières heures)"
             className={cn(
-                "flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-medium transition-all h-auto",
-                "border-white/20 bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm",
+                "flex h-9 items-center gap-2 rounded-lg border px-3 text-[13px] font-medium transition-colors",
+                "border-[#d8e2df] bg-white text-[var(--elan-petrol)] hover:bg-[#f3f7f5]",
                 isSyncingCalls && "opacity-70 cursor-not-allowed"
             )}
         >
@@ -1765,7 +1765,7 @@ export default function SDRActionPage() {
             {syncResult && !isSyncingCalls && (
                 <span className={cn(
                     "ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold",
-                    syncResult.enriched > 0 ? "bg-emerald-400/30 text-emerald-200" : "bg-white/20 text-white/70"
+                    syncResult.enriched > 0 ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600"
                 )}>
                     {syncResult.enriched}/{syncResult.total}
                 </span>
@@ -2063,54 +2063,47 @@ export default function SDRActionPage() {
         ];
 
         return (
-            <div className="space-y-4">
+            <div className="sdr-actions-page min-h-full space-y-3 bg-white">
                 {/* Header — Table View */}
-                <div className="relative overflow-hidden bg-gradient-to-br from-[#0c3b38] via-[#082c2a] to-[#0c3b38] rounded-2xl p-5 shadow-xl">
-                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-[rgba(255,158,27,0.12)] via-transparent to-transparent" />
-                    <div className="absolute -top-16 -right-16 w-48 h-48 bg-[rgba(255,158,27,0.06)] rounded-full blur-2xl" />
+                <div className="border-b border-[#e3e9e6] pb-3">
 
-                    <div className="relative flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                    <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-[rgba(255,158,27,0.16)] flex items-center justify-center border border-[rgba(255,158,27,0.22)]">
-                                <Phone className="w-5 h-5 text-[rgba(244,240,232,0.7)]" />
+                            <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#d8e2df] bg-[#eef4f2]">
+                                <Phone className="h-4 w-4 text-[var(--elan-petrol)]" />
                             </div>
                             <div>
-                                <h1 className="text-[22px] font-[500] text-white leading-tight">Actions</h1>
-                                <p className="text-[13px] text-white/50">Gérez vos actions commerciales</p>
+                                <h1 className="text-[21px] font-semibold leading-tight text-[#15201e]">Actions</h1>
+                                <p className="text-[12px] text-slate-500">Gérez vos actions commerciales</p>
                             </div>
                         </div>
 
                         <div className="flex items-center gap-2 flex-wrap">
-                            <Select variant="header-dark" value={selectedMissionId || ""} onChange={(id) => { setSelectedMissionId(id); localStorage.setItem("sdr_selected_mission", id); const firstList = lists.find((l) => l.mission.id === id); setSelectedListId(firstList?.id ?? null); }} options={selectableMissions.map((m) => ({ value: m.id, label: m.name }))} placeholder="Mission" className="min-w-[160px]" />
-                            <Select variant="header-dark" value={selectedListId || "all"} onChange={(id) => setSelectedListId(id === "all" ? null : id)} options={[{ value: "all", label: "Toutes les listes" }, ...filteredLists.map((l) => ({ value: l.id, label: l.name }))]} placeholder="Liste" className="min-w-[140px]" />
-
-                            <Button type="button" onClick={() => setShowStatsModal(true)} className="rounded-xl border border-white/15 bg-white/8 hover:bg-white/15 text-white backdrop-blur-sm gap-1.5 px-3 py-1.5 h-auto text-[13px] font-[500]">
+                            <Button type="button" onClick={() => setShowStatsModal(true)} variant="outline" className="h-9 rounded-lg border-[#d8e2df] bg-white px-3 text-[13px] font-medium text-[var(--elan-petrol)] hover:bg-[#f3f7f5] gap-1.5">
                                 <BarChart2 className="w-3.5 h-3.5" /> Stats
                             </Button>
 
                             {syncCallsButton}
 
-                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/8 border border-white/10">
-                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                                <span className="text-[22px] font-[500] text-white tabular-nums leading-none">{actionsCompleted}</span>
-                                <span className="text-[11px] text-white/50 uppercase tracking-wide font-[500]">actions</span>
+                            <div className="flex h-9 items-center gap-2 rounded-lg border border-[#d8e2df] bg-[#f7f9f8] px-3">
+                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                                <span className="text-[16px] font-semibold text-[#15201e] tabular-nums leading-none">{actionsCompleted}</span>
+                                <span className="text-[10px] text-slate-500 uppercase tracking-wide font-medium">actions</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 {/* Filter Card */}
-                <div className="bg-white rounded-2xl border border-[#e5e5e5] shadow-sm overflow-hidden">
-                    <div className="px-5 py-3.5 border-b border-[#e5e5e5] bg-[#f5f5f5]/50">
+                <div className="overflow-hidden rounded-xl border border-[#e1e7e4] bg-white">
+                    <div className="px-4 pt-3">
                         <div className="flex items-center justify-between gap-4">
                             <div className="flex items-center gap-2.5">
-                                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#0c3b38] to-[#114b46] flex items-center justify-center shadow-sm shadow-[rgba(12,59,56,0.18)]">
-                                    <Filter className="w-3.5 h-3.5 text-white" />
-                                </div>
-                                <div>
-                                    <h3 className="text-[14px] font-[500] text-[#1a1a1a]">Filtres</h3>
+                                <Filter className="h-4 w-4 text-[var(--elan-petrol)]" />
+                                <div className="flex items-center gap-2">
+                                    <h3 className="text-[13px] font-semibold text-[#1a1a1a]">Filtres</h3>
                                     {hasTableFiltersActive && (
-                                        <p className="text-[12px] text-[var(--elan-petrol)] font-[500]">
+                                        <p className="text-[11px] text-[var(--elan-petrol)] font-medium">
                                             {[tableFilterResult, tableFilterPriority, tableFilterChannel, tableFilterType].filter(Boolean).length} actif{[tableFilterResult, tableFilterPriority, tableFilterChannel, tableFilterType].filter(Boolean).length > 1 ? "s" : ""}
                                         </p>
                                     )}
@@ -2125,10 +2118,10 @@ export default function SDRActionPage() {
                         </div>
                     </div>
 
-                    <div className="p-4">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7 gap-3">
+                    <div className="p-3 pt-2.5">
+                        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-[minmax(150px,1.7fr)_minmax(130px,1.35fr)_minmax(220px,2.3fr)_repeat(4,minmax(100px,1fr))]">
                             {/* Mission */}
-                            <div className="space-y-1 xl:col-span-2">
+                            <div className="space-y-1">
                                 <label className="text-[11px] font-[500] text-slate-400 uppercase tracking-wide block">Mission</label>
                                 <select value={selectedMissionId || ""} onChange={handleMissionChange} className="w-full h-9 px-3 text-[13px] border border-[#e5e5e5] rounded-lg bg-white text-[#1a1a1a] focus:outline-none focus:ring-2 focus:ring-[rgba(255,158,27,0.28)] focus:border-[var(--elan-amber-deep)] transition-shadow cursor-pointer">
                                     {selectableMissions.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
@@ -2143,7 +2136,7 @@ export default function SDRActionPage() {
                                 </select>
                             </div>
                             {/* Search */}
-                            <div className="space-y-1 sm:col-span-2 xl:col-span-2">
+                            <div className="space-y-1 sm:col-span-2 lg:col-span-2 xl:col-span-1">
                                 <label className="text-[11px] font-[500] text-slate-400 uppercase tracking-wide block">Rechercher</label>
                                 <input type="text" value={tableSearchInput} onChange={(e) => setTableSearchInput(e.target.value)} placeholder="Contact ou société…" className="w-full h-9 px-3 text-[13px] border border-[#e5e5e5] rounded-lg bg-white text-[#1a1a1a] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[rgba(255,158,27,0.28)] focus:border-[var(--elan-amber-deep)] transition-shadow" />
                             </div>
@@ -2184,7 +2177,7 @@ export default function SDRActionPage() {
                         </div>
 
                         {/* Results summary */}
-                        <div className="mt-3 pt-3 border-t border-[#e5e5e5] flex items-center justify-between">
+                        <div className="mt-2 flex items-center justify-between">
                             <span className="text-[12px] text-slate-500">
                                 {tableSearchApi ? (
                                     <><span className="font-[500] text-[var(--elan-petrol)]">{queueItems.length}</span> résultat{queueItems.length !== 1 ? "s" : ""} pour «&nbsp;{tableSearchApi}&nbsp;»</>
@@ -2236,7 +2229,7 @@ export default function SDRActionPage() {
                 )}
 
                 {/* Data Table */}
-                <div className="bg-white rounded-2xl border border-slate-200/60 shadow-lg shadow-slate-200/50 overflow-hidden">
+                <div className="overflow-hidden rounded-xl border border-[#e1e7e4] bg-white">
                     {queueInitialLoading ? (
                         <TableSkeleton columns={6} rows={12} className="rounded-2xl" />
                     ) : queueFetchError ? (
@@ -2281,9 +2274,6 @@ export default function SDRActionPage() {
                             data={filteredQueueItems}
                             columns={queueColumns}
                             keyField={(row) => queueRowKey(row)}
-                            searchable
-                            searchPlaceholder="Rechercher contact, société, téléphone, note..."
-                            searchFields={["_displayName", "_companyName", "_phone", "_searchNote", "missionName"]}
                             pagination
                             pageSize={15}
                             emptyMessage="Aucun contact dans la file. Changez de mission ou liste."

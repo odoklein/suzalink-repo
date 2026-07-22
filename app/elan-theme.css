@@ -6,7 +6,7 @@
     --elan-paper: #f4f0e8;
     --elan-paper-2: #ece5d8;
     --elan-paper-3: #e4dbca;
-    --elan-surface: #fffcf6;
+    --elan-surface: #ffffff;
     --elan-ink: #15201e;
     --elan-ink-soft: #394b46;
     --elan-petrol: #0c3b38;
@@ -22,7 +22,7 @@
     --elan-shadow-sm: 0 1px 2px rgba(12, 59, 56, 0.04), 0 5px 16px rgba(12, 59, 56, 0.045);
     --elan-shadow-md: 0 16px 45px rgba(12, 59, 56, 0.09);
 
-    --background: var(--elan-paper-2);
+    --background: #ffffff;
     --foreground: var(--elan-ink);
     --muted: #7a8984;
     --muted-foreground: var(--elan-slate);
@@ -103,13 +103,13 @@
 }
 
 html {
-    background: var(--elan-paper-2);
+    background: #ffffff;
 }
 
 body.elan-app {
     min-height: 100%;
     margin: 0;
-    background: var(--elan-paper-2);
+    background: #ffffff;
     color: var(--elan-ink);
     font-family: var(--font-elan-sans), "Segoe UI", sans-serif;
     font-size: 15px;
@@ -226,7 +226,7 @@ body.elan-app :focus-visible {
 /* Workspace shell */
 .cp-layout,
 .cp-main {
-    background: var(--elan-paper-2) !important;
+    background: #ffffff !important;
     color: var(--elan-ink);
 }
 
@@ -237,7 +237,7 @@ body.elan-app :focus-visible {
 .cp-topbar {
     height: 60px !important;
     border-bottom: 1px solid var(--elan-line) !important;
-    background: rgba(244, 240, 232, 0.94) !important;
+    background: rgba(255, 255, 255, 0.96) !important;
     box-shadow: 0 1px 0 rgba(255, 255, 255, 0.32);
     backdrop-filter: blur(16px) saturate(120%);
 }
@@ -258,7 +258,7 @@ body.elan-app :focus-visible {
 }
 
 .cp-content {
-    background: #f5f7f6;
+    background: #ffffff;
     padding: clamp(16px, 1.5vw, 28px) !important;
 }
 
@@ -285,6 +285,28 @@ body.elan-app :focus-visible {
 .elan-page :where(input, select, textarea):focus-visible {
     outline: 2px solid rgba(224, 124, 0, 0.32);
     outline-offset: 1px;
+}
+
+/* SDR actions: one white canvas with compact, cool-neutral table chrome. */
+.sdr-actions-page :where(input, select):focus {
+    border-color: var(--elan-petrol) !important;
+    box-shadow: 0 0 0 3px rgba(12, 59, 56, 0.12) !important;
+}
+
+.sdr-actions-page [class~="bg-slate-50/30"],
+.sdr-actions-page [class~="bg-slate-50/40"],
+.sdr-actions-page [class~="bg-slate-50/60"],
+.sdr-actions-page [class~="bg-slate-50/80"] {
+    background-color: #f7f9f8 !important;
+}
+
+.sdr-actions-page .text-indigo-600,
+.sdr-actions-page .text-indigo-700 {
+    color: var(--elan-petrol) !important;
+}
+
+.sdr-actions-page .bg-indigo-600 {
+    background-color: var(--elan-petrol) !important;
 }
 
 .cp-content > * {
