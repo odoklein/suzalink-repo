@@ -16,7 +16,6 @@ import {
   UserPlus,
   Mail,
   Inbox,
-  Zap,
   MessageSquare,
   Receipt,
   History,
@@ -56,7 +55,7 @@ export interface NavSection {
 // MANAGER NAVIGATION
 // ============================================
 
-// Manager IA - Phase 0 refactor (verb-based 7-section structure).
+// Manager navigation follows the operating sequence: communicate, pilot sales,
 // Goals: collapse 18 flat items → 7 semantic groups; fix label/URL/permission drift;
 // surface orphaned routes (campaigns, notifications, sdrs); defer inbox consolidation
 // to Phase 1 (canonical = /manager/email).
@@ -72,50 +71,31 @@ export const MANAGER_NAV: NavSection[] = [
     ],
   },
   {
-    title: "Prospection",
+    title: "Communication",
+    dividerBefore: true,
     items: [
       {
-        href: "/manager/missions",
-        icon: Target,
-        label: "Missions",
-        permission: "pages.missions",
-        children: [
-          {
-            href: "/manager/lists",
-            icon: Database,
-            label: "Listes",
-            permission: "pages.lists",
-          },
-          {
-            href: "/manager/prospection",
-            icon: Activity,
-            label: "Cockpit",
-            permission: "pages.missions",
-          },
-        ],
+        href: "/manager/comms",
+        icon: MessageSquare,
+        label: "Messagerie",
+        permission: "pages.dashboard",
       },
       {
-        href: "/manager/prospects",
-        icon: Users,
-        label: "Prospects",
-        permission: "pages.lists",
-      },
-      {
-        href: "/manager/campaigns",
-        icon: Zap,
-        label: "Campagnes",
-        permission: "pages.campaigns",
+        href: "/manager/email",
+        icon: Inbox,
+        label: "Boîte de réception",
+        permission: "pages.email",
       },
     ],
   },
   {
-    title: "Pipeline",
+    title: "Pilotage commercial",
     items: [
       {
-        href: "/manager/rdv",
-        icon: CalendarClock,
-        label: "Rendez-vous",
-        permission: "pages.analytics",
+        href: "/manager/prospection",
+        icon: Activity,
+        label: "Cockpit",
+        permission: "pages.missions",
       },
       {
         href: "/manager/clients",
@@ -123,28 +103,43 @@ export const MANAGER_NAV: NavSection[] = [
         label: "Clients",
         permission: "pages.clients",
       },
-    ],
-  },
-  {
-    title: "Insights",
-    items: [
+      {
+        href: "/manager/missions",
+        icon: Target,
+        label: "Missions",
+        permission: "pages.missions",
+      },
+      {
+        href: "/manager/lists",
+        icon: Database,
+        label: "Listes",
+        permission: "pages.lists",
+      },
       {
         href: "/manager/analytics",
         icon: BarChart3,
         label: "Performance",
         permission: "pages.analytics",
-      },
-      {
-        href: "/manager/analyse-ia",
-        icon: Brain,
-        label: "Analyse IA",
-        permission: "pages.analytics",
+        children: [
+          {
+            href: "/manager/analyse-ia",
+            icon: Brain,
+            label: "Analyse IA",
+            permission: "pages.analytics",
+          },
+        ],
       },
     ],
   },
   {
-    title: "Équipe",
+    title: "Opérations SDR",
     items: [
+      {
+        href: "/manager/planning",
+        icon: CalendarDays,
+        label: "Planning équipe",
+        permission: "pages.planning",
+      },
       {
         href: "/manager/utilisateurs",
         icon: Users,
@@ -166,11 +161,16 @@ export const MANAGER_NAV: NavSection[] = [
         ],
       },
       {
-        href: "/manager/planning",
-        icon: CalendarDays,
-        label: "Planning",
-        permission: "pages.planning",
+        href: "/manager/rdv",
+        icon: CalendarClock,
+        label: "Rendez-vous",
+        permission: "pages.analytics",
       },
+    ],
+  },
+  {
+    title: "Livraison",
+    items: [
       {
         href: "/manager/projects",
         icon: FolderKanban,
@@ -183,32 +183,14 @@ export const MANAGER_NAV: NavSection[] = [
             label: "Tâches",
             permission: "pages.projects",
           },
+          {
+            href: "/calendar",
+            icon: CalendarClock,
+            label: "Calendrier projet",
+            permission: "pages.projects",
+            openInNewTab: true,
+          },
         ],
-      },
-      {
-        href: "/calendar",
-        icon: CalendarClock,
-        label: "Calendrier projet",
-        permission: "pages.projects",
-        openInNewTab: true,
-      },
-    ],
-  },
-  {
-    title: "Communication",
-    dividerBefore: true,
-    items: [
-      {
-        href: "/manager/comms",
-        icon: MessageSquare,
-        label: "Messagerie",
-        permission: "pages.dashboard",
-      },
-      {
-        href: "/manager/email",
-        icon: Inbox,
-        label: "Boîte de réception",
-        permission: "pages.email",
       },
     ],
   },
