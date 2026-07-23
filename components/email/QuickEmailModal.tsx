@@ -113,6 +113,7 @@ export function QuickEmailModal({
     const [showAiDraftDialog, setShowAiDraftDialog] = useState(false);
 
     const editorRef = useRef<HTMLDivElement>(null);
+    const editorNodeRef = useRef<HTMLDivElement | null>(null);
     const bodyHtmlRef = useRef("");
     const bodyEditedRef = useRef(false);
     const subjectEditedRef = useRef(false);
@@ -271,6 +272,7 @@ export function QuickEmailModal({
             const variables = buildPreviewVariables(contact ?? null, company ?? null);
             const nextSubject = substituteVariables(tpl.subject, variables);
             const nextBodyHtml = substituteVariables(tpl.bodyHtml, variables);
+            if (isNewTemplate) setIsEditing(true);
             if (shouldApplySubject) {
                 setSubject(nextSubject);
             }
@@ -283,6 +285,20 @@ export function QuickEmailModal({
             lastAppliedTemplateRef.current = selectedTemplateId;
         }
     }, [selectedTemplateId, templates, contact, company]);
+
+    // Keep the editor DOM uncontrolled while typing. Rewriting innerHTML on
+    // every render is what moves the caret back to the beginning.
+    useEffect(() => {
+        const editor = editorRef.current;
+        if (!editor) return;
+
+        if (editorNodeRef.current !== editor) {
+            editor.innerHTML = bodyHtmlRef.current;
+            editorNodeRef.current = editor;
+        } else if (!bodyEditedRef.current) {
+            editor.innerHTML = bodyHtmlRef.current;
+        }
+    }, [bodyHtml, showPreview, isEditing, selectedTemplateId]);
 
     // ============================================
     // HANDLERS
@@ -752,7 +768,6 @@ export function QuickEmailModal({
                                                     "min-h-[200px] max-h-[300px] overflow-y-auto p-4 text-sm text-slate-700 email-scrollbar",
                                                     isEditing ? "bg-white focus:outline-none" : "bg-slate-50"
                                                 )}
-                                                dangerouslySetInnerHTML={{ __html: bodyHtml }}
                                             />
                                         </div>
                                     )}
@@ -769,6 +784,7 @@ export function QuickEmailModal({
                                 bodyHtmlRef.current = nextBodyHtml;
                                 bodyEditedRef.current = true;
                                 setBodyHtml(nextBodyHtml);
+                                if (editorRef.current) editorRef.current.innerHTML = nextBodyHtml;
                                 setShowAiDraftDialog(false);
                             }}
                         />

@@ -29,10 +29,10 @@ export const metadata: Metadata = {
   description: "La plateforme d'exécution commerciale qui transforme l'activité en résultats.",
 icons: {
     icon: [
-        { url: "/brand/elan-mark.svg", type: "image/svg+xml" },
-        { url: "/favicon.ico", sizes: "any" },
+        { url: "/brand/prospecto-icon.svg", type: "image/svg+xml" },
+        { url: "/brand/prospecto-icon.png", type: "image/png" },
       ],
-    apple: "/brand/elan-mark.svg",
+    apple: "/brand/prospecto-icon.png",
     },
 };
 

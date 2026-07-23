@@ -242,7 +242,7 @@ export default function ForgotPasswordPage() {
 
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
-                            src="/brand/elan-mark.svg"
+                            src="/brand/prospecto-icon.svg"
                             alt="Prospecto"
                             className="lp-logo"
                             draggable={false}

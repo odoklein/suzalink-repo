@@ -12,8 +12,12 @@ export function ElanLogo({
     compact = false,
     tone = "paper",
 }: ElanLogoProps) {
-    const asset = "/brand/elan-mark.svg";
-    const dimensions = { width: 208, height: 214 };
+    const asset = compact
+        ? "/brand/prospecto-icon.svg"
+        : "/brand/prospecto-logo.svg";
+    const dimensions = compact
+        ? { width: 157, height: 164 }
+        : { width: 237, height: 29 };
 
     return (
         <span
@@ -30,7 +34,6 @@ export function ElanLogo({
                 unoptimized
                 width={dimensions.width}
             />
-            {!compact && <span className="elan-logo-wordmark">prospecto</span>}
         </span>
     );
 }
