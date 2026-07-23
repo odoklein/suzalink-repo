@@ -7,6 +7,7 @@ import {
     AlertCircle,
     ArrowRight,
     ChevronLeft,
+    ChevronRight,
     Eye,
     EyeOff,
     Loader2,
@@ -32,7 +33,8 @@ import {
 
 /** Derive two-letter initials from a display name */
 function getInitials(name: string): string {
-    const parts = name.trim().split(/\s+/);
+    const parts = name.trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) return "?";
     if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
@@ -44,6 +46,38 @@ function getAvatarHue(str: string): number {
         hash = str.charCodeAt(i) + ((hash << 5) - hash);
     }
     return Math.abs(hash) % 360;
+}
+
+/** Turn "john.doe@acme.fr" into a friendly "John Doe" fallback name */
+function prettyNameFromEmail(email: string): string {
+    const local = (email.split("@")[0] || email).trim();
+    const words = local.split(/[._-]+/).filter(Boolean);
+    if (words.length === 0) return email;
+    return words.map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+}
+
+/** Relative time in French, e.g. "il y a 2 h" */
+function formatRelativeTime(ts: number): string {
+    if (!ts) return "";
+    const diff = Date.now() - ts;
+    const min = Math.floor(diff / 60000);
+    if (min < 1) return "à l'instant";
+    if (min < 60) return `il y a ${min} min`;
+    const hours = Math.floor(min / 60);
+    if (hours < 24) return `il y a ${hours} h`;
+    const days = Math.floor(hours / 24);
+    if (days < 7) return `il y a ${days} j`;
+    return new Date(ts).toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
+}
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/** Map a NextAuth error code to a human message (FR) */
+function mapError(code: string | null | undefined): string {
+    if (!code) return "";
+    if (code.includes("verrouillé") || code.includes("Trop")) return code;
+    if (code === "CredentialsSignin") return "Adresse e-mail ou mot de passe incorrect.";
+    return "La connexion a échoué. Réessayez dans un instant.";
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -60,117 +94,154 @@ export default function LoginForm() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
-    const [loadingEmail, setLoadingEmail] = useState<string | null>(null);
     const [showPassword, setShowPassword] = useState(false);
+    const [capsOn, setCapsOn] = useState(false);
+    const [error, setError] = useState("");
     const [mounted, setMounted] = useState(false);
 
     // ── recent accounts ─────────────────────────────────────────────────────
     const [recentAccounts, setRecentAccounts] = useState<RecentAccount[]>([]);
-    const [view, setView] = useState<"accounts" | "form">("accounts");
+    const [view, setView] = useState<"accounts" | "credentials">("accounts");
+    const [selectedAccount, setSelectedAccount] = useState<RecentAccount | null>(null);
 
     const emailInputRef = useRef<HTMLInputElement>(null);
+    const passwordInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         const frame = requestAnimationFrame(() => setMounted(true));
         return () => cancelAnimationFrame(frame);
     }, []);
 
+    // Surface URL-provided errors (e.g. expired session) once, in-place.
     useEffect(() => {
-        if (errorCode) trackLogin(false);
+        if (errorCode) {
+            setError(mapError(errorCode));
+            trackLogin(false);
+        }
     }, [errorCode]);
 
     // Load persisted accounts on mount
     useEffect(() => {
         const stored = getRecentAccounts();
         setRecentAccounts(stored);
-        // If no saved accounts, show the form immediately
-        if (stored.length === 0) setView("form");
+        if (stored.length === 0) setView("credentials");
     }, []);
 
-    // When switching to manual form, auto-focus the email field
+    // Focus the right field when entering the credentials view
     useEffect(() => {
-        if (view === "form") {
-            requestAnimationFrame(() => emailInputRef.current?.focus());
-        }
-    }, [view]);
+        if (view !== "credentials") return;
+        requestAnimationFrame(() => {
+            if (selectedAccount) passwordInputRef.current?.focus();
+            else emailInputRef.current?.focus();
+        });
+    }, [view, selectedAccount]);
 
-    // ── error messaging ─────────────────────────────────────────────────────
-    const errorMessage = errorCode
-        ? errorCode.includes("verrouillé") || errorCode.includes("Trop")
-            ? errorCode
-            : errorCode === "CredentialsSignin"
-                ? "Adresse e-mail ou mot de passe incorrect."
-                : "La connexion a échoué. Réessayez dans un instant."
-        : "";
+    // ── navigation between views ──────────────────────────────────────────────
+    const openAccount = (account: RecentAccount) => {
+        setSelectedAccount(account);
+        setEmail(account.email);
+        setPassword("");
+        setError("");
+        setView("credentials");
+    };
 
-    // ── 1-click login from recent account ───────────────────────────────────
-    const handleAccountClick = async (account: RecentAccount) => {
-        setLoadingEmail(account.email);
-        try {
-            await signIn("credentials", {
-                email: account.email,
-                password: account._pw,
-                callbackUrl,
-            });
-            // Save updated lastLoginAt (the page will redirect on success,
-            // but if signIn resolves without redirect we still update storage)
-            saveRecentAccount({
-                email: account.email,
-                name: account.name,
-                password: account._pw,
-                avatarUrl: account.avatarUrl,
-            });
-            trackLogin(true);
-        } finally {
-            setLoadingEmail(null);
-        }
+    const openFreshForm = () => {
+        setSelectedAccount(null);
+        setEmail("");
+        setPassword("");
+        setError("");
+        setView("credentials");
+    };
+
+    const backToAccounts = () => {
+        setView("accounts");
+        setSelectedAccount(null);
+        setPassword("");
+        setError("");
     };
 
     // ── forget account ───────────────────────────────────────────────────────
-    const handleForgetAccount = (e: React.MouseEvent, email: string) => {
+    const handleForgetAccount = (e: React.MouseEvent, targetEmail: string) => {
         e.stopPropagation();
-        removeRecentAccount(email);
+        removeRecentAccount(targetEmail);
         const updated = getRecentAccounts();
         setRecentAccounts(updated);
-        if (updated.length === 0) setView("form");
+        if (updated.length === 0) openFreshForm();
     };
 
-    // ── manual form submit ───────────────────────────────────────────────────
+    // ── submit (single, clean path) ────────────────────────────────────────────
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
+        if (isLoading) return;
+
+        const trimmedEmail = email.trim();
+        if (!EMAIL_RE.test(trimmedEmail)) {
+            setError("Saisissez une adresse e-mail valide.");
+            emailInputRef.current?.focus();
+            return;
+        }
+        if (!password) {
+            setError("Saisissez votre mot de passe.");
+            passwordInputRef.current?.focus();
+            return;
+        }
+
         setIsLoading(true);
+        setError("");
+
         try {
             const result = await signIn("credentials", {
-                email,
+                email: trimmedEmail,
                 password,
                 callbackUrl,
                 redirect: false,
             });
 
             if (result?.ok && !result?.error) {
-                // Persist account before navigating away
-                saveRecentAccount({ email, name: email, password });
+                // Resolve the real display name / avatar from the session so the
+                // saved account card shows a proper name (not the raw email).
+                let name = selectedAccount?.name || prettyNameFromEmail(trimmedEmail);
+                let avatarUrl = selectedAccount?.avatarUrl;
+                try {
+                    const res = await fetch("/api/auth/session");
+                    if (res.ok) {
+                        const session = await res.json();
+                        if (session?.user?.name) name = session.user.name;
+                        if (session?.user?.image) avatarUrl = session.user.image;
+                    }
+                } catch {
+                    /* non-fatal: fall back to derived name */
+                }
+
+                saveRecentAccount({ email: trimmedEmail, name, avatarUrl });
                 trackLogin(true);
                 router.push(callbackUrl);
-            } else {
-                // Let NextAuth handle the redirect to /login?error=...
-                await signIn("credentials", { email, password, callbackUrl });
-                trackLogin(true);
+                return; // keep spinner until navigation completes
             }
+
+            // Failure — stay on the page and show a real message.
+            setError(mapError(result?.error) || "Adresse e-mail ou mot de passe incorrect.");
+            trackLogin(false);
+        } catch {
+            setError("La connexion a échoué. Réessayez dans un instant.");
+            trackLogin(false);
         } finally {
             setIsLoading(false);
         }
     };
 
     // ── avatar cell ──────────────────────────────────────────────────────────
-    const AvatarCell = ({ account }: { account: RecentAccount }) => {
+    // When `size` is omitted, sizing comes from CSS (so responsive rules apply).
+    const AvatarCell = ({ account, size }: { account: RecentAccount; size?: number }) => {
         const hue = getAvatarHue(account.email);
+        const dims = size ? { width: size, height: size } : undefined;
         if (account.avatarUrl) {
             return (
                 <img
                     src={account.avatarUrl}
-                    alt={account.name}
+                    alt=""
                     className="elan-account-avatar-img"
+                    style={dims}
                 />
             );
         }
@@ -178,6 +249,7 @@ export default function LoginForm() {
             <div
                 className="elan-account-avatar-initials"
                 style={{
+                    ...(size ? { ...dims, fontSize: size * 0.36 } : {}),
                     background: `hsl(${hue} 42% 88%)`,
                     color: `hsl(${hue} 60% 32%)`,
                 }}
@@ -187,6 +259,13 @@ export default function LoginForm() {
         );
     };
 
+    const errorBanner = error ? (
+        <div className="elan-login-error" role="alert">
+            <AlertCircle size={17} aria-hidden="true" />
+            <span>{error}</span>
+        </div>
+    ) : null;
+
     // ──────────────────────────────────────────────────────────────────────────
     // Render
     // ──────────────────────────────────────────────────────────────────────────
@@ -194,7 +273,9 @@ export default function LoginForm() {
         <main className={`elan-login${mounted ? " is-ready" : ""}`}>
             {/* ── Brand panel (left) ── */}
             <aside className="elan-login-brand" aria-label="Présentation Prospecto">
-                <ElanLogo className="text-[52px]" />
+                <div className="elan-login-brand-top">
+                    <ElanLogo className="text-[52px]" />
+                </div>
 
                 <div className="elan-login-message">
                     <p className="elan-login-kicker">Votre cockpit commercial</p>
@@ -202,6 +283,12 @@ export default function LoginForm() {
                     <p>
                         Pilotez l&apos;activité, gardez le cap et transformez chaque action en résultat mesurable.
                     </p>
+
+                    <ul className="elan-login-highlights">
+                        <li><span aria-hidden="true" /> Priorisez chaque appel automatiquement</li>
+                        <li><span aria-hidden="true" /> Suivez la cadence de votre plateau</li>
+                        <li><span aria-hidden="true" /> Mesurez ce qui transforme vraiment</li>
+                    </ul>
                 </div>
 
                 <div className="elan-login-signature">
@@ -221,107 +308,140 @@ export default function LoginForm() {
                             <header className="elan-login-heading">
                                 <p>Votre espace de travail</p>
                                 <h2>Bon retour.</h2>
-                                <span>Sélectionnez votre compte ou connectez-vous avec un autre.</span>
+                                <span>Sélectionnez votre compte pour continuer.</span>
                             </header>
 
-                            <div className="elan-recent-accounts" role="list" aria-label="Comptes récents">
+                            {errorBanner}
+
+                            <ul className="elan-recent-accounts" aria-label="Comptes récents">
                                 <p className="elan-recent-accounts-label">Comptes récents</p>
 
-                                {recentAccounts.map((account) => {
-                                    const isThisLoading = loadingEmail === account.email;
-                                    return (
+                                {recentAccounts.map((account) => (
+                                    <li key={account.email} className="elan-account-card">
                                         <button
-                                            key={account.email}
-                                            className={`elan-account-card${isThisLoading ? " is-loading" : ""}`}
-                                            role="listitem"
-                                            onClick={() => !loadingEmail && handleAccountClick(account)}
-                                            disabled={!!loadingEmail}
-                                            aria-label={`Se connecter en tant que ${account.name}`}
+                                            type="button"
+                                            className="elan-account-hit"
+                                            onClick={() => openAccount(account)}
+                                            aria-label={`Continuer en tant que ${account.name}`}
                                         >
-                                            <div className="elan-account-avatar">
-                                                {isThisLoading ? (
-                                                    <Loader2 size={20} className="animate-spin elan-account-spinner" aria-hidden="true" />
-                                                ) : (
-                                                    <AvatarCell account={account} />
-                                                )}
-                                            </div>
+                                            <span className="elan-account-avatar">
+                                                <AvatarCell account={account} />
+                                            </span>
 
-                                            <div className="elan-account-info">
+                                            <span className="elan-account-info">
                                                 <span className="elan-account-name">{account.name}</span>
                                                 <span className="elan-account-email">{account.email}</span>
-                                            </div>
+                                                {account.lastLoginAt ? (
+                                                    <span className="elan-account-meta">
+                                                        {formatRelativeTime(account.lastLoginAt)}
+                                                    </span>
+                                                ) : null}
+                                            </span>
 
-                                            <div className="elan-account-actions">
-                                                <button
-                                                    type="button"
-                                                    className="elan-account-remove"
-                                                    onClick={(e) => handleForgetAccount(e, account.email)}
-                                                    aria-label={`Oublier le compte ${account.email}`}
-                                                    title="Oublier ce compte"
-                                                >
-                                                    <Trash2 size={15} aria-hidden="true" />
-                                                </button>
-                                            </div>
+                                            <ChevronRight size={18} className="elan-account-chevron" aria-hidden="true" />
                                         </button>
-                                    );
-                                })}
 
-                                <button
-                                    type="button"
-                                    className="elan-account-other"
-                                    onClick={() => setView("form")}
-                                >
+                                        <button
+                                            type="button"
+                                            className="elan-account-remove"
+                                            onClick={(e) => handleForgetAccount(e, account.email)}
+                                            aria-label={`Oublier le compte ${account.email}`}
+                                            title="Oublier ce compte"
+                                        >
+                                            <Trash2 size={15} aria-hidden="true" />
+                                        </button>
+                                    </li>
+                                ))}
+
+                                <button type="button" className="elan-account-other" onClick={openFreshForm}>
                                     <UserCircle2 size={18} aria-hidden="true" />
                                     Utiliser un autre compte
                                 </button>
-                            </div>
+                            </ul>
 
                             <div className="elan-login-security">
                                 <ShieldCheck size={18} aria-hidden="true" />
                                 <div>
                                     <strong>Accès sécurisé</strong>
-                                    <span>Vos données de connexion restent chiffrées.</span>
+                                    <span>Aucun mot de passe n&apos;est stocké sur cet appareil.</span>
                                 </div>
                             </div>
                         </>
                     ) : (
-                        /* ── Manual form view ── */
+                        /* ── Credentials view (welcome-back OR fresh) ── */
                         <>
-                            <header className="elan-login-heading">
-                                <p>Votre espace de travail</p>
-                                <h2>Reprenez la main.</h2>
-                                <span>Connectez-vous pour retrouver votre plateau.</span>
-                            </header>
+                            {selectedAccount ? (
+                                <>
+                                    <button
+                                        type="button"
+                                        className="elan-login-back-accounts"
+                                        onClick={backToAccounts}
+                                    >
+                                        <ChevronLeft size={15} aria-hidden="true" />
+                                        Changer de compte
+                                    </button>
 
-                            {recentAccounts.length > 0 && (
-                                <button
-                                    type="button"
-                                    className="elan-login-back-accounts"
-                                    onClick={() => setView("accounts")}
-                                >
-                                    <ChevronLeft size={15} aria-hidden="true" />
-                                    Comptes récents
-                                </button>
+                                    <div className="elan-login-identity">
+                                        <AvatarCell account={selectedAccount} size={58} />
+                                        <div>
+                                            <p>Content de vous revoir</p>
+                                            <h2>{selectedAccount.name}</h2>
+                                            <span>{selectedAccount.email}</span>
+                                        </div>
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <header className="elan-login-heading">
+                                        <p>Votre espace de travail</p>
+                                        <h2>Reprenez la main.</h2>
+                                        <span>Connectez-vous pour retrouver votre plateau.</span>
+                                    </header>
+
+                                    {recentAccounts.length > 0 && (
+                                        <button
+                                            type="button"
+                                            className="elan-login-back-accounts"
+                                            onClick={backToAccounts}
+                                        >
+                                            <ChevronLeft size={15} aria-hidden="true" />
+                                            Comptes récents
+                                        </button>
+                                    )}
+                                </>
                             )}
 
                             <form onSubmit={handleSubmit} className="elan-login-form" noValidate>
-                                <div className="elan-login-field">
-                                    <label htmlFor="login-email">Adresse e-mail</label>
-                                    <div className="elan-login-input-wrap">
-                                        <Mail size={17} aria-hidden="true" />
-                                        <input
-                                            ref={emailInputRef}
-                                            id="login-email"
-                                            type="email"
-                                            placeholder="vous@entreprise.fr"
-                                            value={email}
-                                            onChange={(event) => setEmail(event.target.value)}
-                                            required
-                                            autoComplete="email"
-                                            autoFocus
-                                        />
+                                {selectedAccount ? (
+                                    // Present for password managers (username association), hidden visually.
+                                    <input
+                                        type="email"
+                                        value={email}
+                                        readOnly
+                                        tabIndex={-1}
+                                        aria-hidden="true"
+                                        autoComplete="username"
+                                        className="elan-login-hidden-username"
+                                    />
+                                ) : (
+                                    <div className="elan-login-field">
+                                        <label htmlFor="login-email">Adresse e-mail</label>
+                                        <div className="elan-login-input-wrap">
+                                            <Mail size={17} aria-hidden="true" />
+                                            <input
+                                                ref={emailInputRef}
+                                                id="login-email"
+                                                type="email"
+                                                placeholder="vous@entreprise.fr"
+                                                value={email}
+                                                onChange={(event) => setEmail(event.target.value)}
+                                                required
+                                                autoComplete="username"
+                                                aria-invalid={!!error && !EMAIL_RE.test(email.trim())}
+                                            />
+                                        </div>
                                     </div>
-                                </div>
+                                )}
 
                                 <div className="elan-login-field">
                                     <div className="elan-login-label-row">
@@ -333,11 +453,15 @@ export default function LoginForm() {
                                     <div className="elan-login-input-wrap">
                                         <Lock size={17} aria-hidden="true" />
                                         <input
+                                            ref={passwordInputRef}
                                             id="login-password"
                                             type={showPassword ? "text" : "password"}
                                             placeholder="Votre mot de passe"
                                             value={password}
                                             onChange={(event) => setPassword(event.target.value)}
+                                            onKeyUp={(e) => setCapsOn(e.getModifierState("CapsLock"))}
+                                            onKeyDown={(e) => setCapsOn(e.getModifierState("CapsLock"))}
+                                            onBlur={() => setCapsOn(false)}
                                             required
                                             autoComplete="current-password"
                                         />
@@ -350,14 +474,15 @@ export default function LoginForm() {
                                             {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
                                         </button>
                                     </div>
+                                    {capsOn && (
+                                        <p className="elan-login-caps" role="status">
+                                            <AlertCircle size={13} aria-hidden="true" />
+                                            Verrouillage majuscules activé
+                                        </p>
+                                    )}
                                 </div>
 
-                                {errorMessage && (
-                                    <div className="elan-login-error" role="alert">
-                                        <AlertCircle size={17} aria-hidden="true" />
-                                        <span>{errorMessage}</span>
-                                    </div>
-                                )}
+                                {errorBanner}
 
                                 <button type="submit" className="elan-login-submit" disabled={isLoading}>
                                     {isLoading ? (
@@ -367,7 +492,7 @@ export default function LoginForm() {
                                         </>
                                     ) : (
                                         <>
-                                            Entrer sur le terrain
+                                            {selectedAccount ? "Continuer" : "Entrer sur le terrain"}
                                             <ArrowRight size={18} aria-hidden="true" />
                                         </>
                                     )}
@@ -378,7 +503,7 @@ export default function LoginForm() {
                                 <ShieldCheck size={18} aria-hidden="true" />
                                 <div>
                                     <strong>Accès sécurisé</strong>
-                                    <span>Vos données de connexion restent chiffrées.</span>
+                                    <span>Connexion chiffrée · aucun mot de passe stocké sur l&apos;appareil.</span>
                                 </div>
                             </div>
                         </>

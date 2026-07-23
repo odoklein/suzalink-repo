@@ -2,65 +2,40 @@
  * auth-recent-accounts.ts
  *
  * Manages "Comptes récents" (recent accounts) persisted in localStorage.
- * Passwords are XOR-obfuscated with a fixed site key so they are never
- * stored as plain text in the browser storage (not a security guarantee,
- * just a deterrent against casual inspection).
+ *
+ * SECURITY MODEL
+ * ──────────────
+ * We store ONLY non-secret profile data (email, display name, avatar, last
+ * login time). We deliberately DO NOT store passwords, tokens, or any secret.
+ *
+ * "Easy access" for returning users is achieved the secure, standard way:
+ * selecting a saved account pre-fills their identity and focuses the password
+ * field with autoComplete="current-password", so the browser / OS credential
+ * manager can autofill it. The application itself never holds the secret, so a
+ * compromised page (XSS) cannot harvest anyone's password from storage.
  */
 
 const LS_KEY = "elan_recent_accounts";
 const MAX_ACCOUNTS = 5;
-
-// Lightweight, deterministic obfuscation — NOT cryptographic.
-const OBFUSCATION_KEY = "elan-2024-xor-key";
-
-function xorObfuscate(text: string): string {
-    const key = OBFUSCATION_KEY;
-    let result = "";
-    for (let i = 0; i < text.length; i++) {
-        result += String.fromCharCode(text.charCodeAt(i) ^ key.charCodeAt(i % key.length));
-    }
-    // Encode as base64 so it's URL-safe and readable-looking
-    try {
-        return btoa(result);
-    } catch {
-        return btoa(encodeURIComponent(result));
-    }
-}
-
-function xorDeobfuscate(encoded: string): string {
-    try {
-        const key = OBFUSCATION_KEY;
-        let raw: string;
-        try {
-            raw = atob(encoded);
-        } catch {
-            raw = decodeURIComponent(atob(encoded));
-        }
-        let result = "";
-        for (let i = 0; i < raw.length; i++) {
-            result += String.fromCharCode(raw.charCodeAt(i) ^ key.charCodeAt(i % key.length));
-        }
-        return result;
-    } catch {
-        return "";
-    }
-}
 
 export interface RecentAccount {
     /** User's email address (primary key) */
     email: string;
     /** User's display name */
     name: string;
-    /** Obfuscated password for 1-click re-login */
-    _pw: string;
     /** Optional avatar URL (profile picture) */
     avatarUrl?: string;
-    /** ISO timestamp of last successful login */
+    /** Epoch ms of last successful login */
     lastLoginAt: number;
 }
 
-/** Internal shape stored in localStorage (password is obfuscated) */
-type StoredAccount = Omit<RecentAccount, "_pw"> & { _pw: string };
+/**
+ * Shape as it may exist in storage. Older builds persisted an obfuscated
+ * password under `_pw`; we tolerate reading it but strip it on the way out so
+ * the secret is purged from storage the first time a returning user loads the
+ * page.
+ */
+type StoredAccount = RecentAccount & { _pw?: string };
 
 function isClient(): boolean {
     return typeof window !== "undefined" && typeof window.localStorage !== "undefined";
@@ -79,10 +54,17 @@ function readFromStorage(): StoredAccount[] {
     }
 }
 
-function writeToStorage(accounts: StoredAccount[]): void {
+/** Persist accounts, guaranteeing no secret field is ever written back. */
+function writeToStorage(accounts: RecentAccount[]): void {
     if (!isClient()) return;
     try {
-        localStorage.setItem(LS_KEY, JSON.stringify(accounts));
+        const clean = accounts.map(({ email, name, avatarUrl, lastLoginAt }) => ({
+            email,
+            name,
+            avatarUrl,
+            lastLoginAt,
+        }));
+        localStorage.setItem(LS_KEY, JSON.stringify(clean));
     } catch {
         // localStorage unavailable (private mode, quota exceeded, etc.)
     }
@@ -93,21 +75,22 @@ function writeToStorage(accounts: StoredAccount[]): void {
 // ──────────────────────────────────────────────────────────────────────
 
 /**
- * Persists a successfully authenticated account to localStorage.
- * Existing entry for the same email is updated; old entries beyond
- * MAX_ACCOUNTS are pruned.
+ * Persists a successfully authenticated account's PROFILE to localStorage.
+ * No password or token is ever stored. Existing entry for the same email is
+ * updated (moved to the front); entries beyond MAX_ACCOUNTS are pruned.
  */
 export function saveRecentAccount(params: {
     email: string;
     name: string;
-    password: string;
     avatarUrl?: string;
 }): void {
-    const existing = readFromStorage().filter((a) => a.email !== params.email);
-    const updated: StoredAccount = {
-        email: params.email,
-        name: params.name,
-        _pw: xorObfuscate(params.password),
+    const email = params.email.trim().toLowerCase();
+    if (!email) return;
+
+    const existing = readFromStorage().filter((a) => a.email.toLowerCase() !== email);
+    const updated: RecentAccount = {
+        email: params.email.trim(),
+        name: params.name.trim() || params.email.trim(),
         avatarUrl: params.avatarUrl,
         lastLoginAt: Date.now(),
     };
@@ -116,26 +99,28 @@ export function saveRecentAccount(params: {
 }
 
 /**
- * Returns the stored recent accounts sorted by lastLoginAt (newest first),
- * with plain-text passwords restored from the obfuscated value.
+ * Returns stored recent accounts sorted by lastLoginAt (newest first).
+ * Any legacy secret field is dropped here and never surfaced to callers.
  */
 export function getRecentAccounts(): RecentAccount[] {
     return readFromStorage()
-        .sort((a, b) => b.lastLoginAt - a.lastLoginAt)
-        .map((a) => ({ ...a, _pw: xorDeobfuscate(a._pw) }));
+        .sort((a, b) => (b.lastLoginAt ?? 0) - (a.lastLoginAt ?? 0))
+        .map(({ email, name, avatarUrl, lastLoginAt }) => ({
+            email,
+            name,
+            avatarUrl,
+            lastLoginAt,
+        }));
 }
 
-/**
- * Removes an account from localStorage by email.
- */
+/** Removes an account from localStorage by email. */
 export function removeRecentAccount(email: string): void {
-    const filtered = readFromStorage().filter((a) => a.email !== email);
+    const target = email.trim().toLowerCase();
+    const filtered = readFromStorage().filter((a) => a.email.toLowerCase() !== target);
     writeToStorage(filtered);
 }
 
-/**
- * Clears ALL stored recent accounts.
- */
+/** Clears ALL stored recent accounts. */
 export function clearRecentAccounts(): void {
     if (!isClient()) return;
     localStorage.removeItem(LS_KEY);

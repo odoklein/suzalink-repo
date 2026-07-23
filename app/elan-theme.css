@@ -1368,11 +1368,30 @@ tbody tr:hover td {
     transform: rotate(-26deg);
 }
 
+/* Faint blueprint grid + soft top glow for depth */
+.elan-login-brand::before {
+    position: absolute;
+    inset: 0;
+    content: "";
+    pointer-events: none;
+    background-image:
+        linear-gradient(rgba(251, 250, 247, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(251, 250, 247, 0.04) 1px, transparent 1px);
+    background-size: 46px 46px;
+    -webkit-mask-image: radial-gradient(circle at 30% 20%, #000 0%, transparent 72%);
+    mask-image: radial-gradient(circle at 30% 20%, #000 0%, transparent 72%);
+}
+
+.elan-login-brand-top {
+    position: relative;
+    z-index: 1;
+}
+
 .elan-login-message {
     position: relative;
     z-index: 1;
     max-width: 560px;
-    padding: 11vh 0 9vh;
+    padding: 8vh 0 6vh;
 }
 
 .elan-login-kicker,
@@ -1410,12 +1429,52 @@ tbody tr:hover td {
     letter-spacing: -0.045em;
 }
 
-.elan-login-message > p:last-child {
+.elan-login-message > p {
     max-width: 43ch;
     margin: 30px 0 0;
     color: rgba(251, 250, 247, 0.7);
     font-size: 17px;
     line-height: 1.6;
+}
+
+.elan-login-highlights {
+    display: flex;
+    flex-direction: column;
+    gap: 13px;
+    margin: 34px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.elan-login-highlights li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: rgba(251, 250, 247, 0.82);
+    font-size: 14.5px;
+    letter-spacing: -0.005em;
+}
+
+.elan-login-highlights li span {
+    position: relative;
+    flex: 0 0 auto;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: rgba(237, 127, 0, 0.16);
+    box-shadow: inset 0 0 0 1px rgba(237, 127, 0, 0.45);
+}
+
+.elan-login-highlights li span::after {
+    position: absolute;
+    top: 5.5px;
+    left: 7px;
+    width: 4px;
+    height: 8px;
+    border: solid var(--elan-amber);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+    content: "";
 }
 
 .elan-login-signature {
@@ -1446,12 +1505,17 @@ tbody tr:hover td {
 
 .elan-login-form-wrap {
     position: relative;
-    width: min(100%, 430px);
-    padding: clamp(28px, 4vw, 42px);
-    border: 1px solid rgba(25, 55, 54, 0.12);
-    border-radius: 16px;
-    background: rgba(255, 255, 255, 0.78);
-    box-shadow: 0 22px 54px rgba(25, 55, 54, 0.1);
+    width: min(100%, 438px);
+    padding: clamp(28px, 4vw, 44px);
+    border: 1px solid rgba(25, 55, 54, 0.1);
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.82);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.7) inset,
+        0 2px 6px rgba(25, 55, 54, 0.05),
+        0 30px 64px -24px rgba(25, 55, 54, 0.28);
     opacity: 0;
     transform: translateY(14px);
     transition: opacity 420ms cubic-bezier(0.22, 1, 0.36, 1), transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
@@ -1585,27 +1649,48 @@ tbody tr:hover td {
 }
 
 .elan-login-submit {
+    position: relative;
     display: inline-flex;
     width: 100%;
-    height: 52px;
+    height: 54px;
     align-items: center;
     justify-content: center;
     gap: 10px;
-    margin-top: 4px;
+    margin-top: 6px;
+    overflow: hidden;
     border: 1px solid var(--elan-amber-deep);
-    border-radius: 12px;
-    background: var(--elan-amber);
-    color: var(--elan-ink);
+    border-radius: 13px;
+    background: linear-gradient(180deg, #f79016 0%, var(--elan-amber) 46%, var(--elan-amber-deep) 100%);
+    color: #fff;
     cursor: pointer;
     font-size: 15px;
     font-weight: 700;
-    transition: background-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+    letter-spacing: -0.01em;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.35) inset, 0 8px 20px -8px rgba(201, 102, 0, 0.7);
+    transition: box-shadow 160ms ease, transform 160ms ease, filter 160ms ease;
+}
+
+/* Moving sheen on hover */
+.elan-login-submit::after {
+    position: absolute;
+    top: 0;
+    left: -60%;
+    width: 45%;
+    height: 100%;
+    content: "";
+    background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.38), transparent);
+    transform: skewX(-18deg);
+    transition: left 620ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .elan-login-submit:hover:not(:disabled) {
-    background: #f29113;
-    box-shadow: 0 10px 28px rgba(224, 124, 0, 0.18);
+    filter: brightness(1.04);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.4) inset, 0 14px 30px -10px rgba(201, 102, 0, 0.62);
     transform: translateY(-1px);
+}
+
+.elan-login-submit:hover:not(:disabled)::after {
+    left: 120%;
 }
 
 .elan-login-submit:active:not(:disabled) {
@@ -1661,7 +1746,9 @@ tbody tr:hover td {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    margin-top: 38px;
+    margin: 30px 0 0;
+    padding: 0;
+    list-style: none;
 }
 
 .elan-recent-accounts-label {
@@ -1674,16 +1761,22 @@ tbody tr:hover td {
     color: var(--elan-slate);
 }
 
-/* Account card */
+/* Card is a plain <li> container; the interactive surface is .elan-account-hit
+   so the "forget" button can live as a sibling (no nested <button>). */
 .elan-account-card {
     position: relative;
+    list-style: none;
+}
+
+/* Primary clickable surface */
+.elan-account-hit {
     display: flex;
     align-items: center;
     gap: 14px;
     width: 100%;
-    padding: 13px 14px;
+    padding: 12px 14px;
     border: 1px solid var(--elan-line-strong);
-    border-radius: 12px;
+    border-radius: 14px;
     background: var(--elan-surface);
     cursor: pointer;
     text-align: left;
@@ -1694,34 +1787,21 @@ tbody tr:hover td {
         transform 160ms ease;
 }
 
-.elan-account-card:hover:not(:disabled) {
+.elan-account-hit:hover {
     border-color: var(--elan-petrol);
-    background: #f6f4ef;
-    box-shadow: 0 6px 20px rgba(12, 59, 56, 0.10);
+    background: #f7f5f0;
+    box-shadow: 0 8px 22px -8px rgba(12, 59, 56, 0.22);
     transform: translateY(-1px);
 }
 
-.elan-account-card:active:not(:disabled) {
+.elan-account-hit:active {
     transform: translateY(0);
     box-shadow: none;
 }
 
-.elan-account-card:focus-visible {
+.elan-account-hit:focus-visible {
     outline: 2px solid var(--elan-petrol);
     outline-offset: 3px;
-}
-
-.elan-account-card:disabled {
-    cursor: not-allowed;
-    opacity: 0.7;
-}
-
-/* Loading state: subtle shimmer overlay on the card */
-.elan-account-card.is-loading {
-    border-color: var(--elan-amber-deep);
-    background: #fffbf3;
-    box-shadow: 0 0 0 3px rgba(255, 158, 27, 0.18);
-    pointer-events: none;
 }
 
 /* Avatar area */
@@ -1730,8 +1810,6 @@ tbody tr:hover td {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 42px;
-    height: 42px;
 }
 
 .elan-account-avatar-img {
@@ -1739,7 +1817,8 @@ tbody tr:hover td {
     height: 42px;
     border-radius: 50%;
     object-fit: cover;
-    border: 2px solid var(--elan-line);
+    border: 2px solid var(--elan-surface);
+    box-shadow: 0 0 0 1px var(--elan-line);
 }
 
 .elan-account-avatar-initials {
@@ -1753,10 +1832,7 @@ tbody tr:hover td {
     font-weight: 700;
     letter-spacing: -0.02em;
     user-select: none;
-}
-
-.elan-account-spinner {
-    color: var(--elan-amber-deep);
+    box-shadow: 0 0 0 1px rgba(25, 55, 54, 0.06) inset;
 }
 
 /* Text info */
@@ -1765,7 +1841,7 @@ tbody tr:hover td {
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 1px;
 }
 
 .elan-account-name {
@@ -1787,37 +1863,65 @@ tbody tr:hover td {
     text-overflow: ellipsis;
 }
 
-/* Card right-hand actions */
-.elan-account-actions {
+.elan-account-meta {
+    display: block;
+    margin-top: 2px;
+    font-family: var(--font-elan-mono), monospace;
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    color: var(--neutral-400);
+}
+
+/* "Go" chevron — the forward affordance, slides on hover */
+.elan-account-chevron {
     flex: 0 0 auto;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    opacity: 0;
-    transition: opacity 160ms ease;
+    margin-left: auto;
+    color: var(--elan-slate);
+    opacity: 0.42;
+    transition: transform 180ms ease, opacity 160ms ease, color 160ms ease;
 }
 
-.elan-account-card:hover .elan-account-actions,
-.elan-account-card:focus-within .elan-account-actions {
+.elan-account-hit:hover .elan-account-chevron {
+    color: var(--elan-petrol);
     opacity: 1;
+    transform: translateX(3px);
 }
 
-/* Forget / remove button */
+/* Forget button — swaps in for the chevron on hover/focus (same right slot) */
 .elan-account-remove {
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    transform: translateY(-50%);
+    z-index: 2;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     width: 30px;
     height: 30px;
     border: 1px solid transparent;
-    border-radius: 8px;
-    background: transparent;
+    border-radius: 9px;
+    background: var(--elan-surface);
     color: var(--elan-slate);
     cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
     transition:
+        opacity 140ms ease,
         background-color 140ms ease,
         border-color 140ms ease,
         color 140ms ease;
+}
+
+.elan-account-card:hover .elan-account-remove,
+.elan-account-card:focus-within .elan-account-remove {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.elan-account-card:hover .elan-account-chevron,
+.elan-account-card:focus-within .elan-account-chevron {
+    opacity: 0;
 }
 
 .elan-account-remove:hover {
@@ -1829,6 +1933,8 @@ tbody tr:hover td {
 .elan-account-remove:focus-visible {
     outline: 2px solid #8f302c;
     outline-offset: 2px;
+    opacity: 1;
+    pointer-events: auto;
 }
 
 /* "Use another account" row */
@@ -1889,6 +1995,85 @@ tbody tr:hover td {
     outline: 2px solid var(--elan-petrol);
     outline-offset: 3px;
     border-radius: 4px;
+}
+
+/* ── Welcome-back identity header (selected account) ─────────────────────── */
+.elan-login-identity {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 22px;
+    padding: 16px;
+    border: 1px solid var(--elan-line);
+    border-radius: 16px;
+    background:
+        linear-gradient(180deg, rgba(225, 236, 231, 0.5), rgba(225, 236, 231, 0.14));
+}
+
+.elan-login-identity .elan-account-avatar-img,
+.elan-login-identity .elan-account-avatar-initials {
+    box-shadow: 0 0 0 3px var(--elan-surface), 0 0 0 4px var(--elan-line);
+}
+
+.elan-login-identity > div {
+    min-width: 0;
+}
+
+.elan-login-identity p {
+    margin: 0 0 3px;
+    font-family: var(--font-elan-mono), monospace;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--elan-amber-deep);
+}
+
+.elan-login-identity h2 {
+    margin: 0;
+    font-family: var(--font-elan-display), sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    color: var(--elan-ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.elan-login-identity span {
+    display: block;
+    margin-top: 3px;
+    font-size: 12.5px;
+    color: var(--elan-slate);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Caps-lock hint under the password field */
+.elan-login-caps {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 8px 2px 0;
+    color: var(--elan-amber-deep);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* Visually hidden username field kept for password-manager association */
+.elan-login-hidden-username {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    border: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
 }
 
 /* Password recovery screens share a legacy local stylesheet. These higher
@@ -2018,22 +2203,35 @@ tbody tr:hover td {
         margin-top: 30px;
     }
 
-    .elan-account-card {
+    .elan-account-hit {
         padding: 11px 12px;
         gap: 12px;
     }
 
-    .elan-account-avatar,
     .elan-account-avatar-img,
     .elan-account-avatar-initials {
-        width: 36px;
-        height: 36px;
-        font-size: 13px;
+        width: 38px;
+        height: 38px;
+        font-size: 14px;
     }
 
-    .elan-account-actions {
-        /* Always visible on touch devices (no hover) */
+    /* No hover on touch: reveal the forget button, keep the go-chevron hidden */
+    .elan-account-remove {
         opacity: 1;
+        pointer-events: auto;
+    }
+
+    .elan-account-chevron {
+        opacity: 0;
+    }
+
+    .elan-login-identity {
+        margin-top: 18px;
+        padding: 14px;
+    }
+
+    .elan-login-identity h2 {
+        font-size: 21px;
     }
 }
 
@@ -2041,7 +2239,10 @@ tbody tr:hover td {
     .cp-content > *,
     .elan-login-form-wrap,
     .elan-login-submit,
+    .elan-login-submit::after,
     .elan-account-card,
+    .elan-account-hit,
+    .elan-account-chevron,
     .elan-account-remove,
     .elan-account-other,
     .elan-login-back-accounts,
@@ -2056,10 +2257,11 @@ tbody tr:hover td {
 .elan-login-form-wrap::before {
     position: absolute;
     top: 0;
-    left: 42px;
-    width: 54px;
+    left: 44px;
+    width: 60px;
     height: 3px;
     border-radius: 0 0 4px 4px;
-    background: var(--elan-amber);
+    background: linear-gradient(90deg, var(--elan-amber), var(--elan-amber-deep));
+    box-shadow: 0 2px 12px rgba(237, 127, 0, 0.4);
     content: "";
 }
