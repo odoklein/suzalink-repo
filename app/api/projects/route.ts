@@ -28,7 +28,11 @@ export async function GET(req: NextRequest) {
         // Build where clause based on role
         let whereClause: any = {};
 
-        if (role === "MANAGER" || role === "DEVELOPER" || role === "SDR" || role === "BUSINESS_DEVELOPER") {
+        if (role === "MANAGER") {
+            // Managers need the complete project portfolio, not only projects
+            // they personally own or have been added to as a member.
+            whereClause = {};
+        } else if (role === "DEVELOPER" || role === "SDR" || role === "BUSINESS_DEVELOPER") {
             whereClause = {
                 OR: [
                     { ownerId: userId },

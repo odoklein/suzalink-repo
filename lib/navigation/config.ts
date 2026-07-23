@@ -176,6 +176,14 @@ export const MANAGER_NAV: NavSection[] = [
         icon: FolderKanban,
         label: "Projets",
         permission: "pages.projects",
+        children: [
+          {
+            href: "/manager/tasks",
+            icon: List,
+            label: "Tâches",
+            permission: "pages.projects",
+          },
+        ],
       },
       {
         href: "/calendar",

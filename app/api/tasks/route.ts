@@ -84,8 +84,9 @@ export async function GET(req: NextRequest) {
             whereClause.dueDate = { ...(whereClause.dueDate || {}), gte: new Date(dueAfter) };
         }
 
-        // Default: if no project filter, show user's tasks
-        if (!projectId) {
+        // Default: managers receive the complete team task portfolio.
+        // Other roles keep the personal task scope.
+        if (!projectId && session.user.role !== "MANAGER") {
             whereClause.OR = [
                 { assigneeId: userId },
                 { createdById: userId },

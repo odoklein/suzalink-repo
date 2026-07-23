@@ -4,16 +4,34 @@ import { useState, useEffect } from "react";
 import { Loader2, Sparkles, Plus, X, AlertTriangle, CheckCircle2, CalendarOff, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Modal, ModalFooter } from "@/components/ui/Modal";
+import { useToast } from "@/components/ui/Toast";
 import type { AvailabilityCheck } from "@/lib/availability";
 
 interface NewTaskModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSuccess: (task: any) => void;
+    onSuccess: (task: unknown) => void;
     defaultProjectId?: string;
     lockProject?: boolean;
     defaultStatus?: string;
     members?: { id: string; name: string }[];
+}
+
+interface ProjectMemberResponse {
+    user: { id: string; name: string };
+}
+
+interface TaskCreatePayload {
+    projectId: string;
+    title: string;
+    description: string | null;
+    priority: string;
+    dueDate: string | null;
+    startDate: string | null;
+    assigneeId: string | null;
+    estimatedHours: string | null;
+    labels: string[];
+    status?: string;
 }
 
 const PRIORITY_OPTIONS = [
@@ -32,6 +50,7 @@ export function NewTaskModal({
     defaultStatus,
     members: propMembers,
 }: NewTaskModalProps) {
+    const { error: showError } = useToast();
     const [projects, setProjects] = useState<{ id: string; name: string }[]>([]);
     const [members, setMembers] = useState<{ id: string; name: string }[]>(propMembers || []);
     const [isLoading, setIsLoading] = useState(false);
@@ -94,7 +113,7 @@ export function NewTaskModal({
                 .then((json) => {
                     if (json.success && json.data?.members) {
                         setMembers(
-                            json.data.members.map((m: any) => ({
+                            (json.data.members as ProjectMemberResponse[]).map((m) => ({
                                 id: m.user.id,
                                 name: m.user.name,
                             }))
@@ -140,7 +159,7 @@ export function NewTaskModal({
 
         setIsLoading(true);
         try {
-            const payload: any = {
+            const payload: TaskCreatePayload = {
                 projectId: form.projectId,
                 title: form.title.trim(),
                 description: form.description.trim() || null,
@@ -162,12 +181,12 @@ export function NewTaskModal({
                 body: JSON.stringify(payload),
             });
             const json = await res.json();
-            if (json.success) {
-                onSuccess(json.data);
-                onClose();
-            }
+            if (!res.ok || !json.success) throw new Error(json.error || "Impossible de créer la tâche.");
+            onSuccess(json.data);
+            onClose();
         } catch (error) {
             console.error("Failed to create task:", error);
+            showError("Création impossible", error instanceof Error ? error.message : "Une erreur est survenue.");
         } finally {
             setIsLoading(false);
         }
@@ -229,14 +248,14 @@ export function NewTaskModal({
                             type="text"
                             value={form.title}
                             onChange={(e) => setForm({ ...form, title: e.target.value })}
-                            className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400"
+                            className="h-10 flex-1 rounded-lg border border-[#DDE4EA] px-3 text-sm outline-none focus:border-[#5D9C92] focus:ring-2 focus:ring-[#0B5A51]/10"
                             placeholder="Titre de la tâche"
                             autoFocus
                         />
                         <button
                             onClick={handleAiEnhance}
                             disabled={!form.title.trim() || aiLoading}
-                            className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 border border-indigo-200 rounded-lg hover:bg-indigo-100 disabled:opacity-50 transition-colors whitespace-nowrap"
+                            className="flex h-10 items-center gap-1.5 whitespace-nowrap rounded-lg border border-[#B9D4CE] bg-[#EAF5F2] px-3 text-sm font-medium text-[#0B5A51] transition-colors hover:bg-[#DDEEEA] disabled:opacity-50"
                             title="Améliorer avec IA"
                         >
                             {aiLoading ? (
@@ -256,7 +275,7 @@ export function NewTaskModal({
                         <select
                             value={form.projectId}
                             onChange={(e) => setForm({ ...form, projectId: e.target.value })}
-                            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-indigo-400 bg-white"
+                            className="h-10 w-full rounded-lg border border-[#DDE4EA] bg-white px-3 text-sm outline-none focus:border-[#5D9C92]"
                         >
                             <option value="">Sélectionner un projet</option>
                             {projects.map((p) => (
@@ -272,7 +291,7 @@ export function NewTaskModal({
                     <select
                         value={form.assigneeId}
                         onChange={(e) => setForm({ ...form, assigneeId: e.target.value })}
-                        className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-indigo-400 bg-white"
+                        className="h-10 w-full rounded-lg border border-[#DDE4EA] bg-white px-3 text-sm outline-none focus:border-[#5D9C92]"
                     >
                         <option value="">Non assigné</option>
                         {members.map((m) => (
@@ -307,7 +326,7 @@ export function NewTaskModal({
                         type="date"
                         value={form.dueDate}
                         onChange={(e) => setForm({ ...form, dueDate: e.target.value })}
-                        className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-indigo-400"
+                        className="h-10 w-full rounded-lg border border-[#DDE4EA] px-3 text-sm outline-none focus:border-[#5D9C92]"
                     />
 
                     {/* Block-booking availability banner */}
@@ -335,7 +354,7 @@ export function NewTaskModal({
                         value={form.description}
                         onChange={(e) => setForm({ ...form, description: e.target.value })}
                         rows={3}
-                        className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-indigo-400 resize-none"
+                        className="w-full resize-none rounded-lg border border-[#DDE4EA] px-3 py-2 text-sm outline-none focus:border-[#5D9C92]"
                         placeholder="Description détaillée..."
                     />
                 </div>
@@ -343,7 +362,7 @@ export function NewTaskModal({
                 {/* Toggle advanced */}
                 <button
                     onClick={() => setShowAdvanced(!showAdvanced)}
-                    className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+                    className="text-sm font-medium text-[#0B5A51] hover:text-[#063E39]"
                 >
                     {showAdvanced ? "Masquer les options avancées" : "Options avancées"}
                 </button>
@@ -358,7 +377,7 @@ export function NewTaskModal({
                                 type="date"
                                 value={form.startDate}
                                 onChange={(e) => setForm({ ...form, startDate: e.target.value })}
-                                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-indigo-400 bg-white"
+                                className="h-10 w-full rounded-lg border border-[#DDE4EA] bg-white px-3 text-sm outline-none focus:border-[#5D9C92]"
                             />
                         </div>
 
@@ -371,7 +390,7 @@ export function NewTaskModal({
                                 min="0"
                                 value={form.estimatedHours}
                                 onChange={(e) => setForm({ ...form, estimatedHours: e.target.value })}
-                                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-indigo-400 bg-white"
+                                className="h-10 w-full rounded-lg border border-[#DDE4EA] bg-white px-3 text-sm outline-none focus:border-[#5D9C92]"
                                 placeholder="Ex: 4"
                             />
                         </div>
@@ -381,7 +400,7 @@ export function NewTaskModal({
                             <label className="block text-sm font-medium text-slate-700 mb-1">Labels</label>
                             <div className="flex flex-wrap gap-1 mb-2">
                                 {form.labels.map((l) => (
-                                    <span key={l} className="flex items-center gap-1 text-xs bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-md">
+                                    <span key={l} className="flex items-center gap-1 rounded-md bg-[#EAF5F2] px-2 py-0.5 text-xs text-[#0B5A51]">
                                         {l}
                                         <button onClick={() => removeLabel(l)}>
                                             <X className="w-3 h-3" />
@@ -395,12 +414,12 @@ export function NewTaskModal({
                                     value={labelInput}
                                     onChange={(e) => setLabelInput(e.target.value)}
                                     onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addLabel())}
-                                    className="flex-1 px-3 py-1.5 border border-slate-200 rounded-lg text-sm outline-none focus:border-indigo-400 bg-white"
+                                    className="flex-1 rounded-lg border border-[#DDE4EA] bg-white px-3 py-1.5 text-sm outline-none focus:border-[#5D9C92]"
                                     placeholder="Ajouter un label..."
                                 />
                                 <button
                                     onClick={addLabel}
-                                    className="px-2 py-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg"
+                                    className="rounded-lg px-2 py-1.5 text-slate-500 hover:bg-[#EAF5F2] hover:text-[#0B5A51]"
                                 >
                                     <Plus className="w-4 h-4" />
                                 </button>
@@ -420,8 +439,8 @@ export function NewTaskModal({
                 <button
                     onClick={handleSubmit}
                     disabled={!form.title.trim() || !form.projectId || isLoading || !!isBlocked}
-                    title={isBlocked ? "Membre indisponible — confirmez la réservation forcée pour continuer" : undefined}
-                    className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
+                    title={isBlocked ? "Membre indisponible : confirmez la réservation forcée pour continuer" : undefined}
+                    className="flex items-center gap-2 rounded-lg bg-[#084C45] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#063E39] disabled:cursor-not-allowed disabled:opacity-50"
                 >
                     {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
                     Créer

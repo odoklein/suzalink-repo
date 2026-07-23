@@ -9,7 +9,7 @@ import {
     FileText, MoreHorizontal, Download
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { PageHeader, Badge, Tabs, Modal, ModalFooter, LoadingState } from "@/components/ui";
+import { PageHeader, Badge, Tabs, Modal, ModalFooter, LoadingState, useToast } from "@/components/ui";
 import { KanbanBoard } from "@/components/tasks/KanbanBoard";
 import { TaskDetailDrawer } from "@/components/tasks/TaskDetailDrawer";
 import { TaskFilters, TaskFilterState } from "@/components/tasks/TaskFilters";
@@ -48,6 +48,7 @@ interface ProjectData {
 export default function ManagerProjectDetailPage() {
     const params = useParams();
     const router = useRouter();
+    const { error: showError } = useToast();
     const projectId = params.id as string;
 
     const [project, setProject] = useState<ProjectData | null>(null);
@@ -132,27 +133,55 @@ export default function ManagerProjectDetailPage() {
 
     // Kanban handlers
     const handleStatusChange = async (taskId: string, newStatus: string, newPosition: number) => {
+        const previousProject = project;
+        setProject((current) => current ? {
+            ...current,
+            tasks: current.tasks.map((task) => task.id === taskId
+                ? { ...task, status: newStatus, position: newPosition }
+                : task),
+        } : current);
+
         try {
-            await fetch(`/api/tasks/${taskId}`, {
+            const response = await fetch(`/api/tasks/${taskId}`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ status: newStatus, position: newPosition }),
             });
-            fetchProject();
-        } catch (e) {
-            console.error(e);
+            const json = await response.json();
+            if (!response.ok || !json.success) {
+                throw new Error(json.error || "La tâche n'a pas pu être déplacée.");
+            }
+        } catch (error) {
+            setProject(previousProject);
+            showError("Déplacement annulé", error instanceof Error ? error.message : "Une erreur est survenue.");
         }
     };
 
     const handleReorder = async (updates: { id: string; position: number; status?: string }[]) => {
+        const previousProject = project;
+        setProject((current) => current ? {
+            ...current,
+            tasks: current.tasks.map((task) => {
+                const update = updates.find((item) => item.id === task.id);
+                return update
+                    ? { ...task, position: update.position, ...(update.status ? { status: update.status } : {}) }
+                    : task;
+            }),
+        } : current);
+
         try {
-            await fetch("/api/tasks/reorder", {
+            const response = await fetch("/api/tasks/reorder", {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ updates }),
             });
-        } catch (e) {
-            console.error(e);
+            const json = await response.json();
+            if (!response.ok || !json.success) {
+                throw new Error(json.error || "La réorganisation a échoué.");
+            }
+        } catch (error) {
+            setProject(previousProject);
+            showError("Réorganisation annulée", error instanceof Error ? error.message : "Une erreur est survenue.");
         }
     };
 
@@ -218,7 +247,7 @@ export default function ManagerProjectDetailPage() {
         return (
             <div className="elan-page items-center justify-center text-center">
                 <p className="text-slate-500">Projet non trouvé</p>
-                <button onClick={() => router.back()} className="mt-4 text-indigo-600 hover:underline text-sm">
+                <button onClick={() => router.back()} className="mt-4 text-sm font-semibold text-[#0B5A51] hover:underline">
                     Retour
                 </button>
             </div>
@@ -239,7 +268,7 @@ export default function ManagerProjectDetailPage() {
             <div className="mb-6">
                 <button
                     onClick={() => router.push("/manager/projects")}
-                    className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-indigo-600 mb-3 transition-colors"
+                    className="mb-3 flex items-center gap-1.5 text-sm text-slate-500 transition-colors hover:text-[#0B5A51]"
                 >
                     <ArrowLeft className="w-4 h-4" />
                     Projets
@@ -270,7 +299,7 @@ export default function ManagerProjectDetailPage() {
                         <button
                             onClick={generateAiReport}
                             disabled={aiReportLoading}
-                            className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 border border-indigo-200 rounded-lg hover:bg-indigo-100 disabled:opacity-50 transition-colors"
+                            className="flex items-center gap-1.5 rounded-lg border border-[#C9DED8] bg-[#EAF5F2] px-3 py-2 text-sm font-medium text-[#0B5A51] transition-colors hover:bg-[#DDEFEA] disabled:opacity-50"
                         >
                             {aiReportLoading ? (
                                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -281,7 +310,7 @@ export default function ManagerProjectDetailPage() {
                         </button>
                         <button
                             onClick={() => handleAddTask()}
-                            className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors"
+                            className="flex items-center gap-1.5 rounded-lg bg-[#084C45] px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#063E39]"
                         >
                             <Plus className="w-4 h-4" />
                             Nouvelle tâche
@@ -372,7 +401,7 @@ export default function ManagerProjectDetailPage() {
                                                         <span className="font-medium text-slate-800">{a.user?.name}</span>{" "}
                                                         {formatActivity(a.action, a.details)}
                                                         {a.task && (
-                                                            <span className="text-indigo-600 ml-1">
+                                                            <span className="ml-1 text-[#0B5A51]">
                                                                 {a.task.title}
                                                             </span>
                                                         )}
@@ -406,7 +435,7 @@ export default function ManagerProjectDetailPage() {
                                             );
                                             return (
                                                 <div key={m.user.id} className="flex items-center gap-3">
-                                                    <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-bold">
+                                                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#E7F3F0] text-xs font-bold text-[#0B5A51]">
                                                         {m.user.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
                                                     </div>
                                                     <div className="flex-1 min-w-0">
@@ -445,7 +474,7 @@ export default function ManagerProjectDetailPage() {
                                                 }
                                             }}
                                             disabled={addMemberLoading}
-                                            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-indigo-400 bg-white disabled:opacity-50"
+                                            className="w-full rounded-lg border border-[#DDE4EA] bg-white px-3 py-2 text-sm outline-none focus:border-[#2A7B70] disabled:opacity-50"
                                         >
                                             <option value="">Ajouter un membre...</option>
                                             {allUsers
@@ -512,7 +541,7 @@ export default function ManagerProjectDetailPage() {
                                     onClick={() => setTaskView("kanban")}
                                     className={cn(
                                         "p-1.5 rounded transition-colors",
-                                        taskView === "kanban" ? "bg-white shadow-sm text-indigo-600" : "text-slate-500"
+                                        taskView === "kanban" ? "bg-white text-[#0B5A51] shadow-sm" : "text-slate-500"
                                     )}
                                     title="Kanban"
                                 >
@@ -522,7 +551,7 @@ export default function ManagerProjectDetailPage() {
                                     onClick={() => setTaskView("list")}
                                     className={cn(
                                         "p-1.5 rounded transition-colors",
-                                        taskView === "list" ? "bg-white shadow-sm text-indigo-600" : "text-slate-500"
+                                        taskView === "list" ? "bg-white text-[#0B5A51] shadow-sm" : "text-slate-500"
                                     )}
                                     title="Liste"
                                 >
@@ -549,8 +578,8 @@ export default function ManagerProjectDetailPage() {
                                         key={task.id}
                                         onClick={() => handleTaskClick(task.id)}
                                         className={cn(
-                                            "flex items-center gap-4 bg-white border border-slate-200 rounded-lg px-4 py-3 hover:border-indigo-300 cursor-pointer transition-all",
-                                            task.parentTaskId && "ml-4 border-l-2 border-l-indigo-200"
+                                            "flex cursor-pointer items-center gap-4 rounded-lg border border-[#DDE4EA] bg-white px-4 py-3 transition-all hover:border-[#9DBDB5] hover:bg-[#F8FBFA]",
+                                            task.parentTaskId && "ml-4 border-l-2 border-l-[#9DBDB5]"
                                         )}
                                     >
                                         <StatusDot status={task.status} />
@@ -559,7 +588,7 @@ export default function ManagerProjectDetailPage() {
                                         </div>
                                         <PriorityBadge priority={task.priority} />
                                         {task.assignee && (
-                                            <div className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-[10px] font-bold">
+                                            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[#E7F3F0] text-[10px] font-bold text-[#0B5A51]">
                                                 {task.assignee.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
                                             </div>
                                         )}
@@ -605,7 +634,7 @@ export default function ManagerProjectDetailPage() {
                                         {a.task && (
                                             <button
                                                 onClick={() => handleTaskClick(a.task.id)}
-                                                className="text-indigo-600 hover:underline ml-1"
+                                                className="ml-1 text-[#0B5A51] hover:underline"
                                             >
                                                 {a.task.title}
                                             </button>
@@ -779,7 +808,7 @@ function ProjectSettings({ project, onUpdate }: { project: ProjectData; onUpdate
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-indigo-400"
+                    className="w-full rounded-lg border border-[#DDE4EA] px-3 py-2 text-sm outline-none focus:border-[#2A7B70]"
                 />
             </div>
             <div>
@@ -788,7 +817,7 @@ function ProjectSettings({ project, onUpdate }: { project: ProjectData; onUpdate
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     rows={4}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-indigo-400 resize-none"
+                    className="w-full resize-none rounded-lg border border-[#DDE4EA] px-3 py-2 text-sm outline-none focus:border-[#2A7B70]"
                 />
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -819,14 +848,14 @@ function ProjectSettings({ project, onUpdate }: { project: ProjectData; onUpdate
                 <button
                     onClick={save}
                     disabled={saving}
-                    className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg disabled:opacity-50 flex items-center gap-2"
+                    className="flex items-center gap-2 rounded-lg bg-[#084C45] px-4 py-2 text-sm font-semibold text-white hover:bg-[#063E39] disabled:opacity-50"
                 >
                     {saving && <Loader2 className="w-4 h-4 animate-spin" />}
                     Enregistrer
                 </button>
                 <button
                     onClick={saveAsTemplate}
-                    className="px-4 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg border border-indigo-200"
+                    className="rounded-lg border border-[#C9DED8] bg-[#EAF5F2] px-4 py-2 text-sm font-medium text-[#0B5A51] hover:bg-[#DDEFEA]"
                 >
                     Sauvegarder comme modèle
                 </button>

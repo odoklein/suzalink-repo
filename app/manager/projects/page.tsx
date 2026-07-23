@@ -1,16 +1,17 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
     Plus, FolderKanban, LayoutGrid, LayoutList, Search,
-    MoreHorizontal, Copy, Archive, Trash2, Users, Calendar,
-    CheckCircle2, Clock, AlertTriangle, Loader2, Sparkles,
+    MoreHorizontal, Copy, Archive, Trash2,
+    CheckCircle2, Clock, AlertTriangle, Loader2,
     X, TrendingUp, ArrowUpRight, Briefcase, ListTodo,
-    BarChart3, Target, Zap, Filter,
+    Zap, RefreshCw,
 } from "lucide-react";
 import Link from "next/link";
+import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { PageHeader, Badge, Modal, ModalFooter, ConfirmModal, EmptyState, LoadingState, useToast, DropdownMenu } from "@/components/ui";
+import { Modal, ModalFooter, ConfirmModal, useToast, DropdownMenu } from "@/components/ui";
 
 // ============================================
 // TYPES
@@ -42,6 +43,12 @@ interface Project {
     updatedAt: string;
 }
 
+interface TeamMemberOption {
+    id: string;
+    name: string;
+    role: string;
+}
+
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; border: string; dot: string }> = {
     ACTIVE: { label: "Actif", color: "text-emerald-700", bg: "bg-emerald-50", border: "border-emerald-200", dot: "bg-emerald-500" },
     COMPLETED: { label: "Terminé", color: "text-blue-700", bg: "bg-blue-50", border: "border-blue-200", dot: "bg-blue-500" },
@@ -62,15 +69,20 @@ export default function ManagerProjectsPage() {
     const { success, error: showError } = useToast();
     const [projects, setProjects] = useState<Project[]>([]);
     const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
+    const [loadError, setLoadError] = useState<string | null>(null);
     const [view, setView] = useState<"grid" | "list">("grid");
     const [search, setSearch] = useState("");
+    const [debouncedSearch, setDebouncedSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState<string>("");
     const [clientFilter, setClientFilter] = useState("");
     const [showCreate, setShowCreate] = useState(false);
     const [clients, setClients] = useState<{ id: string; name: string }[]>([]);
-    const [users, setUsers] = useState<{ id: string; name: string; role: string }[]>([]);
+    const [users, setUsers] = useState<TeamMemberOption[]>([]);
     const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    const hasLoaded = useRef(false);
+    const requestController = useRef<AbortController | null>(null);
 
     const [createForm, setCreateForm] = useState({
         name: "",
@@ -83,25 +95,49 @@ export default function ManagerProjectsPage() {
     });
     const [creating, setCreating] = useState(false);
 
+    useEffect(() => {
+        const timeout = window.setTimeout(() => setDebouncedSearch(search.trim()), 250);
+        return () => window.clearTimeout(timeout);
+    }, [search]);
+
     const fetchProjects = useCallback(async () => {
-        setLoading(true);
+        requestController.current?.abort();
+        const controller = new AbortController();
+        requestController.current = controller;
+
+        if (hasLoaded.current) setRefreshing(true);
+        else setLoading(true);
+        setLoadError(null);
         try {
             const params = new URLSearchParams();
-            if (search) params.set("search", search);
+            params.set("limit", "200");
+            if (debouncedSearch) params.set("search", debouncedSearch);
             if (statusFilter) params.set("status", statusFilter);
             if (clientFilter) params.set("clientId", clientFilter);
 
-            const res = await fetch(`/api/projects?${params}`);
+            const res = await fetch(`/api/projects?${params}`, { signal: controller.signal });
             const json = await res.json();
-            if (json.success) setProjects(json.data);
+            if (!res.ok || !json.success) {
+                throw new Error(json.error || "Impossible de charger les projets.");
+            }
+            setProjects(Array.isArray(json.data) ? json.data : []);
+            hasLoaded.current = true;
         } catch (e) {
-            console.error(e);
+            if ((e as Error).name !== "AbortError") {
+                setLoadError(e instanceof Error ? e.message : "Une erreur est survenue.");
+            }
         } finally {
-            setLoading(false);
+            if (!controller.signal.aborted) {
+                setLoading(false);
+                setRefreshing(false);
+            }
         }
-    }, [search, statusFilter, clientFilter]);
+    }, [debouncedSearch, statusFilter, clientFilter]);
 
-    useEffect(() => { fetchProjects(); }, [fetchProjects]);
+    useEffect(() => {
+        void fetchProjects();
+        return () => requestController.current?.abort();
+    }, [fetchProjects]);
 
     useEffect(() => {
         Promise.all([
@@ -109,7 +145,10 @@ export default function ManagerProjectsPage() {
             fetch("/api/users?role=MANAGER,SDR,DEVELOPER,BUSINESS_DEVELOPER&limit=200").then((r) => r.json()),
         ]).then(([cj, uj]) => {
             if (cj.success) setClients(cj.data || []);
-            if (uj.success) setUsers(uj.data?.users?.map((u: any) => ({ id: u.id, name: u.name, role: u.role })) || uj.data?.map((u: any) => ({ id: u.id, name: u.name, role: u.role })) || []);
+            if (uj.success) {
+                const userData = (uj.data?.users || uj.data || []) as TeamMemberOption[];
+                setUsers(userData.map(({ id, name, role }) => ({ id, name, role })));
+            }
         }).catch(console.error);
     }, []);
 
@@ -131,7 +170,7 @@ export default function ManagerProjectsPage() {
                 }),
             });
             const json = await res.json();
-            if (json.success) {
+            if (res.ok && json.success) {
                 success("Projet créé", createForm.name);
                 setShowCreate(false);
                 setCreateForm({ name: "", description: "", clientId: "", color: "#0c3b38", startDate: "", endDate: "", memberIds: [] });
@@ -150,7 +189,9 @@ export default function ManagerProjectsPage() {
         try {
             const res = await fetch(`/api/projects/${projectId}/duplicate`, { method: "POST" });
             const json = await res.json();
-            if (json.success) { success("Projet dupliqué", ""); fetchProjects(); }
+            if (!res.ok || !json.success) throw new Error(json.error);
+            success("Projet dupliqué", "");
+            void fetchProjects();
         } catch { showError("Erreur", "Impossible de dupliquer"); }
     };
 
@@ -161,7 +202,10 @@ export default function ManagerProjectsPage() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ status: "ARCHIVED" }),
             });
-            if ((await res.json()).success) { success("Projet archivé", ""); fetchProjects(); }
+            const json = await res.json();
+            if (!res.ok || !json.success) throw new Error(json.error);
+            success("Projet archivé", "");
+            void fetchProjects();
         } catch { showError("Erreur", "Impossible d'archiver"); }
     };
 
@@ -169,17 +213,18 @@ export default function ManagerProjectsPage() {
         if (!deleteTarget) return;
         setIsDeleting(true);
         try {
-            await fetch(`/api/projects/${deleteTarget}`, { method: "DELETE" });
+            const res = await fetch(`/api/projects/${deleteTarget}`, { method: "DELETE" });
+            const json = await res.json();
+            if (!res.ok || !json.success) throw new Error(json.error);
             success("Projet supprimé", "");
             setDeleteTarget(null);
-            fetchProjects();
+            void fetchProjects();
         } catch { showError("Erreur", "Impossible de supprimer"); }
         finally { setIsDeleting(false); }
     };
 
     // Stats
     const totalActive = projects.filter((p) => p.status === "ACTIVE").length;
-    const totalCompleted = projects.filter((p) => p.status === "COMPLETED").length;
     const totalTasks = projects.reduce((acc, p) => acc + (p.taskStats?.total || 0), 0);
     const totalDone = projects.reduce((acc, p) => acc + (p.taskStats?.DONE || 0), 0);
     const totalOverdue = projects.reduce((acc, p) => acc + (p.taskStats?.overdue || 0), 0);
@@ -187,39 +232,43 @@ export default function ManagerProjectsPage() {
         ? Math.round(projects.reduce((acc, p) => acc + (p.taskStats?.completionPercent || 0), 0) / projects.length)
         : 0;
 
-    const uniqueClients = [...new Set(projects.filter(p => p.client).map(p => p.client!.name))];
-
     return (
         <div className="elan-page">
             {/* Header */}
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex items-center gap-4">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-[11px] border border-[#2F6B62] bg-[#1F4D47]">
-                        <FolderKanban className="w-6 h-6 text-white" />
-                    </div>
-                    <div>
-                        <h1 className="text-2xl font-bold text-slate-900">Projets</h1>
-                        <p className="text-sm text-slate-500 mt-0.5">
-                            {projects.length} projet{projects.length !== 1 ? "s" : ""} - {totalTasks} tâches au total
-                        </p>
-                    </div>
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                <div>
+                    <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#748396]">Portefeuille</p>
+                    <h1 className="text-[26px] font-bold tracking-[-0.035em] text-[#0F1D2E]">Projets équipe</h1>
+                    <p className="mt-1 text-[12px] text-[#65778A]">
+                        {projects.length} projet{projects.length !== 1 ? "s" : ""} visible{projects.length !== 1 ? "s" : ""}, {totalTasks} tâches au total
+                    </p>
                 </div>
-                <button
-                    onClick={() => setShowCreate(true)}
-                    className="flex items-center justify-center gap-2 rounded-[10px] border border-[#143C37] bg-[#1F4D47] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#143C37]"
-                >
-                    <Plus className="w-4 h-4" />
-                    Nouveau projet
-                </button>
+                <div className="flex items-center gap-2">
+                    <button
+                        type="button"
+                        onClick={() => void fetchProjects()}
+                        disabled={refreshing}
+                        className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-[#DDE4EA] bg-white text-[#526476] hover:border-[#BAC7D2] hover:text-[#0B5A51] disabled:opacity-50"
+                        title="Actualiser"
+                    >
+                        {refreshing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                    </button>
+                    <button
+                        onClick={() => setShowCreate(true)}
+                        className="flex h-10 items-center justify-center gap-2 rounded-lg border border-[#063E39] bg-[#084C45] px-4 text-[12px] font-bold text-white shadow-[0_5px_14px_rgba(8,76,69,0.18)] transition-colors hover:bg-[#063E39]"
+                    >
+                        <Plus className="w-4 h-4" />
+                        Nouveau projet
+                    </button>
+                </div>
             </div>
 
             {/* KPI Strip */}
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-                <KpiCard icon={FolderKanban} label="Total" value={projects.length} iconColor="text-slate-600" iconBg="bg-slate-100" />
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
                 <KpiCard icon={Zap} label="Actifs" value={totalActive} iconColor="text-emerald-600" iconBg="bg-emerald-50" />
-                <KpiCard icon={CheckCircle2} label="Terminés" value={totalCompleted} iconColor="text-blue-600" iconBg="bg-blue-50" />
-                <KpiCard icon={ListTodo} label="Tâches" value={totalTasks} subtitle={`${totalDone} terminées`} iconColor="text-violet-600" iconBg="bg-violet-50" />
-                <KpiCard icon={TrendingUp} label="Progression" value={`${avgCompletion}%`} iconColor="text-indigo-600" iconBg="bg-indigo-50" />
+                <KpiCard icon={ListTodo} label="Tâches" value={totalTasks} iconColor="text-blue-600" iconBg="bg-blue-50" />
+                <KpiCard icon={CheckCircle2} label="Terminées" value={totalDone} iconColor="text-emerald-600" iconBg="bg-emerald-50" />
+                <KpiCard icon={TrendingUp} label="Progression" value={`${avgCompletion}%`} iconColor="text-[#0B5A51]" iconBg="bg-[#EAF5F2]" />
                 <KpiCard icon={AlertTriangle} label="En retard" value={totalOverdue} iconColor={totalOverdue > 0 ? "text-red-600" : "text-slate-400"} iconBg={totalOverdue > 0 ? "bg-red-50" : "bg-slate-50"} accent={totalOverdue > 0} />
             </div>
 
@@ -260,14 +309,14 @@ export default function ManagerProjectsPage() {
                 </div>
 
                 {/* Client filter */}
-                {uniqueClients.length > 1 && (
+                {clients.length > 0 && (
                     <select
                         value={clientFilter}
                         onChange={(e) => setClientFilter(e.target.value)}
                         className="min-w-[150px] appearance-none rounded-[10px] border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF9E1B]/20"
                     >
                         <option value="">Tous les clients</option>
-                        {clients.filter(c => projects.some(p => p.client?.id === c.id)).map((c) => (
+                        {clients.map((c) => (
                             <option key={c.id} value={c.id}>{c.name}</option>
                         ))}
                     </select>
@@ -292,11 +341,15 @@ export default function ManagerProjectsPage() {
 
             {/* Content */}
             {loading ? (
-                <div className="flex items-center justify-center py-32">
-                    <div className="flex flex-col items-center gap-3">
-                        <Loader2 className="w-10 h-10 animate-spin text-indigo-400" />
-                        <p className="text-sm text-slate-500">Chargement des projets...</p>
-                    </div>
+                <ProjectsSkeleton />
+            ) : loadError ? (
+                <div className="flex min-h-[320px] flex-col items-center justify-center rounded-xl border border-red-200 bg-red-50/40 px-6 text-center">
+                    <AlertTriangle className="mb-3 h-7 w-7 text-red-500" />
+                    <h2 className="text-sm font-bold text-slate-800">Impossible de charger les projets</h2>
+                    <p className="mt-1 max-w-md text-xs text-slate-500">{loadError}</p>
+                    <button type="button" onClick={() => void fetchProjects()} className="mt-4 h-9 rounded-lg border border-red-200 bg-white px-4 text-[11px] font-bold text-red-600 hover:bg-red-50">
+                        Réessayer
+                    </button>
                 </div>
             ) : projects.length === 0 ? (
                 <div className="flex flex-col items-center py-32">
@@ -357,7 +410,7 @@ export default function ManagerProjectsPage() {
                             type="text"
                             value={createForm.name}
                             onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })}
-                            className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all"
+                            className="w-full rounded-lg border border-[#DDE4EA] px-3.5 py-2.5 text-sm outline-none transition-all focus:border-[#2A7B70] focus:ring-2 focus:ring-[#2A7B70]/15"
                             placeholder="Ex: Onboarding UpikaJob, Sprint Q1..."
                             autoFocus
                         />
@@ -368,7 +421,7 @@ export default function ManagerProjectsPage() {
                             value={createForm.description}
                             onChange={(e) => setCreateForm({ ...createForm, description: e.target.value })}
                             rows={3}
-                            className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all resize-none"
+                            className="w-full resize-none rounded-lg border border-[#DDE4EA] px-3.5 py-2.5 text-sm outline-none transition-all focus:border-[#2A7B70] focus:ring-2 focus:ring-[#2A7B70]/15"
                             placeholder="Décrivez l'objectif du projet..."
                         />
                     </div>
@@ -378,7 +431,7 @@ export default function ManagerProjectsPage() {
                             <select
                                 value={createForm.clientId}
                                 onChange={(e) => setCreateForm({ ...createForm, clientId: e.target.value })}
-                                className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 bg-white transition-all"
+                                className="w-full rounded-lg border border-[#DDE4EA] bg-white px-3.5 py-2.5 text-sm outline-none transition-all focus:border-[#2A7B70] focus:ring-2 focus:ring-[#2A7B70]/15"
                             >
                                 <option value="">Aucun client</option>
                                 {clients.map((c) => (
@@ -395,7 +448,7 @@ export default function ManagerProjectsPage() {
                                         onClick={() => setCreateForm({ ...createForm, color: c })}
                                         className={cn(
                                             "w-7 h-7 rounded-lg transition-all",
-                                            createForm.color === c ? "ring-2 ring-offset-2 ring-indigo-500 scale-110" : "hover:scale-110"
+                                            createForm.color === c ? "scale-110 ring-2 ring-[#0B5A51] ring-offset-2" : "hover:scale-110"
                                         )}
                                         style={{ backgroundColor: c }}
                                     />
@@ -414,7 +467,7 @@ export default function ManagerProjectsPage() {
                                 }
                                 e.target.value = "";
                             }}
-                            className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 bg-white transition-all"
+                            className="w-full rounded-lg border border-[#DDE4EA] bg-white px-3.5 py-2.5 text-sm outline-none transition-all focus:border-[#2A7B70] focus:ring-2 focus:ring-[#2A7B70]/15"
                         >
                             <option value="">Ajouter un membre...</option>
                             {users.filter((u) => !createForm.memberIds.includes(u.id)).map((u) => (
@@ -426,9 +479,9 @@ export default function ManagerProjectsPage() {
                                 {createForm.memberIds.map((id) => {
                                     const u = users.find((x) => x.id === id);
                                     return (
-                                        <span key={id} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 text-xs font-medium border border-indigo-100">
+                                        <span key={id} className="inline-flex items-center gap-1.5 rounded-lg border border-[#C9DED8] bg-[#EAF5F2] px-2.5 py-1 text-xs font-medium text-[#0B5A51]">
                                             {u?.name ?? id}
-                                            <button type="button" onClick={() => setCreateForm({ ...createForm, memberIds: createForm.memberIds.filter((x) => x !== id) })} className="p-0.5 hover:bg-indigo-200 rounded-full transition-colors">
+                                            <button type="button" onClick={() => setCreateForm({ ...createForm, memberIds: createForm.memberIds.filter((x) => x !== id) })} className="rounded-full p-0.5 transition-colors hover:bg-[#CFE5DF]">
                                                 <X className="w-3 h-3" />
                                             </button>
                                         </span>
@@ -440,11 +493,11 @@ export default function ManagerProjectsPage() {
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-semibold text-slate-700 mb-1.5">Date début</label>
-                            <input type="date" value={createForm.startDate} onChange={(e) => setCreateForm({ ...createForm, startDate: e.target.value })} className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all" />
+                            <input type="date" value={createForm.startDate} onChange={(e) => setCreateForm({ ...createForm, startDate: e.target.value })} className="w-full rounded-lg border border-[#DDE4EA] px-3.5 py-2.5 text-sm outline-none transition-all focus:border-[#2A7B70] focus:ring-2 focus:ring-[#2A7B70]/15" />
                         </div>
                         <div>
                             <label className="block text-sm font-semibold text-slate-700 mb-1.5">Date fin</label>
-                            <input type="date" value={createForm.endDate} onChange={(e) => setCreateForm({ ...createForm, endDate: e.target.value })} className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all" />
+                            <input type="date" value={createForm.endDate} onChange={(e) => setCreateForm({ ...createForm, endDate: e.target.value })} className="w-full rounded-lg border border-[#DDE4EA] px-3.5 py-2.5 text-sm outline-none transition-all focus:border-[#2A7B70] focus:ring-2 focus:ring-[#2A7B70]/15" />
                         </div>
                     </div>
                 </div>
@@ -483,12 +536,29 @@ export default function ManagerProjectsPage() {
 // SUB-COMPONENTS
 // ============================================
 
+function ProjectsSkeleton() {
+    return (
+        <div className="grid animate-pulse grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-label="Chargement des projets">
+            {Array.from({ length: 6 }).map((_, index) => (
+                <div key={index} className="h-[228px] rounded-xl border border-[#DDE4EA] bg-white p-5">
+                    <div className="h-4 w-2/3 rounded bg-[#E4E9ED]" />
+                    <div className="mt-3 h-3 w-2/5 rounded bg-[#EDF1F3]" />
+                    <div className="mt-8 h-2 rounded bg-[#E4E9ED]" />
+                    <div className="mt-5 h-3 w-1/3 rounded bg-[#EDF1F3]" />
+                    <div className="mt-9 h-px bg-[#EDF1F3]" />
+                    <div className="mt-4 h-7 w-24 rounded bg-[#E4E9ED]" />
+                </div>
+            ))}
+        </div>
+    );
+}
+
 function KpiCard({ icon: Icon, label, value, subtitle, iconColor, iconBg, accent }: {
-    icon: any; label: string; value: number | string; subtitle?: string; iconColor: string; iconBg: string; accent?: boolean;
+    icon: LucideIcon; label: string; value: number | string; subtitle?: string; iconColor: string; iconBg: string; accent?: boolean;
 }) {
     return (
         <div className={cn(
-            "flex items-center gap-3 bg-white border rounded-2xl px-4 py-3.5 transition-all hover:shadow-sm",
+            "flex min-h-[82px] items-center gap-3 rounded-xl border bg-white px-4 shadow-[0_1px_3px_rgba(20,40,60,0.03)] transition-colors",
             accent ? "border-red-200 bg-red-50/30" : "border-slate-200"
         )}>
             <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center shrink-0", iconBg)}>
@@ -513,7 +583,7 @@ function ProjectCard({ project, onDuplicate, onArchive, onDelete }: {
     return (
         <Link
             href={`/manager/projects/${project.id}`}
-            className="block bg-white border border-slate-200 rounded-2xl overflow-hidden hover:border-indigo-300 hover:shadow-lg hover:shadow-indigo-100/50 transition-all duration-200 group relative"
+            className="group relative block overflow-hidden rounded-xl border border-[#DDE4EA] bg-white transition-all duration-200 hover:-translate-y-px hover:border-[#9DBDB5] hover:shadow-[0_10px_24px_rgba(19,52,47,0.08)]"
         >
             {/* Color accent bar */}
             <div className="h-1" style={{ backgroundColor: project.color || "#6366f1" }} />
@@ -522,7 +592,7 @@ function ProjectCard({ project, onDuplicate, onArchive, onDelete }: {
                 {/* Header */}
                 <div className="flex items-start justify-between mb-3">
                     <div className="flex-1 min-w-0">
-                        <h3 className="text-sm font-bold text-slate-900 truncate group-hover:text-indigo-700 transition-colors">
+                        <h3 className="truncate text-sm font-bold text-slate-900 transition-colors group-hover:text-[#0B5A51]">
                             {project.name}
                         </h3>
                         {project.client && (
@@ -608,7 +678,7 @@ function ProjectCard({ project, onDuplicate, onArchive, onDelete }: {
                                 {stats.overdue} en retard
                             </span>
                         )}
-                        <ArrowUpRight className="w-4 h-4 text-slate-300 group-hover:text-indigo-500 transition-colors" />
+                        <ArrowUpRight className="w-4 h-4 text-slate-300 transition-colors group-hover:text-[#0B5A51]" />
                     </div>
                 </div>
             </div>
@@ -626,12 +696,12 @@ function ProjectRow({ project, onDuplicate, onArchive, onDelete }: {
     return (
         <Link
             href={`/manager/projects/${project.id}`}
-            className="grid grid-cols-[1fr,100px,120px,100px,60px] gap-4 items-center px-5 py-3.5 border-b border-slate-100 last:border-b-0 hover:bg-indigo-50/30 transition-colors group"
+            className="group grid grid-cols-[1fr,100px,120px,100px,60px] items-center gap-4 border-b border-slate-100 px-5 py-3.5 transition-colors last:border-b-0 hover:bg-[#F5F9F8]"
         >
             <div className="flex items-center gap-3 min-w-0">
                 <div className="w-3 h-8 rounded-full shrink-0" style={{ backgroundColor: project.color || "#6366f1" }} />
                 <div className="min-w-0">
-                    <p className="text-sm font-semibold text-slate-800 truncate group-hover:text-indigo-700 transition-colors">{project.name}</p>
+                    <p className="truncate text-sm font-semibold text-slate-800 transition-colors group-hover:text-[#0B5A51]">{project.name}</p>
                     <p className="text-xs text-slate-500 truncate">
                         {project.client ? project.client.name : "Pas de client"} · {project.owner.name}
                     </p>
@@ -644,7 +714,7 @@ function ProjectRow({ project, onDuplicate, onArchive, onDelete }: {
             <div>
                 <div className="flex items-center gap-2">
                     <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                        <div className="h-full bg-indigo-500 rounded-full transition-all" style={{ width: `${progress}%` }} />
+                        <div className="h-full rounded-full bg-[#149956] transition-all" style={{ width: `${progress}%` }} />
                     </div>
                     <span className="text-xs font-bold text-slate-700 w-8 text-right">{progress}%</span>
                 </div>
@@ -652,7 +722,7 @@ function ProjectRow({ project, onDuplicate, onArchive, onDelete }: {
             </div>
             <div className="flex -space-x-1.5">
                 {project.members.slice(0, 3).map((m) => (
-                    <div key={m.user.id} className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-[9px] font-bold border-2 border-white">
+                    <div key={m.user.id} className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-[#E7F3F0] text-[9px] font-bold text-[#0B5A51]">
                         {m.user.name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
                     </div>
                 ))}
@@ -663,6 +733,9 @@ function ProjectRow({ project, onDuplicate, onArchive, onDelete }: {
                 )}
             </div>
             <div className="flex items-center gap-1" onClick={(e) => e.preventDefault()}>
+                <button onClick={onDuplicate} className="rounded-lg p-1.5 text-slate-300 transition-colors hover:bg-[#EAF5F2] hover:text-[#0B5A51]" title="Dupliquer">
+                    <Copy className="w-3.5 h-3.5" />
+                </button>
                 <button onClick={onArchive} className="p-1.5 text-slate-300 hover:text-amber-600 rounded-lg hover:bg-amber-50 transition-colors" title="Archiver">
                     <Archive className="w-3.5 h-3.5" />
                 </button>

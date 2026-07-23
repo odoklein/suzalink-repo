@@ -20,11 +20,11 @@ interface TaskCardProps {
     isDragging?: boolean;
 }
 
-const PRIORITY_COLORS: Record<string, string> = {
-    URGENT: "bg-red-500",
-    HIGH: "bg-orange-500",
-    MEDIUM: "bg-blue-500",
-    LOW: "bg-slate-400",
+const PRIORITY_COLORS: Record<string, { line: string; soft: string; text: string }> = {
+    URGENT: { line: "border-l-[#E5484D]", soft: "bg-[#FFF0F1]", text: "text-[#CF3D44]" },
+    HIGH: { line: "border-l-[#F08B21]", soft: "bg-[#FFF4E9]", text: "text-[#C96808]" },
+    MEDIUM: { line: "border-l-[#3381E8]", soft: "bg-[#EDF4FF]", text: "text-[#276BC8]" },
+    LOW: { line: "border-l-[#9AA8B5]", soft: "bg-[#F1F4F6]", text: "text-[#647688]" },
 };
 
 const PRIORITY_LABELS: Record<string, string> = {
@@ -33,15 +33,6 @@ const PRIORITY_LABELS: Record<string, string> = {
     MEDIUM: "Moyenne",
     LOW: "Basse",
 };
-
-const LABEL_COLORS = [
-    "bg-[#dbe4df] text-[#0c3b38]",
-    "bg-sky-100 text-sky-700",
-    "bg-emerald-100 text-emerald-700",
-    "bg-amber-100 text-amber-700",
-    "bg-[#fff1d6] text-[#e07c00]",
-    "bg-[#ece5d8] text-[#394b46]",
-];
 
 export function TaskCard({ task, onClick, isDragging }: TaskCardProps) {
     const isOverdue =
@@ -52,29 +43,25 @@ export function TaskCard({ task, onClick, isDragging }: TaskCardProps) {
     const subtasksDone = task.subtasks?.filter((s) => s.status === "DONE").length || 0;
     const subtasksTotal = task.subtasks?.length || task._count?.subtasks || 0;
     const commentCount = task._count?.comments || 0;
+    const priority = PRIORITY_COLORS[task.priority] ?? PRIORITY_COLORS.MEDIUM;
 
     return (
         <div
             onClick={onClick}
             className={cn(
-                "group bg-white border border-slate-200 rounded-lg p-3 cursor-pointer transition-all duration-150",
-                "hover:border-indigo-300 hover:shadow-md",
-                isDragging && "shadow-lg border-indigo-400 rotate-2 opacity-90"
+                "group cursor-pointer rounded-lg border border-[#DDE4EA] border-l-[3px] bg-white p-3 transition-all duration-150",
+                "hover:-translate-y-px hover:border-[#AFC7C2] hover:shadow-[0_7px_18px_rgba(15,46,43,0.08)]",
+                priority.line,
+                isDragging && "border-[#6FA69D] opacity-80 shadow-lg"
             )}
         >
-            {/* Priority bar */}
-            <div className={cn("h-1 rounded-full mb-2.5 w-12", PRIORITY_COLORS[task.priority])} />
-
             {/* Labels */}
             {task.labels.length > 0 && (
                 <div className="flex flex-wrap gap-1 mb-2">
-                    {task.labels.slice(0, 3).map((label, i) => (
+                    {task.labels.slice(0, 3).map((label) => (
                         <span
                             key={label}
-                            className={cn(
-                                "text-[10px] font-medium px-1.5 py-0.5 rounded",
-                                LABEL_COLORS[i % LABEL_COLORS.length]
-                            )}
+                            className="rounded bg-[#EAF4F1] px-1.5 py-0.5 text-[9px] font-semibold text-[#17665C]"
                         >
                             {label}
                         </span>
@@ -83,17 +70,22 @@ export function TaskCard({ task, onClick, isDragging }: TaskCardProps) {
             )}
 
             {/* Title */}
-            <p className="text-sm font-medium text-slate-800 line-clamp-2 mb-2">{task.title}</p>
+            <div className="mb-2 flex items-start justify-between gap-2">
+                <p className="line-clamp-2 text-[12px] font-bold leading-[1.4] text-[#203448]">{task.title}</p>
+                <span className={cn("shrink-0 rounded px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-[0.06em]", priority.soft, priority.text)}>
+                    {PRIORITY_LABELS[task.priority]}
+                </span>
+            </div>
 
             {/* Meta row */}
             <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2 text-xs text-slate-500">
+                <div className="flex flex-wrap items-center gap-2 text-[9px] font-medium text-[#65778A]">
                     {/* Due date */}
                     {task.dueDate && (
                         <span
                             className={cn(
                                 "flex items-center gap-1",
-                                isOverdue && "text-red-600 font-medium"
+                                isOverdue && "font-bold text-[#D43F46]"
                             )}
                         >
                             <Calendar className="w-3 h-3" />
@@ -132,7 +124,7 @@ export function TaskCard({ task, onClick, isDragging }: TaskCardProps) {
                 {/* Assignee avatar */}
                 {task.assignee && (
                     <div
-                        className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-[10px] font-bold shrink-0"
+                        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#E7F3F0] text-[9px] font-bold text-[#0B5A51]"
                         title={task.assignee.name}
                     >
                         {task.assignee.name
@@ -147,9 +139,9 @@ export function TaskCard({ task, onClick, isDragging }: TaskCardProps) {
 
             {/* Subtask progress bar */}
             {subtasksTotal > 0 && (
-                <div className="mt-2 h-1 bg-slate-100 rounded-full overflow-hidden">
+                <div className="mt-2 h-1 overflow-hidden rounded-full bg-[#E7ECEF]">
                     <div
-                        className="h-full bg-emerald-500 rounded-full transition-all"
+                        className="h-full rounded-full bg-[#12A765] transition-all"
                         style={{ width: `${(subtasksDone / subtasksTotal) * 100}%` }}
                     />
                 </div>

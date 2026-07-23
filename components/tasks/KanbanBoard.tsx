@@ -146,8 +146,9 @@ export function KanbanBoard({
     };
 
     return (
-        <div className="flex gap-4 overflow-x-auto pb-4 min-h-[400px]">
-            {columns.map((column) => {
+        <div className="overflow-x-auto pb-3">
+            <div className="grid min-h-[420px] min-w-[1040px] grid-cols-4 gap-3">
+                {columns.map((column) => {
                 const columnTasks = getColumnTasks(column.id);
                 const isCollapsed = collapsedColumns.has(column.id);
                 const isDragTarget = dragOverColumn === column.id && draggedTask;
@@ -156,9 +157,9 @@ export function KanbanBoard({
                     <div
                         key={column.id}
                         className={cn(
-                            "flex-shrink-0 w-72 flex flex-col rounded-xl border-t-4 bg-slate-50/70 border border-slate-200",
+                            "flex min-w-0 flex-col rounded-xl border border-[#DDE4EA] border-t-[3px] bg-[#F7F9FA]",
                             column.color,
-                            isDragTarget && "bg-indigo-50/50 border-indigo-200"
+                            isDragTarget && "border-[#8CB9B1] bg-[#EEF7F5]"
                         )}
                         onDragEnter={(e) => handleDragEnter(e, column.id)}
                         onDragLeave={(e) => handleDragLeave(e, column.id)}
@@ -166,7 +167,7 @@ export function KanbanBoard({
                         onDrop={(e) => handleDrop(e, column.id)}
                     >
                         {/* Column header */}
-                        <div className="flex items-center justify-between px-3 py-2.5 border-b border-slate-200">
+                        <div className="flex items-center justify-between border-b border-[#DDE4EA] px-3 py-3">
                             <button
                                 onClick={() => toggleCollapse(column.id)}
                                 className="flex items-center gap-2"
@@ -177,17 +178,17 @@ export function KanbanBoard({
                                     <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
                                 )}
                                 <span className={cn("w-2 h-2 rounded-full", column.dotColor)} />
-                                <span className="text-sm font-semibold text-slate-700">
+                                <span className="text-[11px] font-bold text-[#34485C]">
                                     {column.label}
                                 </span>
-                                <span className="text-xs text-slate-400 bg-slate-200 px-1.5 py-0.5 rounded-full">
+                                <span className="rounded-full bg-[#E7ECEF] px-1.5 py-0.5 text-[9px] font-bold text-[#647688]">
                                     {columnTasks.length}
                                 </span>
                             </button>
                             {onAddTask && (
                                 <button
                                     onClick={() => onAddTask(column.id)}
-                                    className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors"
+                                    className="rounded-md p-1 text-[#8291A0] transition-colors hover:bg-[#E7F3F0] hover:text-[#0B5A51]"
                                 >
                                     <Plus className="w-4 h-4" />
                                 </button>
@@ -214,7 +215,7 @@ export function KanbanBoard({
                                 ))}
 
                                 {columnTasks.length === 0 && (
-                                    <div className="flex items-center justify-center h-24 text-sm text-slate-400 border-2 border-dashed border-slate-200 rounded-lg">
+                                    <div className="flex h-24 items-center justify-center rounded-lg border border-dashed border-[#CCD6DE] text-[11px] font-medium text-[#8291A0]">
                                         {isDragTarget ? "Déposer ici" : "Aucune tâche"}
                                     </div>
                                 )}
@@ -222,7 +223,8 @@ export function KanbanBoard({
                         )}
                     </div>
                 );
-            })}
+                })}
+            </div>
         </div>
     );
 }

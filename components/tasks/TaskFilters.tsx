@@ -78,7 +78,7 @@ export function TaskFilters({
     return (
         <div className={cn("space-y-3", className)}>
             {/* Search + filter toggle */}
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
                 <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                     <input
@@ -86,7 +86,7 @@ export function TaskFilters({
                         placeholder="Rechercher des tâches..."
                         value={filters.search}
                         onChange={(e) => updateFilters({ search: e.target.value })}
-                        className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400"
+                        className="h-10 w-full min-w-[220px] rounded-lg border border-[#DDE4EA] bg-white pl-9 pr-9 text-[12px] text-[#203448] outline-none transition-colors placeholder:text-[#8A98A6] focus:border-[#5D9C92] focus:ring-2 focus:ring-[#0B5A51]/10"
                     />
                     {filters.search && (
                         <button
@@ -102,14 +102,14 @@ export function TaskFilters({
                     className={cn(
                         "flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-lg border transition-colors",
                         showFilters || activeCount > 0
-                            ? "bg-indigo-50 border-indigo-200 text-indigo-700"
-                            : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
+                            ? "border-[#9BC6BE] bg-[#EAF5F2] text-[#0B5A51]"
+                            : "border-[#DDE4EA] bg-white text-[#526476] hover:border-[#BAC7D2] hover:bg-[#F7F9FA]"
                     )}
                 >
                     <Filter className="w-4 h-4" />
                     Filtres
                     {activeCount > 0 && (
-                        <span className="ml-1 w-5 h-5 rounded-full bg-indigo-600 text-white text-xs flex items-center justify-center">
+                        <span className="ml-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#0B5A51] text-[9px] text-white">
                             {activeCount}
                         </span>
                     )}
@@ -132,7 +132,7 @@ export function TaskFilters({
 
             {/* Expanded filters */}
             {showFilters && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                <div className="grid grid-cols-1 gap-4 rounded-xl border border-[#DDE4EA] bg-[#F8FAFB] p-4 sm:grid-cols-2 lg:grid-cols-3">
                     {/* Status */}
                     <div>
                         <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
@@ -146,8 +146,8 @@ export function TaskFilters({
                                     className={cn(
                                         "flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md border transition-colors",
                                         filters.statuses.includes(opt.value)
-                                            ? "bg-indigo-50 border-indigo-200 text-indigo-700"
-                                            : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
+                                            ? "border-[#9BC6BE] bg-[#EAF5F2] text-[#0B5A51]"
+                                            : "border-[#DDE4EA] bg-white text-[#526476] hover:bg-[#F2F6F6]"
                                     )}
                                 >
                                     <span className={cn("w-2 h-2 rounded-full", opt.color)} />
@@ -170,8 +170,8 @@ export function TaskFilters({
                                     className={cn(
                                         "flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md border transition-colors",
                                         filters.priorities.includes(opt.value)
-                                            ? "bg-indigo-50 border-indigo-200 text-indigo-700"
-                                            : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
+                                            ? "border-[#9BC6BE] bg-[#EAF5F2] text-[#0B5A51]"
+                                            : "border-[#DDE4EA] bg-white text-[#526476] hover:bg-[#F2F6F6]"
                                     )}
                                 >
                                     <span className={cn("w-2 h-2 rounded-full", opt.color)} />
@@ -193,8 +193,8 @@ export function TaskFilters({
                                     className={cn(
                                         "px-2.5 py-1 text-xs font-medium rounded-md border transition-colors",
                                         filters.assigneeIds.includes("unassigned")
-                                            ? "bg-indigo-50 border-indigo-200 text-indigo-700"
-                                            : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
+                                            ? "border-[#9BC6BE] bg-[#EAF5F2] text-[#0B5A51]"
+                                            : "border-[#DDE4EA] bg-white text-[#526476] hover:bg-[#F2F6F6]"
                                     )}
                                 >
                                     Non assigné
@@ -206,8 +206,8 @@ export function TaskFilters({
                                         className={cn(
                                             "px-2.5 py-1 text-xs font-medium rounded-md border transition-colors",
                                             filters.assigneeIds.includes(m.id)
-                                                ? "bg-indigo-50 border-indigo-200 text-indigo-700"
-                                                : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
+                                                ? "border-[#9BC6BE] bg-[#EAF5F2] text-[#0B5A51]"
+                                                : "border-[#DDE4EA] bg-white text-[#526476] hover:bg-[#F2F6F6]"
                                         )}
                                     >
                                         {m.name}
