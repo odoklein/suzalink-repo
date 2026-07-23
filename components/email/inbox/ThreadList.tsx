@@ -14,6 +14,9 @@ import {
     Search,
     X,
     RefreshCw,
+    Paperclip,
+    Sparkles,
+    SlidersHorizontal,
 } from "lucide-react";
 import { format, isToday, isYesterday, isThisWeek } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -33,6 +36,7 @@ interface Thread {
     labels: string[];
     sentiment: string | null;
     priority: string | null;
+    summary: string | null;
     slaDeadline: string | null;
     lastEmailAt: string;
     messageCount: number;
@@ -41,6 +45,7 @@ interface Thread {
         fromAddress: string;
         fromName: string | null;
         direction: string;
+        attachments: { id: string }[];
     } | null;
     clientId: string | null;
     missionId: string | null;
@@ -162,6 +167,7 @@ export function ThreadList({
     const [isLoadingMore, setIsLoadingMore] = useState(false);
     const [searchInput, setSearchInput] = useState("");
     const [isSearchFocused, setIsSearchFocused] = useState(false);
+    const [quickFilter, setQuickFilter] = useState<"unread" | "today" | "attachments" | "starred" | null>(null);
     const listRef = useRef<HTMLDivElement>(null);
     const searchRef = useRef<HTMLInputElement>(null);
     const fetchingRef = useRef(false);
@@ -195,6 +201,14 @@ export function ThreadList({
             if (debouncedSearch) {
                 params.set("search", debouncedSearch);
             }
+            if (quickFilter === "unread") params.set("isRead", "false");
+            if (quickFilter === "starred") params.set("isStarred", "true");
+            if (quickFilter === "attachments") params.set("hasAttachments", "true");
+            if (quickFilter === "today") {
+                const start = new Date();
+                start.setHours(0, 0, 0, 0);
+                params.set("dateFrom", start.toISOString());
+            }
 
             const res = await fetch(`/api/email/threads?${params.toString()}`);
 
@@ -225,13 +239,13 @@ export function ThreadList({
             setIsLoadingMore(false);
             fetchingRef.current = false;
         }
-    }, [mailboxId, folder, debouncedSearch]);
+    }, [mailboxId, folder, debouncedSearch, quickFilter]);
 
     // Reset and refetch on filter change
     useEffect(() => {
         setPage(1);
         fetchThreads(1, false);
-    }, [mailboxId, folder, debouncedSearch, refreshKey, fetchThreads]);
+    }, [mailboxId, folder, debouncedSearch, quickFilter, refreshKey, fetchThreads]);
 
     // Scroll-based pagination
     const handleScroll = useCallback(() => {
@@ -304,6 +318,8 @@ export function ThreadList({
                     isSearchFocused={isSearchFocused}
                     setIsSearchFocused={setIsSearchFocused}
                     searchRef={searchRef}
+                    quickFilter={quickFilter}
+                    setQuickFilter={setQuickFilter}
                 />
                 <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
                     <div className="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center mb-4">
@@ -340,6 +356,8 @@ export function ThreadList({
                     isSearchFocused={isSearchFocused}
                     setIsSearchFocused={setIsSearchFocused}
                     searchRef={searchRef}
+                    quickFilter={quickFilter}
+                    setQuickFilter={setQuickFilter}
                 />
                 <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
                     <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center mb-5">
@@ -375,6 +393,8 @@ export function ThreadList({
                 isSearchFocused={isSearchFocused}
                 setIsSearchFocused={setIsSearchFocused}
                 searchRef={searchRef}
+                quickFilter={quickFilter}
+                setQuickFilter={setQuickFilter}
             />
 
             {/* Thread List */}
@@ -430,13 +450,24 @@ function SearchBar({
     isSearchFocused,
     setIsSearchFocused,
     searchRef,
+    quickFilter,
+    setQuickFilter,
 }: {
     searchInput: string;
     setSearchInput: (q: string) => void;
     isSearchFocused: boolean;
     setIsSearchFocused: (f: boolean) => void;
     searchRef: React.RefObject<HTMLInputElement | null>;
+    quickFilter: "unread" | "today" | "attachments" | "starred" | null;
+    setQuickFilter: (filter: "unread" | "today" | "attachments" | "starred" | null) => void;
 }) {
+    const filters = [
+        { id: "unread" as const, label: "Non lus" },
+        { id: "today" as const, label: "Aujourd'hui" },
+        { id: "attachments" as const, label: "Pièces jointes" },
+        { id: "starred" as const, label: "Favoris" },
+    ];
+
     return (
         <div className="p-3 border-b border-[#EEF2F1] bg-white">
             <div className={cn(
@@ -459,15 +490,37 @@ function SearchBar({
                     onBlur={() => setIsSearchFocused(false)}
                     className="w-full pl-9 pr-9 py-2.5 bg-[#F7F9F8] border border-[#DDE5E2] rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#E07C00] focus:bg-white transition-colors"
                 />
-                {searchInput && (
+                {searchInput ? (
                     <button
                         onClick={() => setSearchInput("")}
                         className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100"
                     >
                         <X className="w-3.5 h-3.5" />
                     </button>
+                ) : (
+                    <SlidersHorizontal className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                 )}
             </div>
+            {(isSearchFocused || quickFilter) && (
+                <div className="flex items-center gap-1.5 mt-2 overflow-x-auto email-scrollbar">
+                    {filters.map((filter) => (
+                        <button
+                            key={filter.id}
+                            type="button"
+                            onMouseDown={(event) => event.preventDefault()}
+                            onClick={() => setQuickFilter(quickFilter === filter.id ? null : filter.id)}
+                            className={cn(
+                                "h-7 px-2.5 rounded-md border text-[11px] font-semibold whitespace-nowrap transition-all duration-150 active:translate-y-px",
+                                quickFilter === filter.id
+                                    ? "border-[#C98A32] bg-[#FFF4E2] text-[#8A4D00]"
+                                    : "border-[#DDE5E2] bg-white text-slate-500 hover:border-[#CBD8D4] hover:bg-[#F1F4F3] hover:text-[#1F4D47]"
+                            )}
+                        >
+                            {filter.label}
+                        </button>
+                    ))}
+                </div>
+            )}
         </div>
     );
 }
@@ -513,18 +566,13 @@ function ThreadListItem({
             tabIndex={0}
             aria-current={isSelected ? "true" : undefined}
             className={cn(
-                "group relative px-4 py-3.5 cursor-pointer transition-colors duration-150 border-b border-[#EEF2F1] focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#E07C00] focus-within:bg-[#F7F9F8]",
+                "group relative px-4 py-3.5 cursor-pointer border-b border-l-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#E07C00] transition-[background-color,border-color,box-shadow] duration-150",
                 isSelected
-                    ? "bg-[#FFF4E2]"
-                    : "hover:bg-[#F7F9F8]",
+                    ? "border-l-[#E07C00] border-b-[#F0DFC3] bg-[#FFF8EE] shadow-[inset_0_1px_0_rgba(255,255,255,0.8),0_2px_10px_rgba(31,77,71,0.06)]"
+                    : "border-l-transparent border-b-[#EEF2F1] hover:bg-[#F7F9F8] hover:border-l-[#CBD8D4] focus-within:bg-[#F7F9F8]",
                 !thread.isRead && !isSelected && "bg-white"
             )}
         >
-            {/* Selected indicator */}
-            {isSelected && (
-                <div className="absolute left-0 top-3 bottom-3 w-[3px] bg-[#E07C00] rounded-r-full" />
-            )}
-
             <div className="flex items-start gap-3.5">
                 {/* Avatar */}
                 <div className="relative flex-shrink-0 mt-[1px]">
@@ -598,13 +646,19 @@ function ThreadListItem({
                             {thread.isStarred && (
                                 <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400 flex-shrink-0" />
                             )}
+                            {thread.latestEmail?.attachments.length ? (
+                                <Paperclip className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" aria-label="Pièce jointe" />
+                            ) : null}
+                            {thread.summary && (
+                                <Sparkles className="w-3.5 h-3.5 text-[#25745F] flex-shrink-0" aria-label="Résumé IA disponible" />
+                            )}
                         </div>
                     </div>
                 </div>
             </div>
 
             {/* Hover actions */}
-            <div className="absolute right-4 top-1/2 -translate-y-1/2 hidden group-hover:flex group-focus-within:flex items-center gap-0.5 bg-white/95 backdrop-blur-sm shadow-lg border border-slate-200 rounded-xl px-1.5 py-1 z-10">
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-0.5 bg-white/95 backdrop-blur-sm shadow-md border border-[#DDE5E2] rounded-lg px-1 py-1 z-10 opacity-0 translate-x-1 pointer-events-none group-hover:opacity-100 group-hover:translate-x-0 group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:translate-x-0 group-focus-within:pointer-events-auto transition-all duration-150">
                 <button
                     onClick={onStar}
                     className={cn(

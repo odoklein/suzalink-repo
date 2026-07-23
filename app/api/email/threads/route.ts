@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { Prisma } from '@prisma/client';
 
 export async function GET(req: NextRequest) {
     try {
@@ -30,6 +31,8 @@ export async function GET(req: NextRequest) {
         const missionId = searchParams.get('missionId');
         const campaignId = searchParams.get('campaignId');
         const search = searchParams.get('search');
+        const hasAttachments = searchParams.get('hasAttachments');
+        const dateFrom = searchParams.get('dateFrom');
         const page = parseInt(searchParams.get('page') || '1');
         const limit = Math.min(100, parseInt(searchParams.get('limit') || '50'));
         const skip = (page - 1) * limit;
@@ -89,7 +92,7 @@ export async function GET(req: NextRequest) {
         }
 
         // Build where clause
-        const where: any = {
+        const where: Prisma.EmailThreadWhereInput = {
             mailboxId: { in: mailboxIds },
         };
 
@@ -153,6 +156,12 @@ export async function GET(req: NextRequest) {
         if (campaignId) {
             where.campaignId = campaignId;
         }
+        if (hasAttachments === 'true') {
+            where.AND = { emails: { some: { attachments: { some: {} } } } };
+        }
+        if (dateFrom) {
+            where.lastEmailAt = { gte: new Date(dateFrom) };
+        }
 
         // Search
         if (search) {
@@ -179,6 +188,7 @@ export async function GET(req: NextRequest) {
                     labels: true,
                     sentiment: true,
                     priority: true,
+                    summary: true,
                     slaDeadline: true,
                     lastEmailAt: true,
                     createdAt: true,
@@ -211,7 +221,7 @@ export async function GET(req: NextRequest) {
                         select: { emails: true },
                     },
                     emails: {
-                        orderBy: { receivedAt: 'desc' },
+                        orderBy: { createdAt: 'desc' },
                         take: 1,
                         select: {
                             id: true,
@@ -219,6 +229,10 @@ export async function GET(req: NextRequest) {
                             fromName: true,
                             receivedAt: true,
                             direction: true,
+                            attachments: {
+                                take: 1,
+                                select: { id: true },
+                            },
                         },
                     },
                 },

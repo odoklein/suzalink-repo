@@ -547,7 +547,6 @@ export function InboxLayout({
                         )}>
                             <ThreadView
                                 threadId={selectedThread.id}
-                                mailboxId={selectedThread.mailboxId}
                                 onClose={handleCloseThread}
                                 onReply={handleReply}
                             />

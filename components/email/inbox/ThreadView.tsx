@@ -17,6 +17,7 @@ import {
     Sparkles,
     Download,
     CheckCheck,
+    Paperclip,
 } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -65,7 +66,6 @@ interface Thread {
 
 interface ThreadViewProps {
     threadId: string;
-    mailboxId: string;
     onClose: () => void;
     onReply: (data: {
         threadId: string;
@@ -110,15 +110,6 @@ function formatFileSize(bytes: number): string {
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-function getFileIcon(mimeType: string): string {
-    if (mimeType.startsWith("image/")) return "🖼️";
-    if (mimeType === "application/pdf") return "📄";
-    if (mimeType.includes("spreadsheet") || mimeType.includes("excel")) return "📊";
-    if (mimeType.includes("document") || mimeType.includes("word")) return "📝";
-    if (mimeType.includes("zip") || mimeType.includes("archive")) return "📦";
-    return "📎";
 }
 
 function sanitizeHtml(html: string): string {
@@ -192,7 +183,6 @@ function DeleteConfirmDialog({
 
 export function ThreadView({
     threadId,
-    mailboxId,
     onClose,
     onReply,
 }: ThreadViewProps) {
@@ -441,7 +431,7 @@ export function ThreadView({
             <div className="px-5 py-4 border-b border-[#DDE5E2] bg-white flex-shrink-0">
                 <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
-                        <h2 className="text-lg font-semibold text-slate-900 leading-snug mb-1">
+                        <h2 className="text-[26px] font-bold tracking-[-0.02em] text-slate-900 leading-tight mb-2">
                             {thread.subject || "(Sans objet)"}
                         </h2>
                         <div className="flex items-center gap-3">
@@ -454,81 +444,82 @@ export function ThreadView({
                         <button
                             onClick={handleStar}
                             className={cn(
-                                "p-2 rounded-xl transition-all duration-200",
+                                "h-10 w-10 inline-flex items-center justify-center rounded-[10px] transition-all duration-150 active:translate-y-px",
                                 thread.isStarred
                                     ? "text-amber-400 hover:bg-amber-50"
                                     : "text-slate-400 hover:text-slate-600 hover:bg-slate-50"
                             )}
                             title={thread.isStarred ? "Retirer des favoris" : "Ajouter aux favoris"}
                         >
-                            <Star className={cn("w-[18px] h-[18px]", thread.isStarred && "fill-current")} />
+                            <Star className={cn("w-5 h-5", thread.isStarred && "fill-current")} />
                         </button>
                         <button
                             onClick={handleArchive}
-                            className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all duration-200"
+                            className="h-10 w-10 inline-flex items-center justify-center rounded-[10px] text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all duration-150 active:translate-y-px"
                             title="Archiver"
                         >
-                            <Archive className="w-[18px] h-[18px]" />
+                            <Archive className="w-5 h-5" />
                         </button>
                         <button
                             onClick={() => setShowDeleteConfirm(true)}
-                            className="p-2 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all duration-200"
+                            className="h-10 w-10 inline-flex items-center justify-center rounded-[10px] text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all duration-150 active:translate-y-px"
                             title="Supprimer"
                         >
-                            <Trash2 className="w-[18px] h-[18px]" />
+                            <Trash2 className="w-5 h-5" />
                         </button>
                         <div className="w-px h-5 bg-slate-200 mx-1" />
                         <button
                             onClick={onClose}
-                            className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all duration-200"
+                            className="h-10 w-10 inline-flex items-center justify-center rounded-[10px] text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all duration-150 active:translate-y-px"
                             title="Fermer"
                         >
-                            <X className="w-[18px] h-[18px]" />
+                            <X className="w-5 h-5" />
                         </button>
                     </div>
                 </div>
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3 email-scrollbar">
-                {thread.emails.map((email, index) => (
-                    <EmailMessage
-                        key={email.id}
-                        email={email}
-                        isExpanded={expandedEmails.has(email.id)}
-                        isLast={index === thread.emails.length - 1}
-                        onToggle={() => toggleEmail(email.id)}
-                        mailboxEmail={thread.mailbox.email}
-                        recap={recaps[email.id]}
-                        recapLoading={recapLoading[email.id]}
-                        recapError={recapError[email.id]}
-                        onRequestRecap={() => requestRecap(email.id)}
-                    />
-                ))}
-                <div ref={messagesEndRef} />
+            <div className="flex-1 overflow-y-auto px-5 py-5 email-scrollbar">
+                <div className="w-full max-w-[900px] mx-auto space-y-3">
+                    {thread.emails.map((email, index) => (
+                        <EmailMessage
+                            key={email.id}
+                            email={email}
+                            isExpanded={expandedEmails.has(email.id)}
+                            isLast={index === thread.emails.length - 1}
+                            onToggle={() => toggleEmail(email.id)}
+                            recap={recaps[email.id]}
+                            recapLoading={recapLoading[email.id]}
+                            recapError={recapError[email.id]}
+                            onRequestRecap={() => requestRecap(email.id)}
+                        />
+                    ))}
+                    <div ref={messagesEndRef} />
+                </div>
             </div>
 
             {/* Reply Bar */}
             {thread.permissions.canSend && (
                 <div className="px-5 py-3 border-t border-slate-100 bg-white flex-shrink-0">
-                    <div className="flex items-center gap-2">
+                    <div className="inline-flex items-center overflow-hidden rounded-[10px] border border-[#CBD8D4] bg-white shadow-sm">
                         <button
                             onClick={handleReply}
-                            className="flex items-center gap-2 px-5 py-2.5 border border-[#E07C00] bg-[#FF9E1B] text-[#15201E] text-sm font-bold rounded-lg hover:bg-[#F09212] active:translate-y-px transition-colors"
+                            className="flex h-10 items-center gap-2 px-4 bg-[#FF9E1B] text-[#15201E] text-sm font-bold hover:bg-[#F09212] active:translate-y-px transition-colors"
                         >
                             <Reply className="w-4 h-4" />
                             Répondre
                         </button>
                         <button
                             onClick={handleReplyAll}
-                            className="flex items-center gap-2 px-4 py-2.5 border border-[#DDE5E2] bg-white text-slate-700 text-sm font-semibold rounded-lg hover:bg-[#F1F4F3] transition-colors"
+                            className="flex h-10 items-center gap-2 px-4 border-l border-[#CBD8D4] bg-white text-slate-700 text-sm font-semibold hover:bg-[#F1F4F3] active:translate-y-px transition-colors"
                         >
                             <ReplyAll className="w-4 h-4" />
                             <span className="hidden sm:inline">Répondre à tous</span>
                         </button>
                         <button
                             onClick={handleForward}
-                            className="flex items-center gap-2 px-4 py-2.5 border border-[#DDE5E2] bg-white text-slate-700 text-sm font-semibold rounded-lg hover:bg-[#F1F4F3] transition-colors"
+                            className="flex h-10 items-center gap-2 px-4 border-l border-[#CBD8D4] bg-white text-slate-700 text-sm font-semibold hover:bg-[#F1F4F3] active:translate-y-px transition-colors"
                         >
                             <Forward className="w-4 h-4" />
                             <span className="hidden sm:inline">Transférer</span>
@@ -557,7 +548,6 @@ interface EmailMessageProps {
     isExpanded: boolean;
     isLast: boolean;
     onToggle: () => void;
-    mailboxEmail: string;
     recap?: string;
     recapLoading?: boolean;
     recapError?: string;
@@ -569,7 +559,6 @@ function EmailMessage({
     isExpanded,
     isLast,
     onToggle,
-    mailboxEmail,
     recap,
     recapLoading,
     recapError,
@@ -615,7 +604,7 @@ function EmailMessage({
                 {/* Info */}
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                        <span className="text-[13px] font-semibold text-slate-900 truncate">
+                        <span className="text-[15px] font-semibold text-slate-900 truncate">
                             {senderName}
                         </span>
                         {isOutbound && (
@@ -632,11 +621,12 @@ function EmailMessage({
                             {email.bodyText?.substring(0, 120) || "..."}
                         </p>
                     ) : (
-                        <p className="text-[12px] text-slate-400 mt-0.5 truncate">
-                            À: {email.toAddresses.join(", ")}
+                        <p className="text-[12px] text-slate-500 mt-1 truncate" title={formattedDate}>
+                            De: {email.fromAddress} · À: {email.toAddresses.join(", ")}
                             {email.ccAddresses.length > 0 && (
                                 <> · Cc: {email.ccAddresses.join(", ")}</>
                             )}
+                            {relativeDate && <> · {relativeDate}</>}
                         </p>
                     )}
                 </div>
@@ -671,10 +661,10 @@ function EmailMessage({
                                         e.stopPropagation();
                                         onRequestRecap();
                                     }}
-                                    className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[#C9D9D5] bg-[#EDF4F2] hover:bg-[#E2ECE9] text-[#1F4D47] text-[13px] font-semibold transition-colors"
+                                    className="inline-flex h-8 items-center gap-2 px-3 rounded-full border border-[#C9D9D5] bg-[#F7F9F8] hover:bg-[#EDF4F2] text-[#1F4D47] text-[12px] font-semibold transition-colors active:translate-y-px"
                                 >
                                     <Sparkles className="w-3.5 h-3.5" />
-                                    Résumer avec l&apos;IA
+                                    Résumé IA
                                 </button>
                             ) : (
                                 <div className="flex items-start gap-2.5 p-3 rounded-lg bg-[#EDF4F2] border border-[#C9D9D5]">
@@ -727,7 +717,7 @@ function EmailMessage({
                                         href={`/api/email/attachments/${attachment.id}`}
                                         className="flex items-center gap-2 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 hover:border-slate-300 transition-all group"
                                     >
-                                        <span className="text-sm">{getFileIcon(attachment.mimeType)}</span>
+                                        <Paperclip className="w-4 h-4 text-slate-400 flex-shrink-0" />
                                         <div className="min-w-0">
                                             <span className="text-[13px] text-slate-700 truncate max-w-[140px] block font-medium">
                                                 {attachment.filename}
@@ -736,7 +726,7 @@ function EmailMessage({
                                                 {formatFileSize(attachment.size)}
                                             </span>
                                         </div>
-                                        <Download className="w-3.5 h-3.5 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                        <Download className="w-4 h-4 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                                     </a>
                                 ))}
                             </div>
@@ -744,8 +734,8 @@ function EmailMessage({
                     )}
 
                     {/* Email body */}
-                    <div className="px-4 py-4">
-                        <div className="prose prose-sm prose-slate max-w-none text-slate-800 [&_a]:text-[#1F4D47] [&_a]:font-semibold [&_a]:no-underline hover:[&_a]:underline [&_img]:rounded-lg [&_blockquote]:border-l-[#C9D9D5] [&_blockquote]:text-slate-500">
+                    <div className="px-5 py-5">
+                        <div className="prose prose-sm prose-slate max-w-[820px] text-slate-800 [&_a]:text-[#1F4D47] [&_a]:font-semibold [&_a]:no-underline hover:[&_a]:underline [&_img]:rounded-lg [&_blockquote]:border-l-[#C9D9D5] [&_blockquote]:text-slate-500">
                             {email.bodyHtml ? (
                                 <div
                                     dangerouslySetInnerHTML={{ __html: sanitizeHtml(email.bodyHtml) }}
