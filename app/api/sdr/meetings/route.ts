@@ -121,6 +121,24 @@ export async function GET(request: NextRequest) {
                         },
                     },
                 },
+                // Company-level bookings (no specific contact picked) still need to
+                // render — RDV list falls back to this when `contact` is null below.
+                company: {
+                    select: {
+                        id: true,
+                        name: true,
+                        country: true,
+                        industry: true,
+                        website: true,
+                        size: true,
+                        list: {
+                            select: {
+                                id: true,
+                                name: true,
+                            },
+                        },
+                    },
+                },
                 campaign: {
                     select: {
                         id: true,
@@ -157,14 +175,27 @@ export async function GET(request: NextRequest) {
         // Exclude RDV cancelled with less than 10 min before scheduled time
         const meetings = filterRdvList(rawMeetings);
 
-        // Action.contact is optional in the schema (company-level actions), so old or
-        // imported meeting actions can legitimately have no contact. Do not let one
-        // inconsistent row turn the entire list response into a 500.
+        // Action.contact is optional in the schema — SDRs can book a meeting at the
+        // company level without picking a specific contact (see BookingDrawer). The
+        // UI renders a "contact" card either way, so synthesize one from `company`
+        // when there's no real contact, instead of dropping the meeting entirely.
         const transformedMeetings = meetings.flatMap((meeting) => {
-            if (!meeting.contact) {
-                console.warn(`Skipping meeting ${meeting.id}: no contact attached`);
+            const company = meeting.contact?.company ?? meeting.company;
+            if (!company) {
+                console.warn(`Skipping meeting ${meeting.id}: no contact or company attached`);
                 return [];
             }
+
+            const contact = meeting.contact ?? {
+                id: "",
+                firstName: null,
+                lastName: null,
+                title: null,
+                email: null,
+                phone: null,
+                linkedin: null,
+                company,
+            };
 
             return [{
             id: meeting.id,
@@ -180,7 +211,7 @@ export async function GET(request: NextRequest) {
             meetingPhone: meeting.meetingPhone ?? undefined,
             confirmationStatus: meeting.confirmationStatus,
             meetingFeedback: meeting.meetingFeedback ?? null,
-            contact: meeting.contact,
+            contact,
             mission: meeting.campaign?.mission
                 ? {
                       id: meeting.campaign.mission.id,
@@ -188,10 +219,10 @@ export async function GET(request: NextRequest) {
                       client: meeting.campaign.mission.client,
                   }
                 : null,
-            list: meeting.contact.company.list
+            list: company.list
                 ? {
-                      id: meeting.contact.company.list.id,
-                      name: meeting.contact.company.list.name,
+                      id: company.list.id,
+                      name: company.list.name,
                   }
                 : null,
             }];
