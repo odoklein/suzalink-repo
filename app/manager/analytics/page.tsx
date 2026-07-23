@@ -594,16 +594,16 @@ export default function AnalyticsPage() {
     const HOURS = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
 
     return (
-        <div className="elan-page overflow-x-hidden pb-12">
+        <div className="elan-page flex flex-col overflow-x-hidden pb-12">
 
             {/* Page Header */}
-            <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+            <div className="order-1 flex flex-wrap items-center justify-between gap-4 mb-5">
                 <div>
                     <div className="flex items-center gap-2 mb-1">
-                        <div className="w-8 h-8 rounded-xl bg-[#1F4D47] flex items-center justify-center shadow-lg shadow-[#1F4D47]/20">
+                        <div className="w-8 h-8 rounded-lg bg-[#1F4D47] flex items-center justify-center shadow-sm">
                             <Activity className="w-4 h-4 text-white" />
                         </div>
-                        <h1 className="text-[22px] font-black text-slate-900 tracking-tight">Performance</h1>
+                        <h1 className="text-[21px] font-bold text-slate-900 tracking-tight">Performance</h1>
                     </div>
                     <p className="text-[12px] text-slate-400 ml-10 font-medium">Suivi détaillé des appels et des résultats d'équipe</p>
                 </div>
@@ -652,7 +652,7 @@ export default function AnalyticsPage() {
             )}
 
             {/* Filters */}
-            <section className="mb-6 rounded-xl border border-[#DDE5E2] bg-white p-3 sm:p-4 shadow-sm" aria-label="Filtres de performance">
+            <section className="order-2 mb-5 rounded-xl border border-[#DDE5E2] bg-white p-3 sm:p-4 shadow-sm" aria-label="Filtres de performance">
                 <div className="mb-3 flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
                         <h2 className="text-sm font-bold text-slate-800">Filtres</h2>
@@ -736,7 +736,7 @@ export default function AnalyticsPage() {
             </section>
 
             {/* AI Hero Banner */}
-            <div className="relative overflow-hidden rounded-xl p-5 pt-20 sm:p-6 lg:p-8 mb-6 shadow-[0_14px_36px_rgba(31,77,71,0.16)]" style={{ background: "#0C3B38" }}>
+            <div className="order-6 relative overflow-hidden rounded-xl p-4 sm:p-5 mb-6 shadow-[0_8px_24px_rgba(31,77,71,0.12)]" style={{ background: "#0C3B38" }}>
                 <div className="absolute -top-32 -right-32 w-80 h-80 rounded-full blur-3xl opacity-30 pointer-events-none" style={{ background: "radial-gradient(circle, #FF9E1B, transparent 70%)" }} />
                 <div className="absolute -bottom-32 -left-32 w-72 h-72 rounded-full blur-3xl opacity-20 pointer-events-none" style={{ background: "radial-gradient(circle, #F4F0E8, transparent 70%)" }} />
 
@@ -993,7 +993,7 @@ export default function AnalyticsPage() {
                         )}
                     </div>
                 ) : !isLoadingAiRecap ? (
-                    <div className="relative z-10 flex flex-col items-center justify-center py-8 gap-3">
+                    <div className="relative z-10 flex flex-col items-center justify-center py-5 gap-3">
                         <div className="w-14 h-14 rounded-2xl bg-[#1F4D47]/10 border border-[#1F4D47]/20 flex items-center justify-center">
                             <BrainCircuit className="w-7 h-7 text-[#FFB64F]/60" />
                         </div>
@@ -1029,7 +1029,7 @@ export default function AnalyticsPage() {
             </div>
 
             {/* KPI ROW */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div className="order-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
                 <div className="bg-white rounded-2xl border border-slate-100 p-5 flex flex-col justify-between group hover:shadow-md hover:border-[#D7E3DF] transition-all cursor-default">
                     <div className="flex items-center justify-between mb-3">
                         <div className="w-11 h-11 rounded-xl bg-[#F0F5F3] flex items-center justify-center transition-transform group-hover:scale-110">
@@ -1107,7 +1107,7 @@ export default function AnalyticsPage() {
             </div>
 
             {/* Missions List */}
-            <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm mb-6 hover:shadow-md transition-shadow">
+            <div className="order-4 bg-white rounded-xl border border-slate-100 p-5 shadow-sm mb-5 hover:shadow-md transition-shadow">
                 <div className="flex items-center justify-between mb-5">
                     <div className="flex items-center gap-2">
                         <Target className="w-5 h-5 text-[#2F6B62]" />
@@ -1164,7 +1164,7 @@ export default function AnalyticsPage() {
             </div>
 
             {/* Charts Row */}
-            <div className="flex flex-col lg:flex-row gap-4 mb-6">
+            <div className="order-5 flex flex-col lg:flex-row gap-3 mb-5">
                 <div className="flex-[3] bg-white border border-slate-100 rounded-2xl p-5 shadow-sm flex flex-col hover:shadow-md transition-shadow">
                     <div className="flex items-center justify-between mb-6">
                         <div>
@@ -1302,7 +1302,7 @@ export default function AnalyticsPage() {
             </div>
 
             {/* Call Status Funnel */}
-            <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm mb-6 hover:shadow-md transition-shadow">
+            <div className="order-7 bg-white rounded-xl border border-slate-100 p-5 shadow-sm mb-5 hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-2 mb-5">
                     <div className="w-9 h-9 rounded-xl bg-[#EEF3F1] flex items-center justify-center">
                         <ArrowRight className="w-5 h-5 text-[#2F6B62]" />
@@ -1350,7 +1350,7 @@ export default function AnalyticsPage() {
             </div>
 
             {/* SDR TABLE */}
-            <div className="bg-white border border-slate-100 rounded-2xl shadow-sm hover:shadow-md transition-shadow overflow-hidden mb-6">
+            <div className="order-8 bg-white border border-slate-100 rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden mb-5">
                 <div className="p-5 border-b border-slate-100 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <Trophy className="w-5 h-5 text-amber-500" />
@@ -1416,7 +1416,7 @@ export default function AnalyticsPage() {
             </div>
 
             {/* Persona / Target Intelligence */}
-            <div className="bg-white border border-slate-100 rounded-2xl shadow-sm hover:shadow-md transition-shadow p-5 mb-6">
+            <div className="order-9 bg-white border border-slate-100 rounded-xl shadow-sm hover:shadow-md transition-shadow p-5 mb-5">
                 <div className="flex flex-wrap items-center justify-between gap-4 mb-5">
                     <div className="flex items-center gap-2">
                         <div className="w-9 h-9 rounded-xl bg-[#EEF3F1] flex items-center justify-center">
@@ -1601,7 +1601,7 @@ export default function AnalyticsPage() {
             </div>
 
             {/* JOURNAL TABLE */}
-            <div className="bg-white border border-slate-100 rounded-2xl shadow-sm hover:shadow-md transition-shadow p-5">
+            <div className="order-10 bg-white border border-slate-100 rounded-xl shadow-sm hover:shadow-md transition-shadow p-5">
                 <div className="flex items-center justify-between mb-5">
                     <div className="flex items-center gap-2">
                         <CheckCircle2 className="w-5 h-5 text-emerald-500" />
