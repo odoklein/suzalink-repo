@@ -109,6 +109,24 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
+.planning-input {
+    width: 100%;
+    min-height: 40px;
+    border: 1px solid #dce3e8;
+    border-radius: 8px;
+    background: #ffffff;
+    padding: 0 12px;
+    color: #1c3044;
+    font-size: 12px;
+    outline: none;
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.planning-input:focus {
+    border-color: #3f8c82;
+    box-shadow: 0 0 0 3px rgba(11, 90, 81, 0.1);
+}
+
 /* ============================================
    COMPONENT STYLES
    ============================================ */

@@ -15,6 +15,7 @@ export const GET = withErrorHandler(async (request: NextRequest) => {
     await requirePlanningAccess(request);
     const { searchParams } = new URL(request.url);
     const month = searchParams.get('month');
+    const includeAllCollaborators = searchParams.get('scope') === 'all';
 
     if (!month || !/^\d{4}-\d{2}$/.test(month)) {
         return errorResponse('Paramètre month requis (format YYYY-MM)', 400);
@@ -59,12 +60,16 @@ export const GET = withErrorHandler(async (request: NextRequest) => {
     });
 
     // -----------------------------------------------
-    // 2. SDRs (active SDRs and BDs) with capacity
+    // 2. Collaborators with capacity.
+    // Managers can request the complete internal team for the global calendar.
+    // The default stays SDR/BD only so the SDR planning experience is unchanged.
     // -----------------------------------------------
     const sdrs = await prisma.user.findMany({
         where: {
             isActive: true,
-            role: { in: ['SDR', 'BUSINESS_DEVELOPER'] },
+            role: includeAllCollaborators
+                ? { not: 'CLIENT' }
+                : { in: ['SDR', 'BUSINESS_DEVELOPER'] },
         },
         select: {
             id: true,

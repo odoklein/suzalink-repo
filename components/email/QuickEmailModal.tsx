@@ -113,6 +113,10 @@ export function QuickEmailModal({
     const [showAiDraftDialog, setShowAiDraftDialog] = useState(false);
 
     const editorRef = useRef<HTMLDivElement>(null);
+    const bodyHtmlRef = useRef("");
+    const bodyEditedRef = useRef(false);
+    const subjectEditedRef = useRef(false);
+    const lastAppliedTemplateRef = useRef<string | null>(null);
     const modalRef = useRef<HTMLDivElement>(null);
     const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
     useEffect(() => { setPortalContainer(document.body); }, []);
@@ -137,6 +141,10 @@ export function QuickEmailModal({
             setSelectedTemplateId("");
             setSubject("");
             setBodyHtml("");
+            bodyHtmlRef.current = "";
+            bodyEditedRef.current = false;
+            subjectEditedRef.current = false;
+            lastAppliedTemplateRef.current = null;
             setShowDomainSuggestions(false);
 
             // Set recipient from contact
@@ -253,11 +261,26 @@ export function QuickEmailModal({
 
         const missionTemplate = templates.find(t => t.template.id === selectedTemplateId);
         if (missionTemplate) {
+            const isNewTemplate = lastAppliedTemplateRef.current !== selectedTemplateId;
+            const shouldApplySubject = isNewTemplate || !subjectEditedRef.current;
+            const shouldApplyBody = isNewTemplate || !bodyEditedRef.current;
+            if (!shouldApplySubject && !shouldApplyBody) return;
+
             const tpl = missionTemplate.template;
             // Full variable substitution via the shared engine (contact + company + date vars)
             const variables = buildPreviewVariables(contact ?? null, company ?? null);
-            setSubject(substituteVariables(tpl.subject, variables));
-            setBodyHtml(substituteVariables(tpl.bodyHtml, variables));
+            const nextSubject = substituteVariables(tpl.subject, variables);
+            const nextBodyHtml = substituteVariables(tpl.bodyHtml, variables);
+            if (shouldApplySubject) {
+                setSubject(nextSubject);
+            }
+            if (shouldApplyBody) {
+                setBodyHtml(nextBodyHtml);
+                bodyHtmlRef.current = nextBodyHtml;
+                bodyEditedRef.current = false;
+            }
+            if (shouldApplySubject) subjectEditedRef.current = false;
+            lastAppliedTemplateRef.current = selectedTemplateId;
         }
     }, [selectedTemplateId, templates, contact, company]);
 
@@ -286,7 +309,7 @@ export function QuickEmailModal({
                     companyId: company?.id || contact?.company?.id,
                     missionId: missionId ?? undefined,
                     customSubject: subject,
-                    customBodyHtml: bodyHtml,
+                    customBodyHtml: bodyHtmlRef.current,
                 }),
             });
 
@@ -662,7 +685,10 @@ export function QuickEmailModal({
                                     <input
                                         type="text"
                                         value={subject}
-                                        onChange={(e) => setSubject(e.target.value)}
+                                        onChange={(e) => {
+                                            subjectEditedRef.current = true;
+                                            setSubject(e.target.value);
+                                        }}
                                         readOnly={!isEditing}
                                         className={cn(
                                             "w-full h-11 px-4 border rounded-xl text-slate-900 text-sm transition-all",
@@ -717,7 +743,11 @@ export function QuickEmailModal({
                                                 ref={editorRef}
                                                 contentEditable={isEditing}
                                                 suppressContentEditableWarning
-                                                onInput={(e) => setBodyHtml(e.currentTarget.innerHTML)}
+                                                onInput={(e) => {
+                                                    bodyHtmlRef.current = e.currentTarget.innerHTML;
+                                                    bodyEditedRef.current = true;
+                                                }}
+                                                onBlur={() => setBodyHtml(bodyHtmlRef.current)}
                                                 className={cn(
                                                     "min-h-[200px] max-h-[300px] overflow-y-auto p-4 text-sm text-slate-700 email-scrollbar",
                                                     isEditing ? "bg-white focus:outline-none" : "bg-slate-50"
@@ -735,7 +765,10 @@ export function QuickEmailModal({
                             onClose={() => setShowAiDraftDialog(false)}
                             subject={subject}
                             onInsert={(html) => {
-                                setBodyHtml((prev) => prev + html);
+                                const nextBodyHtml = bodyHtmlRef.current + html;
+                                bodyHtmlRef.current = nextBodyHtml;
+                                bodyEditedRef.current = true;
+                                setBodyHtml(nextBodyHtml);
                                 setShowAiDraftDialog(false);
                             }}
                         />
