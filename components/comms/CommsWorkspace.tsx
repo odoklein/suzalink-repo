@@ -762,9 +762,9 @@ export function CommsWorkspace() {
     };
 
     return (
-        <div className="flex h-full min-h-0 flex-col overflow-hidden bg-white dark:bg-slate-950">
+        <div className="flex h-full min-h-0 flex-col overflow-hidden bg-[#F8F7F3] dark:bg-slate-950">
             {!focusMode && (
-                <div className="shrink-0 border-b border-slate-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-[#151c2a] sm:px-6 sm:py-4">
+                <div className="shrink-0 border-b border-[#E7E5DE] bg-[#F8F7F3] px-5 py-3 dark:border-slate-800 dark:bg-[#151c2a] sm:px-7">
                     <CommsPageHeader
                         title="Communications"
                         subtitle={
@@ -774,14 +774,14 @@ export function CommsWorkspace() {
                                   ? `${threads.length} discussion${threads.length !== 1 ? "s" : ""}, ${totalUnread} non lue${totalUnread !== 1 ? "s" : ""}`
                                   : `${threads.length} discussion${threads.length !== 1 ? "s" : ""}, tout est à jour`
                         }
-                        icon={<MessageSquare className="size-6 text-white" />}
+                        icon={null}
                         actions={
                             <>
                                 <button
                                     type="button"
                                     onClick={() => void fetchThreads(true)}
                                     disabled={isRefreshing}
-                                    className="inline-flex size-9 items-center justify-center rounded-[10px] border border-slate-200 bg-white text-slate-500 transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0C3B38]/25 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800"
+                                    className="inline-flex size-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-white hover:text-[#0C3B38] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0C3B38]/25 disabled:opacity-50"
                                     aria-label="Actualiser les discussions"
                                     title="Actualiser"
                                 >
@@ -790,7 +790,7 @@ export function CommsWorkspace() {
                                 <button
                                     type="button"
                                     onClick={() => setShowSearchPanel(true)}
-                                    className="inline-flex size-9 items-center justify-center rounded-[10px] border border-slate-200 bg-white text-slate-500 transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0C3B38]/25 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800"
+                                    className="inline-flex size-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-white hover:text-[#0C3B38] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0C3B38]/25"
                                     aria-label="Ouvrir la recherche avancée"
                                     title="Recherche avancée"
                                 >
@@ -802,7 +802,7 @@ export function CommsWorkspace() {
                                     size="sm"
                                     onClick={() => setShowNewThreadModal(true)}
                                     title="Nouveau message (N)"
-                                    className="h-9 px-3 sm:px-4"
+                                    className="h-8 px-3 text-xs sm:px-3.5"
                                 >
                                     <Plus className="size-4" />
                                     <span className="hidden sm:inline">Nouveau message</span>
@@ -815,27 +815,27 @@ export function CommsWorkspace() {
 
             <div
                 className={cn(
-                    "flex min-h-0 flex-1 overflow-hidden bg-white dark:bg-[#151c2a]",
+                    "flex min-h-0 flex-1 gap-3 overflow-hidden bg-[#F8F7F3] px-3 pb-3 dark:bg-[#151c2a] sm:px-4",
                     focusMode && "fixed inset-0 z-50"
                 )}
             >
                 <section
                     aria-label="Liste des discussions"
                     className={cn(
-                        "min-h-0 w-full shrink-0 flex-col border-slate-200 bg-white dark:border-slate-800 dark:bg-[#151c2a] md:border-r",
+                        "min-h-0 w-full shrink-0 flex-col bg-white dark:bg-[#151c2a] md:rounded-xl md:shadow-[0_1px_2px_rgba(12,59,56,0.04)]",
                         focusMode || selectedThread ? "hidden md:flex" : "flex",
-                        isListCollapsed ? "md:w-14" : "md:w-[340px] xl:w-[380px]"
+                        isListCollapsed ? "md:w-14" : "md:w-[320px] xl:w-[336px]"
                     )}
                 >
                     <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-                        <div className={cn("shrink-0 border-b border-slate-100 p-4 dark:border-slate-800", isListCollapsed && "md:p-2")}>
+                        <div className={cn("shrink-0 border-b border-[#EFEEE9] px-4 py-3 dark:border-slate-800", isListCollapsed && "md:p-2")}>
                             {!isListCollapsed ? (
                                 <>
-                                    <div className="mb-3 flex items-center justify-between">
+                                    <div className="mb-2.5 flex items-center justify-between">
                                         <div className="flex min-w-0 items-center gap-2">
-                                            <h2 className="text-base font-bold text-[#12122A] dark:text-white">Discussions</h2>
+                                            <h2 className="text-sm font-semibold text-[#0C3B38] dark:text-white">Discussions</h2>
                                             {totalUnread > 0 && (
-                                                <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-[#0C3B38] px-1.5 py-0.5 text-[10px] font-bold text-white">
+                                                <span className="inline-flex min-w-5 items-center justify-center rounded-md bg-[#F4E8CF] px-1.5 py-0.5 text-[10px] font-semibold text-[#956A1D]">
                                                     {totalUnread > 99 ? "99+" : totalUnread}
                                                 </span>
                                             )}
@@ -843,7 +843,7 @@ export function CommsWorkspace() {
                                         <button
                                             type="button"
                                             onClick={() => setIsListCollapsed(true)}
-                                            className="hidden size-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0C3B38]/25 dark:hover:bg-slate-800 dark:hover:text-white md:inline-flex"
+                                            className="hidden size-7 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-[#F8F7F3] hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0C3B38]/25 dark:hover:bg-slate-800 dark:hover:text-white md:inline-flex"
                                             aria-label="Réduire la liste"
                                             title="Réduire la liste"
                                         >
@@ -872,19 +872,19 @@ export function CommsWorkspace() {
                                                 <X className="size-3.5" />
                                             </button>
                                         ) : undefined}
-                                        className="h-10 bg-slate-50 !text-slate-900 placeholder:!text-slate-400 dark:border-slate-700 dark:bg-slate-900 dark:!text-white"
+                                        className="h-8 border-0 bg-[#F5F4F0] !text-slate-900 placeholder:!text-slate-400 dark:border-slate-700 dark:bg-slate-900 dark:!text-white"
                                     />
 
-                                    <div className="-mx-4 mt-3 flex gap-1.5 overflow-x-auto px-4 pb-1 no-scrollbar" role="group" aria-label="Filtres des discussions">
+                                    <div className="-mx-4 mt-2.5 flex gap-1 overflow-x-auto px-4 pb-1 no-scrollbar" role="group" aria-label="Filtres des discussions">
                                         <button
                                             type="button"
                                             onClick={() => setFilters((previous) => ({ ...previous, unreadOnly: !previous.unreadOnly }))}
                                             aria-pressed={Boolean(filters.unreadOnly)}
                                             className={cn(
-                                                "inline-flex h-8 shrink-0 items-center justify-center rounded-lg border px-2.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0C3B38]/25",
+                                                "inline-flex h-7 shrink-0 items-center justify-center rounded-md border border-transparent px-2 text-[11px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0C3B38]/25",
                                                 filters.unreadOnly
                                                     ? "border-[#0C3B38]/25 bg-[#0C3B38]/10 text-[#0C3B38] dark:text-emerald-300"
-                                                    : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                                                    : "bg-transparent text-slate-500 hover:bg-[#F5F4F0] dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
                                             )}
                                         >
                                             Non lus{totalUnread > 0 ? ` ${totalUnread}` : ""}
@@ -900,10 +900,10 @@ export function CommsWorkspace() {
                                                     onClick={() => handleFilterChange(option.type)}
                                                     aria-pressed={isActive}
                                                     className={cn(
-                                                        "inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-lg border px-2.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0C3B38]/25",
+                                                        "inline-flex h-7 shrink-0 items-center justify-center gap-1 rounded-md border border-transparent px-2 text-[11px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0C3B38]/25",
                                                         isActive
                                                             ? "border-[#0C3B38]/25 bg-[#0C3B38]/10 text-[#0C3B38] dark:text-emerald-300"
-                                                            : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                                                            : "bg-transparent text-slate-500 hover:bg-[#F5F4F0] dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
                                                     )}
                                                 >
                                                     <Icon className="size-3.5" />

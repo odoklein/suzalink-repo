@@ -122,7 +122,7 @@ export function ThreadList({
     }
 
     return (
-        <div className="flex flex-col p-1.5 gap-0.5">
+            <div className="flex flex-col gap-1 px-2 py-2">
             {threads.map((thread) => {
                 const ChannelIcon = CHANNEL_ICONS[thread.channelType];
                 const isSelected = selectedId === thread.id;
@@ -143,23 +143,23 @@ export function ThreadList({
                         aria-current={isSelected ? "true" : undefined}
                         aria-label={`${displayName}${hasUnread ? `, ${thread.unreadCount} non lu${thread.unreadCount > 1 ? "s" : ""}` : ""}`}
                         className={cn(
-                            "w-full text-left flex items-start gap-3 p-3 rounded-xl relative group transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#0C3B38]/30",
+                            "w-full text-left flex items-start gap-2.5 px-2.5 py-2 rounded-lg relative group transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#0C3B38]/30",
                             isSelected
-                                ? "bg-[#0C3B38]/[0.07] dark:bg-emerald-950/30"
-                                : "hover:bg-[#F4F0E8]/60 dark:hover:bg-slate-800/70",
-                            hasUnread && !isSelected && "bg-[#FFF9F0]/50 dark:bg-slate-800/35"
+                                ? "bg-[#EEF4F0] dark:bg-emerald-950/30"
+                                : "hover:bg-[#F7F6F2] dark:hover:bg-slate-800/70",
+                            hasUnread && !isSelected && "bg-[#FFFBF4] dark:bg-slate-800/35"
                         )}
                     >
                         {isSelected && (
-                            <div className="absolute left-0 top-3 bottom-3 w-[3px] bg-[#0C3B38] rounded-r-full" />
+                            <div className="absolute left-0 top-2 bottom-2 w-0.5 bg-[#0C3B38] rounded-r-full" />
                         )}
 
                         <div
                             className={cn(
-                                "size-10 rounded-full flex items-center justify-center shrink-0 transition-all duration-200",
+                                "size-8 rounded-full flex items-center justify-center shrink-0 transition-all duration-200",
                                 thread.channelType === "DIRECT"
-                                    ? "bg-gradient-to-br from-[#0C3B38] to-[#25745f] text-white text-[13px] font-bold shadow-sm"
-                                    : cn("shadow-sm", CHANNEL_COLORS[thread.channelType])
+                                    ? "bg-[#0C3B38] text-white text-[11px] font-bold"
+                                    : cn(CHANNEL_COLORS[thread.channelType])
                             )}
                         >
                             {thread.channelType === "DIRECT" ? (
@@ -173,7 +173,7 @@ export function ThreadList({
                             <div className="flex justify-between items-center mb-0.5 gap-2">
                                 <p
                                     className={cn(
-                                        "text-[13px] truncate",
+                                        "text-[12px] truncate",
                                         hasUnread
                                             ? "font-bold text-[#12122A] dark:text-white"
                                             : "font-semibold text-[#12122A] dark:text-slate-200"
@@ -183,7 +183,7 @@ export function ThreadList({
                                 </p>
                                 <span
                                     className={cn(
-                                        "text-[11px] shrink-0 font-medium",
+                                        "text-[10px] shrink-0 font-medium",
                                         hasUnread
                                             ? "text-[#0C3B38] font-semibold"
                                             : "text-[#8B8BA7]"
@@ -194,7 +194,7 @@ export function ThreadList({
                             </div>
 
                             {thread.subject && thread.channelType !== "DIRECT" && (
-                                <p className="text-[12px] text-[#5A5A7A] dark:text-slate-400 font-medium truncate mb-0.5">
+                                <p className="text-[11px] text-[#5A5A7A] dark:text-slate-400 font-medium truncate mb-0.5">
                                     {thread.subject}
                                 </p>
                             )}
@@ -202,7 +202,7 @@ export function ThreadList({
                             {lastPreview && (
                                 <p
                                     className={cn(
-                                        "text-[12px] truncate leading-relaxed",
+                                        "text-[11px] truncate leading-relaxed",
                                         hasUnread
                                             ? "text-[#3A3A5A] dark:text-slate-300 font-medium"
                                             : "text-[#8B8BA7] dark:text-slate-500"
@@ -212,10 +212,10 @@ export function ThreadList({
                                 </p>
                             )}
 
-                            <div className="mt-1.5 flex items-center gap-1.5">
+                            <div className="mt-1 flex items-center gap-1.5">
                                 {thread.channelType !== "DIRECT" && (
                                     <span className={cn(
-                                        "text-[10px] font-semibold rounded-md px-1.5 py-0.5",
+                                        "text-[9px] font-semibold rounded px-1.5 py-0.5",
                                         CHANNEL_COLORS[thread.channelType]
                                     )}>
                                         {CHANNEL_TAGS[thread.channelType]}

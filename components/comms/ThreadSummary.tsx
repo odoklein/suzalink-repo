@@ -73,15 +73,15 @@ export function ThreadSummary({ threadId, className }: ThreadSummaryProps) {
     };
 
     return (
-        <div className={cn("border-b border-slate-200", className)}>
+        <div className={cn("border-b border-[#EFEEE9] bg-[#FBFAF6]", className)}>
             <button
                 onClick={fetchSummary}
                 disabled={isLoading}
-                className="w-full px-4 py-2 flex items-center justify-between hover:bg-slate-50 transition-colors"
+                className="w-full px-5 py-2 flex items-center justify-between hover:bg-[#F6F4EE] transition-colors"
             >
                 <div className="flex items-center gap-2 text-sm">
-                    <Sparkles className="w-4 h-4 text-indigo-500" />
-                    <span className="font-medium text-slate-700">Résumé IA</span>
+                    <Sparkles className="w-3.5 h-3.5 text-[#B47B21]" />
+                    <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#6F756E]">Résumé IA</span>
                 </div>
                 {isLoading ? (
                     <Loader2 className="w-4 h-4 animate-spin text-slate-400" />

@@ -19,7 +19,7 @@ export function CommsPageHeader({
     return (
         <header
             className={cn(
-                "flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between",
+                "flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between",
                 className
             )}
         >
@@ -30,11 +30,11 @@ export function CommsPageHeader({
                     </div>
                 )}
                 <div className="min-w-0">
-                    <h1 className="truncate text-lg font-bold tracking-tight text-[#12122A] dark:text-white sm:text-xl">
+                        <h1 className="truncate text-[17px] font-semibold tracking-[-0.02em] text-[#0C3B38] dark:text-white sm:text-lg">
                         {title}
                     </h1>
                     {subtitle && (
-                        <p className="mt-0.5 truncate text-xs text-slate-500 dark:text-slate-400 sm:text-[13px]">
+                        <p className="mt-0.5 truncate text-[11px] text-slate-500 dark:text-slate-400 sm:text-xs">
                             {subtitle}
                         </p>
                     )}

@@ -193,8 +193,8 @@ export function ThreadView({
     const threadTitle = getThreadTitle();
 
     return (
-        <div className="flex h-full w-full min-w-0 flex-col bg-white dark:bg-[#151c2a]">
-            <header className="h-14 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between px-3 sm:px-5 bg-white dark:bg-[#151c2a] z-10 shrink-0">
+        <div className="flex h-full w-full min-w-0 flex-col rounded-xl bg-white shadow-[0_1px_2px_rgba(12,59,56,0.04)] dark:bg-[#151c2a]">
+            <header className="h-14 border-b border-[#EFEEE9] dark:border-slate-800 flex items-center justify-between px-4 sm:px-6 bg-white dark:bg-[#151c2a] z-10 shrink-0 rounded-t-xl">
                 <div className="flex items-center gap-3 min-w-0">
                     <button
                         type="button"
@@ -204,12 +204,12 @@ export function ThreadView({
                     >
                         <ArrowLeft className="size-4" />
                     </button>
-                    <div className="size-9 rounded-full bg-gradient-to-br from-[#0C3B38] to-[#25745f] flex items-center justify-center text-xs font-bold text-white shrink-0 shadow-sm">
+                    <div className="size-8 rounded-full bg-[#0C3B38] flex items-center justify-center text-[11px] font-bold text-white shrink-0">
                         {threadTitle.charAt(0).toUpperCase()}
                     </div>
                     <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                            <h3 className="font-bold text-[#12122A] dark:text-white truncate text-[14px]">{threadTitle}</h3>
+                            <h3 className="font-semibold text-[#12122A] dark:text-white truncate text-[13px]">{threadTitle}</h3>
                             {isRecipientOnline && (
                                 <span className="relative flex h-2 w-2 items-center justify-center shrink-0" title="En ligne">
                                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -321,7 +321,7 @@ export function ThreadView({
 
             {thread.messages.length >= 5 && <ThreadSummary threadId={thread.id} />}
 
-            <div className="relative flex-1 min-h-0 bg-[#FAFAF8] dark:bg-slate-900/50">
+            <div className="relative flex-1 min-h-0 bg-[#FCFCFA] dark:bg-slate-900/50">
             <div
                 ref={messagesContainerRef}
                 onScroll={(event) => {
@@ -331,7 +331,7 @@ export function ThreadView({
                     isNearBottomRef.current = isNearBottom;
                     if (isNearBottom && showJumpToLatest) setShowJumpToLatest(false);
                 }}
-                className="h-full overflow-y-auto px-3 py-5 space-y-1 sm:px-5"
+                className="h-full overflow-y-auto px-4 py-6 space-y-1 sm:px-10 lg:px-16"
                 style={{ scrollbarWidth: "thin", scrollbarColor: "#D4D0C8 transparent" }}
                 aria-live="polite"
             >
@@ -385,8 +385,8 @@ export function ThreadView({
             </div>
 
             {thread.status === "OPEN" && !thread.isBroadcast && (
-                <div className="p-4 bg-white dark:bg-[#151c2a] border-t border-slate-100 dark:border-slate-800 shrink-0">
-                    <div className="max-w-4xl mx-auto flex flex-col gap-2">
+                <div className="px-4 pb-4 pt-3 bg-white dark:bg-[#151c2a] border-t border-[#EFEEE9] dark:border-slate-800 shrink-0 rounded-b-xl">
+                    <div className="max-w-4xl mx-auto flex flex-col gap-1.5">
                         {!messageContent && thread.messages.length > 0 && (
                             <div className="flex gap-2 mb-1">
                                 <SuggestionChips threadId={thread.id} onSelect={setMessageContent} />
@@ -394,7 +394,7 @@ export function ThreadView({
                             </div>
                         )}
                         <MessageAttachments files={files} onChange={setFiles} disabled={isSending} />
-                        <div className="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#0C3B38]/15 focus-within:border-[#0C3B38]/40 transition-all duration-200">
+                        <div className="relative bg-white dark:bg-slate-900 border border-[#DCDDD6] dark:border-slate-700 rounded-[10px] focus-within:ring-2 focus-within:ring-[#0C3B38]/10 focus-within:border-[#0C3B38]/40 transition-all duration-200">
                             <RichTextEditor
                                 value={messageContent}
                                 onChange={(v, ids) => {
@@ -407,12 +407,13 @@ export function ThreadView({
                                 placeholder="Écrire un message... @mention pour notifier"
                                 disabled={isSending}
                                 mentionOptions={mentionOptions}
-                                minRows={2}
-                                maxRows={6}
+                                minRows={1}
+                                maxRows={5}
                             />
-                            <div className="flex justify-between items-center px-3 pb-2 pt-1.5 border-t border-slate-100/80 dark:border-slate-800">
+                            <div className="flex justify-between items-center px-3 pb-1.5 pt-1 border-t border-[#F0EFEA] dark:border-slate-800">
                                 <div className="flex items-center gap-2 text-[11px] text-[#8B8BA7]">
                                     <span className="hidden sm:inline">Visible par tous les participants</span>
+                                    <span className="hidden md:inline text-slate-300">⌘ Entrée</span>
                                 </div>
                                 <div className="flex gap-2">
                                     <button
@@ -420,7 +421,7 @@ export function ThreadView({
                                         onClick={handleSend}
                                         disabled={(!messageContent.trim() && files.length === 0) || isSending}
                                         className={cn(
-                                            "flex items-center gap-2 px-4 py-2 rounded-lg text-[13px] font-semibold transition-all duration-200 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0C3B38]/30 focus-visible:ring-offset-2 active:translate-y-px",
+                                            "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0C3B38]/30 focus-visible:ring-offset-2 active:translate-y-px",
                                             (messageContent.trim() || files.length > 0)
                                                 ? "bg-[#0C3B38] hover:bg-[#0A322F] text-white shadow-[#0C3B38]/20"
                                                 : "bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed"
@@ -494,7 +495,7 @@ function MessageBubble({
                 </div>
             ) : <div className="size-7 flex-shrink-0 w-[26px]" />}
 
-            <div className={cn("flex flex-col gap-0.5 max-w-[75%]", isOwn && "items-end")}>
+            <div className={cn("flex flex-col gap-0.5 max-w-[min(78%,680px)]", isOwn && "items-end")}>
                 {showAvatar && (
                     <div className={cn("flex items-baseline gap-1.5 px-0.5", isOwn && "flex-row-reverse")}>
                         <span className="text-[12px] font-bold text-[#12122A] dark:text-white">{isOwn ? "Vous" : message.author.name}</span>
@@ -507,11 +508,11 @@ function MessageBubble({
                     </div>
                 )}
                 <div className={cn(
-                    "px-3.5 py-2.5 text-[13px] leading-relaxed",
+                    "px-3 py-2 text-[12px] leading-relaxed",
                     (message as { isOptimistic?: boolean }).isOptimistic && "opacity-80",
                     isOwn
-                        ? "bg-[#0C3B38] text-white rounded-2xl rounded-tr-md shadow-sm"
-                        : "bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 text-[#12122A] dark:text-slate-200 rounded-2xl rounded-tl-md shadow-sm"
+                        ? "bg-[#0C3B38] text-white rounded-[10px] rounded-tr-md"
+                        : "bg-white dark:bg-slate-800 border border-[#EAE9E3] dark:border-slate-700 text-[#12122A] dark:text-slate-200 rounded-[10px] rounded-tl-md"
                 )}>
                     <MessageContent content={message.content} isOwn={isOwn} className={isOwn ? "text-white" : ""} />
                     {message.isEdited && <span className={cn("text-[10px] ml-2", isOwn ? "text-white/50" : "text-[#8B8BA7]")}>(modifié)</span>}
