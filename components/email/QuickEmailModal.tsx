@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
+import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { buildPreviewVariables, substituteVariables } from "@/lib/email/template-format";
 import {
@@ -69,7 +70,7 @@ interface MissionTemplate {
 interface QuickEmailModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSent?: () => void;
+    onSent?: () => void | Promise<void>;
     contact?: Contact | null;
     company?: Company | null;
     missionId?: string | null;
@@ -92,6 +93,7 @@ export function QuickEmailModal({
     missionName,
     preferredMailboxId,
 }: QuickEmailModalProps) {
+    const router = useRouter();
     // State
     const [mailboxes, setMailboxes] = useState<Mailbox[]>([]);
     const [selectedMailboxId, setSelectedMailboxId] = useState<string>("");
@@ -186,7 +188,7 @@ export function QuickEmailModal({
         setIsLoadingMailboxes(true);
         setFetchMailboxError(false);
         try {
-            const res = await fetch("/api/email/mailboxes?includeShared=true");
+            const res = await fetch("/api/email/mailboxes?includeShared=true&sendableOnly=true");
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const json = await res.json();
             if (json.success) {
@@ -333,10 +335,7 @@ export function QuickEmailModal({
 
             if (res.ok && json?.success) {
                 setSentSuccess(true);
-                setTimeout(() => {
-                    onClose();
-                    onSent?.();
-                }, 1500);
+                await onSent?.();
             } else {
                 setError(json?.error || `Erreur lors de l'envoi (${res.status})`);
             }
@@ -452,6 +451,25 @@ export function QuickEmailModal({
                         </div>
                         <h3 className="text-xl font-semibold text-slate-900 mb-2">Email envoyé !</h3>
                         <p className="text-slate-500">Votre email a été envoyé avec succès</p>
+                        <div className="mt-7 flex flex-col sm:flex-row items-center gap-3">
+                            <button
+                                type="button"
+                                onClick={onClose}
+                                className="h-10 px-4 rounded-lg border border-[#CBD8D4] bg-white text-sm font-semibold text-[#1F4D47] hover:bg-[#F1F4F3] active:translate-y-px transition-colors"
+                            >
+                                Continuer la prospection
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    onClose();
+                                    router.push("/sdr/emails/sent");
+                                }}
+                                className="h-10 px-4 rounded-lg bg-[#1F4D47] text-sm font-semibold text-white hover:bg-[#173A35] active:translate-y-px transition-colors"
+                            >
+                                Voir mes envois
+                            </button>
+                        </div>
                     </div>
                 ) : fetchMailboxError ? (
                     <div className="flex-1 flex flex-col items-center justify-center py-16 px-6">
@@ -478,12 +496,19 @@ export function QuickEmailModal({
                         <p className="text-slate-500 text-center mb-4">
                             Connectez une boîte mail pour pouvoir envoyer des emails
                         </p>
-                        <a
-                            href="/manager/email"
-                            className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-500 transition-colors"
+                        <p className="text-xs text-slate-400 text-center mb-5">
+                            Connectez votre boîte personnelle dans l&apos;espace Email ou demandez à votre manager de vous attribuer une boîte partagée.
+                        </p>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                onClose();
+                                router.push("/sdr/email");
+                            }}
+                            className="px-4 py-2 bg-[#1F4D47] text-white text-sm font-medium rounded-lg hover:bg-[#173A35] transition-colors"
                         >
-                            Connecter une boîte mail
-                        </a>
+                            Ouvrir l&apos;espace Email
+                        </button>
                     </div>
                 ) : (
                     <>

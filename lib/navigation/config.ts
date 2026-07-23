@@ -26,6 +26,7 @@ import {
   Key,
   Brain,
   BookOpen,
+  Send,
 } from "lucide-react";
 import { UserRole } from "@prisma/client";
 
@@ -82,9 +83,29 @@ export const MANAGER_NAV: NavSection[] = [
       },
       {
         href: "/manager/email",
-        icon: Inbox,
-        label: "Boîte de réception",
+        icon: Mail,
+        label: "Email",
         permission: "pages.email",
+        children: [
+          {
+            href: "/manager/email/overview",
+            icon: LayoutDashboard,
+            label: "Cockpit email",
+            permission: "pages.email",
+          },
+          {
+            href: "/manager/email/sent",
+            icon: Send,
+            label: "Envois équipe",
+            permission: "pages.email",
+          },
+          {
+            href: "/manager/email/mailboxes",
+            icon: Inbox,
+            label: "Boîtes mail",
+            permission: "pages.email",
+          },
+        ],
       },
     ],
   },
@@ -298,9 +319,17 @@ export const SDR_NAV: NavSection[] = [
       },
       {
         href: "/sdr/email",
-        icon: Inbox,
-        label: "Boîte de réception",
+        icon: Mail,
+        label: "Email",
         permission: "pages.email",
+        children: [
+          {
+            href: "/sdr/emails/sent",
+            icon: Send,
+            label: "Mes envois",
+            permission: "pages.email",
+          },
+        ],
       },
     ],
   },

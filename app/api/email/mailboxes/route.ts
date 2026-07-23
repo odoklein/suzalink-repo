@@ -34,6 +34,7 @@ export async function GET(req: NextRequest) {
 
         const { searchParams } = new URL(req.url);
         const includeShared = searchParams.get('includeShared') === 'true';
+        const sendableOnly = searchParams.get('sendableOnly') === 'true';
         const includeInactive = searchParams.get('includeInactive') === 'true';
         const type = searchParams.get('type') as MailboxType | null;
 
@@ -79,7 +80,7 @@ export async function GET(req: NextRequest) {
             const permissions = await prisma.mailboxPermission.findMany({
                 where: {
                     userId: session.user.id,
-                    canRead: true,
+                    ...(sendableOnly ? { canSend: true } : { canRead: true }),
                 },
                 include: {
                     mailbox: {

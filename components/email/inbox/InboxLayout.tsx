@@ -21,6 +21,8 @@ import {
     CheckCircle2,
     AlertCircle,
     X,
+    LayoutDashboard,
+    Send,
 } from "lucide-react";
 
 // ============================================
@@ -420,6 +422,32 @@ export function InboxLayout({
 
                 {/* Right: Actions */}
                 <div className="flex items-center gap-1">
+                    {showTeamInbox ? (
+                        <>
+                            <Link
+                                href="/manager/email/overview"
+                                className="hidden md:flex items-center gap-1.5 h-9 px-3 rounded-lg border border-[#DDE5E2] bg-white text-xs font-semibold text-slate-600 hover:bg-[#F1F4F3] hover:text-[#1F4D47] transition-colors"
+                            >
+                                <LayoutDashboard className="w-3.5 h-3.5" />
+                                Cockpit
+                            </Link>
+                            <Link
+                                href="/manager/email/sent"
+                                className="hidden sm:flex items-center gap-1.5 h-9 px-3 rounded-lg border border-[#DDE5E2] bg-white text-xs font-semibold text-slate-600 hover:bg-[#F1F4F3] hover:text-[#1F4D47] transition-colors"
+                            >
+                                <Send className="w-3.5 h-3.5" />
+                                Envois équipe
+                            </Link>
+                        </>
+                    ) : (
+                        <Link
+                            href="/sdr/emails/sent"
+                            className="flex items-center gap-1.5 h-9 px-3 rounded-lg border border-[#DDE5E2] bg-white text-xs font-semibold text-slate-600 hover:bg-[#F1F4F3] hover:text-[#1F4D47] transition-colors"
+                        >
+                            <Send className="w-3.5 h-3.5" />
+                            <span className="hidden sm:inline">Mes envois</span>
+                        </Link>
+                    )}
                     <button
                         onClick={handleSync}
                         disabled={isSyncing}

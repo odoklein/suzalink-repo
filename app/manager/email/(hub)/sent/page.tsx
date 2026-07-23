@@ -58,6 +58,11 @@ interface SentEmail {
     } | null;
     sentBy: { id: string; name: string | null; email: string } | null;
     template: { id: string; name: string } | null;
+    fromAddress?: string;
+    toAddresses?: string[];
+    bodyText?: string | null;
+    bodyHtml?: string | null;
+    errorMessage?: string | null;
 }
 
 interface EmailStats {
@@ -309,11 +314,13 @@ export default function ManagerSentEmailsPage() {
         const params = new URLSearchParams();
         if (missionFilter) params.set("missionId", missionFilter);
         if (sdrFilter) params.set("sdrId", sdrFilter);
+        if (searchQuery) params.set("search", searchQuery);
         if (statusFilter) params.set("status", statusFilter);
+        if (hasOpenedFilter) params.set("hasOpened", hasOpenedFilter);
+        if (hasClickedFilter) params.set("hasClicked", hasClickedFilter);
         if (dateFrom) params.set("dateFrom", dateFrom);
         if (dateTo) params.set("dateTo", dateTo);
-        params.set("limit", "5000");
-        window.open(`/api/manager/emails/sent?${params}&format=csv`, "_blank");
+        window.open(`/api/manager/emails/sent/export?${params}`, "_blank");
     };
 
     const formatDate = (d: string | null) => {
@@ -344,6 +351,8 @@ export default function ManagerSentEmailsPage() {
                     <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Emails envoyés — Équipe</h1>
                     <p className="text-sm text-slate-500 mt-1">Suivi de tous les emails sortants de l&apos;équipe avec statistiques</p>
                 </div>
+                <div className="flex items-center gap-2">
+                    <a href="/manager/email/mailboxes" className="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all">Contrôler les boîtes</a>
                 <button
                     onClick={handleExport}
                     className="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all"
@@ -351,6 +360,7 @@ export default function ManagerSentEmailsPage() {
                     <Download className="w-4 h-4" />
                     Exporter CSV
                 </button>
+                </div>
             </div>
 
             {/* Stats */}
@@ -632,10 +642,13 @@ export default function ManagerSentEmailsPage() {
                                                             )}
                                                         </div>
                                                         <p className="text-xs text-slate-500 mb-2"><strong>Objet :</strong> {e.subject || "Sans sujet"}</p>
+                                                        <p className="text-xs text-slate-500 mb-2"><strong>Destinataire :</strong> {e.toAddresses?.join(", ") || contactName(e)}</p>
                                                         <p className="text-xs text-slate-500 mb-2"><strong>Envoyé le :</strong> {formatDate(e.sentAt)}</p>
                                                         {e.openCount > 0 && e.firstOpenedAt && (
                                                             <p className="text-xs text-emerald-600 mb-2"><strong>Premier ouverture :</strong> {formatDate(e.firstOpenedAt)}</p>
                                                         )}
+                                                        {e.errorMessage && <p className="text-xs text-red-600 mb-2"><strong>Erreur :</strong> {e.errorMessage}</p>}
+                                                        <div className="mt-3 max-h-48 overflow-y-auto whitespace-pre-wrap rounded-lg border border-slate-100 bg-slate-50 p-3 text-xs leading-6 text-slate-700">{e.bodyText || "Contenu indisponible"}</div>
                                                     </div>
                                                 </td>
                                             </tr>

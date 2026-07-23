@@ -57,6 +57,11 @@ interface SentEmail {
     } | null;
     mission: { id: string; name: string } | null;
     template: { id: string; name: string } | null;
+    fromAddress?: string;
+    toAddresses?: string[];
+    bodyText?: string | null;
+    bodyHtml?: string | null;
+    errorMessage?: string | null;
 }
 
 interface EmailStats {
@@ -227,6 +232,7 @@ export default function SDRMissionEmailsSentPage() {
     // Selection
     const [selected, setSelected] = useState<Set<string>>(new Set());
     const [showFilters, setShowFilters] = useState(false);
+    const [previewEmail, setPreviewEmail] = useState<SentEmail | null>(null);
 
     // Fetch missions
     useEffect(() => {
@@ -709,11 +715,12 @@ export default function SDRMissionEmailsSentPage() {
                                     <tr
                                         key={e.id}
                                         className={cn(
-                                            "group transition-colors",
+                                            "group transition-colors cursor-pointer",
                                             selected.has(e.id)
                                                 ? "bg-indigo-50/40"
                                                 : "hover:bg-slate-50/80"
                                         )}
+                                        onClick={() => setPreviewEmail(e)}
                                         style={{ animationDelay: `${idx * 20}ms` }}
                                     >
                                         <td className="py-3.5 px-4">
@@ -721,8 +728,9 @@ export default function SDRMissionEmailsSentPage() {
                                                 type="checkbox"
                                                 checked={selected.has(e.id)}
                                                 onChange={() => toggleSelect(e.id)}
-                                                className="rounded-[4px] border-slate-300 text-indigo-600 focus:ring-indigo-500/20 w-4 h-4"
-                                            />
+                                            className="rounded-[4px] border-slate-300 text-indigo-600 focus:ring-indigo-500/20 w-4 h-4"
+                                            onClick={(ev) => ev.stopPropagation()}
+                                        />
                                         </td>
                                         <td className="py-3.5 px-4">
                                             <div className="min-w-[200px]">
@@ -851,6 +859,32 @@ export default function SDRMissionEmailsSentPage() {
                                 <ChevronRight className="w-4 h-4" />
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {previewEmail && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4" onClick={() => setPreviewEmail(null)}>
+                    <div className="w-full max-w-2xl max-h-[85vh] overflow-hidden rounded-2xl bg-white shadow-2xl" onClick={(ev) => ev.stopPropagation()}>
+                        <div className="flex items-start justify-between border-b border-slate-100 px-6 py-5">
+                            <div className="min-w-0">
+                                <div className="flex items-center gap-2"><Send className="h-4 w-4 text-indigo-600" /><StatusBadge status={previewEmail.status} /></div>
+                                <h2 className="mt-2 truncate text-lg font-bold text-slate-900">{previewEmail.subject || "Sans sujet"}</h2>
+                                <p className="mt-1 text-xs text-slate-500">À {previewEmail.toAddresses?.join(", ") || contactName(previewEmail)} · {formatDate(previewEmail.sentAt)}</p>
+                            </div>
+                            <button onClick={() => setPreviewEmail(null)} className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label="Fermer"><X className="h-4 w-4" /></button>
+                        </div>
+                        <div className="max-h-[60vh] overflow-y-auto px-6 py-5">
+                            <div className="mb-4 flex flex-wrap gap-2 text-xs text-slate-600">
+                                {previewEmail.mission && <span className="rounded-full bg-slate-100 px-2.5 py-1">Mission · {previewEmail.mission.name}</span>}
+                                {previewEmail.template && <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-indigo-700">Template · {previewEmail.template.name}</span>}
+                                <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-emerald-700">{previewEmail.openCount} ouverture{previewEmail.openCount === 1 ? "" : "s"}</span>
+                                <span className="rounded-full bg-blue-50 px-2.5 py-1 text-blue-700">{previewEmail.clickCount} clic{previewEmail.clickCount === 1 ? "" : "s"}</span>
+                            </div>
+                            {previewEmail.errorMessage && <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{previewEmail.errorMessage}</div>}
+                            <div className="whitespace-pre-wrap rounded-xl border border-slate-100 bg-slate-50/70 p-5 text-sm leading-7 text-slate-700">{previewEmail.bodyText || "Le contenu de ce message n'est pas disponible."}</div>
+                        </div>
+                        <div className="flex justify-end border-t border-slate-100 px-6 py-4"><button onClick={() => setPreviewEmail(null)} className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800">Fermer</button></div>
                     </div>
                 </div>
             )}

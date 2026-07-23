@@ -375,6 +375,9 @@ function InnerLayout({
         "sdr feedback": "Avis SDR",
         emails: "Email Hub",
         email: "Boîte de réception",
+        sent: "Emails envoyés",
+        overview: "Cockpit email",
+        mailboxes: "Boîtes mail",
     };
     const routePageLabels: Record<string, string> = {
         "/manager/billing/invoices/new": "Nouvelle facture",

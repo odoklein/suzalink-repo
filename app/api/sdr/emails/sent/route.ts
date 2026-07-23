@@ -168,10 +168,9 @@ export async function GET(req: NextRequest) {
         // Build stats if requested
         let stats = null;
         if (includeStats) {
-            const baseWhere: Prisma.EmailWhereInput = {
-                direction: "OUTBOUND",
-                sentById: session.user.id,
-            };
+            // Keep KPI cards aligned with the visible result set. Previously
+            // the table changed with filters while the cards stayed all-time.
+            const baseWhere: Prisma.EmailWhereInput = { ...where };
 
             const [totalSent, totalOpened, totalClicked, totalBounced, totalReplied, totalFailed] = await Promise.all([
                 prisma.email.count({ where: { ...baseWhere, status: { in: ["SENT", "DELIVERED", "OPENED", "CLICKED", "REPLIED"] } } }),
