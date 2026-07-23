@@ -103,11 +103,12 @@ export function TriageDetailDrawer({ ticket, onClose, onUpdated }: TriageDetailD
             });
 
         // Any active user, any role — this org assigns tasks to managers and everyone else too.
+        // /api/users returns a paginated shape: { data: { users, total, page, ... } }.
         void fetch("/api/users?status=active&excludeSelf=false&limit=500")
             .then((res) => res.json())
             .then((json) => {
                 if (json.success) {
-                    setUsers(json.data.map((u: any) => ({ id: u.id, name: u.name, role: u.role })));
+                    setUsers(json.data.users.map((u: any) => ({ id: u.id, name: u.name, role: u.role })));
                 }
             });
 
