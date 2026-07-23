@@ -230,6 +230,7 @@ export const GET = withErrorHandler(async (request: NextRequest) => {
         name: s.name,
         email: s.email,
         role: s.role,
+        sdrAbsences: s.sdrAbsences,
     }));
 
     return successResponse({

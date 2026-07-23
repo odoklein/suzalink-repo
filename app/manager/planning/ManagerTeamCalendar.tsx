@@ -1165,7 +1165,7 @@ function cleanNotes(notes: string | null) {
 }
 
 function isMemberAbsent(member: TeamMember, day: string) {
-    return member.sdrAbsences.some(
+    return (member.sdrAbsences ?? []).some(
         (absence) =>
             absence.impactsPlanning &&
             dateKey(absence.startDate) <= day &&
