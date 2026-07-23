@@ -10,6 +10,7 @@ import { GlobalSidebar, MobileMenuButton } from "./GlobalSidebar";
 import { GlobalSearchModal } from "./GlobalSearchModal";
 import { NavSection, getNavByRole, ROLE_CONFIG } from "@/lib/navigation/config";
 import { NotificationBell } from "@/components/ui/NotificationBell";
+import { IntakeTriggerButton } from "@/components/intake";
 import { Modal } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { RefreshCw, AlertTriangle, BellRing, PhoneCall } from "lucide-react";
@@ -551,6 +552,7 @@ function InnerLayout({
                         >
                             <RefreshCw className="w-3.5 h-3.5" />
                         </button>
+                        <IntakeTriggerButton />
                         <NotificationBell />
                     </div>
                 </header>

@@ -57,6 +57,11 @@ export default withAuth(
             return NextResponse.redirect(new URL("/unauthorized", req.url));
         }
 
+        // Technical Intake & Triage cockpit — MANAGER only (top role in this org).
+        if (path.startsWith("/admin/intake") && token?.role !== "MANAGER") {
+            return NextResponse.redirect(new URL("/unauthorized", req.url));
+        }
+
         if (path.startsWith("/client") && token?.role !== "CLIENT") {
             return NextResponse.redirect(new URL("/unauthorized", req.url));
         }
@@ -94,6 +99,7 @@ export const config = {
         "/developer/:path*",
         "/bd/:path*",
         "/commercial/:path*",
+        "/admin/intake/:path*",
         "/calendar",
         "/dashboard",
         // All /api routes except /api/auth/* (NextAuth handles its own routes)

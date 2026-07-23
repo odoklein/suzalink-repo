@@ -27,6 +27,7 @@ import {
   Brain,
   BookOpen,
   Send,
+  LifeBuoy,
 } from "lucide-react";
 import { UserRole } from "@prisma/client";
 
@@ -210,6 +211,12 @@ export const MANAGER_NAV: NavSection[] = [
             label: "Calendrier projet",
             permission: "pages.projects",
             openInNewTab: true,
+          },
+          {
+            href: "/admin/intake",
+            icon: LifeBuoy,
+            label: "Intake technique",
+            permission: "pages.projects",
           },
         ],
       },

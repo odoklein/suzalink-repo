@@ -319,6 +319,31 @@ enum AuthOutcome {
 }
 
 // ============================================
+// TECHNICAL INTAKE & TRIAGE MODULE
+// ============================================
+
+enum IntakeTicketType {
+  BUG
+  FEATURE_REQUEST
+}
+
+enum IntakeTicketSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum IntakeTicketStatus {
+  NEW
+  IN_REVIEW
+  CONVERTED
+  FAST_LANE
+  DUPLICATE
+  REJECTED
+}
+
+// ============================================
 // MODELS
 // ============================================
 
@@ -459,9 +484,13 @@ model User {
   // Broadcast Emails sent by this user (MANAGER)
   broadcastEmails  BroadcastEmail[] @relation("BroadcastEmailSender")
 
+  // Technical Intake & Triage Module
+  reportedIntakeTickets IntakeTicket[] @relation("IntakeTicketReporter")
+  triagedIntakeTickets  IntakeTicket[] @relation("IntakeTicketTriager")
+
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-  
+
   @@index([isActive])
 }
 
@@ -1040,7 +1069,10 @@ model File {
   
   taskId        String?
   task          Task?     @relation(fields: [taskId], references: [id])
-  
+
+  intakeTicketId String?
+  intakeTicket   IntakeTicket? @relation("IntakeTicketFiles", fields: [intakeTicketId], references: [id], onDelete: SetNull)
+
   // Metadata
   description   String?
   tags          String[]  @default([])
@@ -1060,6 +1092,57 @@ model File {
   @@index([clientId])
   @@index([campaignId])
   @@index([deletedAt])
+  @@index([intakeTicketId])
+}
+
+// ============================================
+// TECHNICAL INTAKE & TRIAGE MODULE
+// ============================================
+
+// Staging buffer for bug reports / feature requests submitted from anywhere in
+// the app. Never dumps directly into Project/Task — a MANAGER must triage it
+// first via one of Convert / Fast-Lane / Link / Reject (see lib/intake/service.ts).
+model IntakeTicket {
+  id          String               @id @default(cuid())
+  type        IntakeTicketType     @default(BUG)
+  title       String
+  description String               @db.Text
+  severity    IntakeTicketSeverity @default(MEDIUM)
+  status      IntakeTicketStatus   @default(NEW)
+
+  // Silent metadata captured by the drawer trigger, not user-entered
+  sourceRoute String   // pathname the reporter was on when they opened the drawer
+  userAgent   String   @db.Text
+  viewport    String?  // "1440x900"
+  browserInfo Json?
+
+  reportedById String
+  reportedBy   User   @relation("IntakeTicketReporter", fields: [reportedById], references: [id], onDelete: Cascade)
+
+  files File[] @relation("IntakeTicketFiles")
+
+  triagedById String?
+  triagedBy   User?     @relation("IntakeTicketTriager", fields: [triagedById], references: [id], onDelete: SetNull)
+  triagedAt   DateTime?
+
+  // Set only on Convert / Fast-Lane
+  convertedTaskId String? @unique
+  convertedTask   Task?   @relation("IntakeTicketConvertedTask", fields: [convertedTaskId], references: [id], onDelete: SetNull)
+
+  // Set only on Link to Existing Task (-> DUPLICATE)
+  linkedTaskId String?
+  linkedTask   Task?   @relation("IntakeTicketLinkedTask", fields: [linkedTaskId], references: [id], onDelete: SetNull)
+
+  // Required by the API when status -> REJECTED
+  rejectionReason String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([reportedById])
+  @@index([type])
+  @@index([createdAt])
 }
 
 // ============================================
@@ -1204,10 +1287,15 @@ model Task {
   activities  ProjectActivity[]
   timeEntries TaskTimeEntry[]
   sessionTask SessionTask?    @relation("SessionTaskMirror")
-  
+
+  // Technical Intake & Triage Module: the ticket this task was created from
+  // (Convert / Fast-Lane), and duplicate tickets pointed at this task (Link to Existing).
+  sourceIntakeTicket     IntakeTicket?  @relation("IntakeTicketConvertedTask")
+  duplicateIntakeTickets IntakeTicket[] @relation("IntakeTicketLinkedTask")
+
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
-  
+
   @@index([projectId])
   @@index([assigneeId])
   @@index([status])

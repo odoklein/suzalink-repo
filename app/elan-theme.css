@@ -306,19 +306,19 @@ body.elan-app :focus-visible {
 
 .cp-sidebar-header {
     border-bottom: 1px solid rgba(251, 250, 247, 0.1);
-    padding: 22px 18px 17px;
+    padding: 16px 16px 14px;
 }
 
 .cp-sidebar-expanded {
-    width: 238px;
+    width: 220px;
 }
 
 .cp-sidebar-collapsed {
-    width: 60px;
+    width: 56px;
 }
 
 .cp-sidebar-hover-expanded {
-    width: 248px;
+    width: 232px;
 }
 
 .cp-brand {

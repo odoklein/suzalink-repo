@@ -28,7 +28,11 @@
       "Bash(npx --no-install next build)",
       "Bash(npx eslint *)",
       "Skill(artifact-design)",
-      "Skill(artifact-design:*)"
+      "Skill(artifact-design:*)",
+      "Bash(DATABASE_URL=\"postgresql://u:p@localhost:5432/db\" DIRECT_URL=\"postgresql://u:p@localhost:5432/db\" npx prisma validate)",
+      "Bash(DATABASE_URL=\"postgresql://u:p@localhost:5432/db\" DIRECT_URL=\"postgresql://u:p@localhost:5432/db\" npx prisma generate)",
+      "Bash(tasklist //FI \"IMAGENAME eq node.exe\")",
+      "Bash(node -e \"console.log\\(require\\('./node_modules/next/package.json'\\).version\\)\")"
     ]
   }
 }
