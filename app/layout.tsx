@@ -25,14 +25,14 @@ const monoFont = DM_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "élan | Plateforme d'exécution commerciale",
+  title: "Prospecto | Plateforme d'exécution commerciale",
   description: "La plateforme d'exécution commerciale qui transforme l'activité en résultats.",
 icons: {
     icon: [
-        { url: "/elan-mark.svg", type: "image/svg+xml" },
+        { url: "/brand/elan-mark.svg", type: "image/svg+xml" },
         { url: "/favicon.ico", sizes: "any" },
       ],
-    apple: "/elan-mark.svg",
+    apple: "/brand/elan-mark.svg",
     },
 };
 

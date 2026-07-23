@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { RdvShell } from "./_components/RdvShell";
 
 export const metadata: Metadata = {
-  title: "RDV | élan",
+  title: "RDV | Prospecto",
   description: "Gestion des rendez-vous : suivi, confirmation, fiche RDV et feedback.",
 };
 

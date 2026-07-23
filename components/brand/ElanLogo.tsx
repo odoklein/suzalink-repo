@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 interface ElanLogoProps {
@@ -11,17 +12,25 @@ export function ElanLogo({
     compact = false,
     tone = "paper",
 }: ElanLogoProps) {
+    const asset = "/brand/elan-mark.svg";
+    const dimensions = { width: 208, height: 214 };
+
     return (
         <span
             className={cn("elan-logo", `elan-logo-${tone}`, compact && "elan-logo-compact", className)}
-            aria-label="élan"
+            role="img"
+            aria-label="Prospecto"
         >
-            <span aria-hidden="true" className="elan-logo-word">
-                <span className="elan-logo-e">
-                    e<span className="elan-logo-needle" />
-                </span>
-                {!compact && "lan"}
-            </span>
+            <Image
+                aria-hidden="true"
+                alt=""
+                className="elan-logo-image"
+                height={dimensions.height}
+                src={asset}
+                unoptimized
+                width={dimensions.width}
+            />
+            {!compact && <span className="elan-logo-wordmark">prospecto</span>}
         </span>
     );
 }

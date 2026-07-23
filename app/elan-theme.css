@@ -3,24 +3,24 @@
    centralizes them without changing routes, field names, or product behavior. */
 
 :root {
-    --elan-paper: #f4f0e8;
-    --elan-paper-2: #ece5d8;
-    --elan-paper-3: #e4dbca;
+    --elan-paper: #fbfaf7;
+    --elan-paper-2: #f1f2ec;
+    --elan-paper-3: #e4e6df;
     --elan-surface: #ffffff;
-    --elan-ink: #15201e;
-    --elan-ink-soft: #394b46;
-    --elan-petrol: #0c3b38;
-    --elan-petrol-700: #114b46;
-    --elan-eucalyptus: #dbe4df;
-    --elan-amber: #ff9e1b;
-    --elan-amber-deep: #e07c00;
-    --elan-slate: #5c6e69;
-    --elan-line: rgba(21, 32, 30, 0.13);
-    --elan-line-strong: rgba(21, 32, 30, 0.24);
+    --elan-ink: #193736;
+    --elan-ink-soft: #3f5a58;
+    --elan-petrol: #193736;
+    --elan-petrol-700: #12302f;
+    --elan-eucalyptus: #e1ece7;
+    --elan-amber: #ed7f00;
+    --elan-amber-deep: #c96600;
+    --elan-slate: #637875;
+    --elan-line: rgba(25, 55, 54, 0.13);
+    --elan-line-strong: rgba(25, 55, 54, 0.24);
     --elan-danger: #b9433e;
-    --elan-success: #25745f;
-    --elan-shadow-sm: 0 1px 2px rgba(12, 59, 56, 0.04), 0 5px 16px rgba(12, 59, 56, 0.045);
-    --elan-shadow-md: 0 16px 45px rgba(12, 59, 56, 0.09);
+    --elan-success: #237d63;
+    --elan-shadow-sm: 0 1px 2px rgba(25, 55, 54, 0.04), 0 5px 16px rgba(25, 55, 54, 0.045);
+    --elan-shadow-md: 0 16px 45px rgba(25, 55, 54, 0.09);
 
     --background: #ffffff;
     --foreground: var(--elan-ink);
@@ -30,13 +30,13 @@
     --card-foreground: var(--elan-ink);
     --card-border: var(--elan-line);
     --brand-primary: var(--elan-amber);
-    --brand-primary-light: #ffb64f;
+    --brand-primary-light: #f4a348;
     --brand-primary-dark: var(--elan-amber-deep);
     --brand-accent: var(--elan-petrol);
     --brand-success: var(--elan-success);
     --brand-warning: var(--elan-amber-deep);
     --brand-danger: var(--elan-danger);
-    --glass-bg: rgba(244, 240, 232, 0.92);
+    --glass-bg: rgba(251, 250, 247, 0.92);
     --glass-border: var(--elan-line);
 
     --neutral-50: var(--elan-surface);
@@ -155,45 +155,44 @@ body.elan-app :focus-visible {
 .elan-logo {
     display: inline-flex;
     align-items: center;
-    color: var(--elan-paper);
-    font-family: var(--font-elan-display), sans-serif;
-    font-weight: 800;
-    line-height: 0.9;
-    letter-spacing: -0.055em;
+    justify-content: center;
+    gap: 0.34em;
+    width: fit-content;
+    font-size: 1rem;
+    line-height: 1;
     white-space: nowrap;
 }
 
-.elan-logo-word,
-.elan-logo-e {
-    display: inline-block;
+.elan-logo-image {
+    display: block;
+    width: auto;
+    height: 0.8em;
+    flex: 0 0 auto;
 }
 
-.elan-logo-e {
-    position: relative;
-}
-
-.elan-logo-needle {
-    position: absolute;
-    top: -0.19em;
-    left: 0.08em;
-    width: 0.34em;
-    height: 0.105em;
-    border-radius: 2px;
-    background: var(--elan-amber);
-    transform: skewX(-26deg);
-    transform-origin: left center;
-}
-
-.elan-logo-ink {
-    color: var(--elan-ink);
-}
-
-.elan-logo-petrol {
+.elan-logo-wordmark {
     color: var(--elan-petrol);
+    font-family: var(--font-elan-display), var(--font-elan-sans), sans-serif;
+    font-size: 0.82em;
+    font-weight: 800;
+    letter-spacing: -0.065em;
+    line-height: 1;
 }
 
-.elan-logo-compact {
-    letter-spacing: -0.04em;
+/* The supplied dark-green lockup needs a paper field on dark navigation. */
+.elan-logo-paper {
+    padding: 0.15em 0.22em;
+    border-radius: 0.24em;
+    background: var(--elan-paper);
+    box-shadow: inset 0 0 0 1px rgba(25, 55, 54, 0.08);
+}
+
+.elan-logo-compact.elan-logo-paper {
+    padding: 0.14em;
+}
+
+.elan-logo-compact .elan-logo-image {
+    height: 0.78em;
 }
 
 .elan-cadence {
@@ -314,18 +313,33 @@ body.elan-app :focus-visible {
 }
 
 .cp-sidebar {
-    border-right: 1px solid rgba(244, 240, 232, 0.1) !important;
-    background: var(--elan-petrol) !important;
-    box-shadow: 12px 0 38px rgba(4, 35, 33, 0.09) !important;
+    border-right: 1px solid rgba(251, 250, 247, 0.1) !important;
+    background:
+        radial-gradient(circle at 0 100%, rgba(35, 125, 99, 0.22), transparent 31%),
+        linear-gradient(165deg, #193736 0%, #102d2b 100%) !important;
+    box-shadow: 14px 0 38px rgba(16, 45, 43, 0.12) !important;
 }
 
 .cp-sidebar-header {
-    border-bottom: 1px solid rgba(244, 240, 232, 0.11);
+    border-bottom: 1px solid rgba(251, 250, 247, 0.1);
+    padding: 22px 18px 17px;
+}
+
+.cp-sidebar-expanded {
+    width: 238px;
+}
+
+.cp-sidebar-collapsed {
+    width: 60px;
+}
+
+.cp-sidebar-hover-expanded {
+    width: 248px;
 }
 
 .cp-brand {
     min-width: 0;
-    padding: 5px 4px !important;
+    padding: 6px 4px !important;
 }
 
 .cp-brand:hover {
@@ -335,27 +349,27 @@ body.elan-app :focus-visible {
 .cp-collapse-btn,
 .cp-mobile-close,
 .cp-expand-btn {
-    color: rgba(244, 240, 232, 0.56) !important;
+    color: rgba(251, 250, 247, 0.56) !important;
 }
 
 .cp-collapse-btn:hover,
 .cp-mobile-close:hover,
 .cp-expand-btn:hover {
     color: var(--elan-paper) !important;
-    background: rgba(244, 240, 232, 0.08) !important;
+    background: rgba(251, 250, 247, 0.08) !important;
 }
 
 .cp-search-trigger,
 .cp-search-trigger-mini {
-    border-color: rgba(244, 240, 232, 0.12) !important;
-    background: rgba(244, 240, 232, 0.055) !important;
-    color: rgba(244, 240, 232, 0.64) !important;
+    border-color: rgba(251, 250, 247, 0.14) !important;
+    background: rgba(251, 250, 247, 0.06) !important;
+    color: rgba(251, 250, 247, 0.7) !important;
 }
 
 .cp-search-trigger:hover,
 .cp-search-trigger-mini:hover {
-    border-color: rgba(255, 158, 27, 0.42) !important;
-    background: rgba(244, 240, 232, 0.09) !important;
+    border-color: rgba(237, 127, 0, 0.54) !important;
+    background: rgba(251, 250, 247, 0.1) !important;
     color: var(--elan-paper) !important;
 }
 
@@ -367,17 +381,17 @@ body.elan-app :focus-visible {
 }
 
 .cp-kbd {
-    border-color: rgba(244, 240, 232, 0.14) !important;
-    background: rgba(4, 35, 33, 0.26) !important;
+    border-color: rgba(251, 250, 247, 0.14) !important;
+    background: rgba(16, 45, 43, 0.5) !important;
 }
 
 .cp-section-divider,
 .cp-sidebar-footer {
-    border-color: rgba(244, 240, 232, 0.1) !important;
+    border-color: rgba(251, 250, 247, 0.1) !important;
 }
 
 .cp-section-title {
-    color: rgba(244, 240, 232, 0.43) !important;
+    color: rgba(251, 250, 247, 0.46) !important;
     font-family: var(--font-elan-mono), monospace !important;
     font-size: 9px !important;
     font-weight: 500 !important;
@@ -389,19 +403,21 @@ body.elan-app :focus-visible {
 }
 
 .cp-nav-item {
-    border-radius: 9px !important;
-    color: rgba(244, 240, 232, 0.66) !important;
+    border-radius: 10px !important;
+    color: rgba(251, 250, 247, 0.69) !important;
+    padding: 9px 12px;
+    margin-bottom: 3px;
 }
 
 .cp-nav-item:hover,
 .cp-nav-section-admin .cp-nav-item:hover {
-    background: rgba(244, 240, 232, 0.075) !important;
+    background: rgba(251, 250, 247, 0.08) !important;
     color: var(--elan-paper) !important;
 }
 
 .cp-nav-item-active,
 .cp-nav-item-active:hover {
-    background: rgba(255, 158, 27, 0.14) !important;
+    background: rgba(237, 127, 0, 0.17) !important;
     color: var(--elan-paper) !important;
 }
 
@@ -409,6 +425,10 @@ body.elan-app :focus-visible {
     width: 3px !important;
     background: var(--elan-amber) !important;
     box-shadow: none !important;
+}
+
+.cp-nav-item-active .cp-nav-icon-wrap {
+    color: var(--elan-amber) !important;
 }
 
 .cp-nav-icon-wrap,
@@ -419,7 +439,7 @@ body.elan-app :focus-visible {
 
 .cp-nav-badge,
 .cp-nav-badge-collapsed {
-    border: 1px solid rgba(255, 158, 27, 0.48) !important;
+    border: 1px solid rgba(237, 127, 0, 0.52) !important;
     background: var(--elan-amber) !important;
     color: var(--elan-ink) !important;
     box-shadow: none !important;
@@ -575,6 +595,14 @@ body.elan-app :focus-visible {
 
 .cp-user-btn:hover {
     background: rgba(244, 240, 232, 0.075) !important;
+}
+
+.cp-sidebar-footer {
+    padding: 10px 12px 16px;
+}
+
+.cp-user-btn {
+    border-radius: 10px;
 }
 
 .cp-avatar {
@@ -1337,7 +1365,10 @@ tbody tr:hover td {
     justify-content: space-between;
     overflow: hidden;
     padding: clamp(34px, 5vw, 68px);
-    background: var(--elan-petrol);
+    background:
+        radial-gradient(circle at 86% 16%, rgba(237, 127, 0, 0.18), transparent 21%),
+        radial-gradient(circle at 10% 92%, rgba(35, 125, 99, 0.32), transparent 32%),
+        linear-gradient(150deg, #193736 0%, #102d2b 100%);
     color: var(--elan-paper);
 }
 
@@ -1347,8 +1378,8 @@ tbody tr:hover td {
     right: -11%;
     width: 38%;
     height: 1px;
-    background: rgba(244, 240, 232, 0.16);
-    box-shadow: 0 18px 0 rgba(244, 240, 232, 0.10), 0 36px 0 rgba(244, 240, 232, 0.06);
+    background: rgba(251, 250, 247, 0.17);
+    box-shadow: 0 18px 0 rgba(251, 250, 247, 0.1), 0 36px 0 rgba(251, 250, 247, 0.06);
     content: "";
     transform: rotate(-26deg);
 }
@@ -1356,8 +1387,8 @@ tbody tr:hover td {
 .elan-login-message {
     position: relative;
     z-index: 1;
-    max-width: 530px;
-    padding: 12vh 0 10vh;
+    max-width: 560px;
+    padding: 11vh 0 9vh;
 }
 
 .elan-login-kicker,
@@ -1373,7 +1404,7 @@ tbody tr:hover td {
 
 .elan-login-kicker {
     margin: 0 0 22px;
-    color: rgba(244, 240, 232, 0.56);
+    color: rgba(251, 250, 247, 0.6);
 }
 
 .elan-login-kicker::before {
@@ -1386,10 +1417,10 @@ tbody tr:hover td {
 }
 
 .elan-login-message h1 {
-    max-width: 9ch;
+    max-width: 10ch;
     margin: 0;
     font-family: var(--font-elan-display), sans-serif;
-    font-size: clamp(46px, 5.5vw, 82px);
+    font-size: clamp(46px, 5.15vw, 76px);
     font-weight: 700;
     line-height: 0.94;
     letter-spacing: -0.045em;
@@ -1398,7 +1429,7 @@ tbody tr:hover td {
 .elan-login-message > p:last-child {
     max-width: 43ch;
     margin: 30px 0 0;
-    color: rgba(244, 240, 232, 0.66);
+    color: rgba(251, 250, 247, 0.7);
     font-size: 17px;
     line-height: 1.6;
 }
@@ -1415,7 +1446,7 @@ tbody tr:hover td {
 .elan-login-signature > span {
     display: block;
     margin-top: 16px;
-    color: rgba(244, 240, 232, 0.46);
+    color: rgba(251, 250, 247, 0.5);
 }
 
 .elan-login-form-shell {
@@ -1423,14 +1454,20 @@ tbody tr:hover td {
     align-items: center;
     justify-content: center;
     min-width: 0;
-    padding: 52px clamp(34px, 8vw, 110px);
+    padding: 52px clamp(34px, 8vw, 120px);
     background:
-        linear-gradient(rgba(244, 240, 232, 0.92), rgba(244, 240, 232, 0.92)),
-        repeating-linear-gradient(90deg, transparent 0, transparent 79px, rgba(12, 59, 56, 0.04) 80px);
+        linear-gradient(rgba(251, 250, 247, 0.94), rgba(251, 250, 247, 0.94)),
+        repeating-linear-gradient(90deg, transparent 0, transparent 95px, rgba(25, 55, 54, 0.045) 96px);
 }
 
 .elan-login-form-wrap {
+    position: relative;
     width: min(100%, 430px);
+    padding: clamp(28px, 4vw, 42px);
+    border: 1px solid rgba(25, 55, 54, 0.12);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.78);
+    box-shadow: 0 22px 54px rgba(25, 55, 54, 0.1);
     opacity: 0;
     transform: translateY(14px);
     transition: opacity 420ms cubic-bezier(0.22, 1, 0.36, 1), transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
@@ -1454,7 +1491,7 @@ tbody tr:hover td {
     margin: 0;
     color: var(--elan-ink);
     font-family: var(--font-elan-display), sans-serif;
-    font-size: clamp(36px, 4vw, 50px);
+    font-size: clamp(34px, 3.5vw, 46px);
     font-weight: 700;
     line-height: 1;
     letter-spacing: -0.035em;
@@ -1507,7 +1544,7 @@ tbody tr:hover td {
     align-items: center;
     gap: 11px;
     border: 1px solid var(--elan-line-strong);
-    border-radius: 10px;
+    border-radius: 12px;
     background: var(--elan-surface);
     color: var(--elan-slate);
     padding: 0 15px;
@@ -1516,8 +1553,8 @@ tbody tr:hover td {
 
 .elan-login-input-wrap:focus-within {
     border-color: var(--elan-amber-deep);
-    background: #fffef9;
-    box-shadow: 0 0 0 4px rgba(255, 158, 27, 0.16);
+    background: #ffffff;
+    box-shadow: 0 0 0 4px rgba(237, 127, 0, 0.14);
     color: var(--elan-petrol);
 }
 
@@ -1572,7 +1609,7 @@ tbody tr:hover td {
     gap: 10px;
     margin-top: 4px;
     border: 1px solid var(--elan-amber-deep);
-    border-radius: 10px;
+    border-radius: 12px;
     background: var(--elan-amber);
     color: var(--elan-ink);
     cursor: pointer;
@@ -1969,6 +2006,10 @@ tbody tr:hover td {
         display: inline-flex;
         margin-bottom: 64px;
     }
+
+    .elan-login-form-wrap {
+        max-width: 460px;
+    }
 }
 
 @media (max-width: 640px) {
@@ -1978,6 +2019,11 @@ tbody tr:hover td {
 
     .elan-login-mobile-logo {
         margin-bottom: 48px;
+    }
+
+    .elan-login-form-wrap {
+        padding: 28px 24px;
+        border-radius: 14px;
     }
 
     .elan-login-heading h2 {
@@ -2021,4 +2067,15 @@ tbody tr:hover td {
         transition: none !important;
         transform: none !important;
     }
+}
+
+.elan-login-form-wrap::before {
+    position: absolute;
+    top: 0;
+    left: 42px;
+    width: 54px;
+    height: 3px;
+    border-radius: 0 0 4px 4px;
+    background: var(--elan-amber);
+    content: "";
 }

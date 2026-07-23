@@ -193,12 +193,12 @@ export default function LoginForm() {
     return (
         <main className={`elan-login${mounted ? " is-ready" : ""}`}>
             {/* ── Brand panel (left) ── */}
-            <aside className="elan-login-brand" aria-label="Présentation élan">
+            <aside className="elan-login-brand" aria-label="Présentation Prospecto">
                 <ElanLogo className="text-[52px]" />
 
                 <div className="elan-login-message">
-                    <p className="elan-login-kicker">Plateforme d&apos;exécution commerciale</p>
-                    <h1>Le moteur de votre prospection.</h1>
+                    <p className="elan-login-kicker">Votre cockpit commercial</p>
+                    <h1>La prospection, enfin pilotée.</h1>
                     <p>
                         Pilotez l&apos;activité, gardez le cap et transformez chaque action en résultat mesurable.
                     </p>
@@ -206,7 +206,7 @@ export default function LoginForm() {
 
                 <div className="elan-login-signature">
                     <CadenceBars count={46} highlightFrom={0.74} dark />
-                    <span>Terrain · Cadence · Résultats</span>
+                    <span>Priorités, cadence, résultats</span>
                 </div>
             </aside>
 
@@ -385,7 +385,7 @@ export default function LoginForm() {
                     )}
 
                     <p className="elan-login-copyright">
-                        élan © {new Date().getFullYear()} · Produit par Suzali
+                        Prospecto © {new Date().getFullYear()} · Produit par Suzali
                     </p>
                 </div>
             </section>

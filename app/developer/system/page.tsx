@@ -87,7 +87,7 @@ const planes = [
         icon: Layers3,
         title: "Plan d’expérience",
         description: "Une application multi-rôle, une navigation et des contrats API cohérents.",
-        items: ["React 19 et Next.js 16", "Portails segmentés par rôle", "Composants et tokens Élan"],
+        items: ["React 19 et Next.js 16", "Portails segmentés par rôle", "Composants et tokens Prospecto"],
         className: "lg:col-span-7",
         tone: "petrol" as Tone,
     },
@@ -270,7 +270,7 @@ export default function SystemArchitecturePage() {
                             Une architecture lisible, avant d’être distribuée.
                         </h1>
                         <p className="mt-5 max-w-2xl text-sm leading-6 text-paper/70 sm:text-base">
-                            La carte opérationnelle d’Élan relie les parcours métier, le calcul, les données et les fournisseurs externes sans masquer les limites actuelles.
+                            La carte opérationnelle de Prospecto relie les parcours métier, le calcul, les données et les fournisseurs externes sans masquer les limites actuelles.
                         </p>
                     </div>
                     <div className="grid grid-cols-2 gap-x-8 gap-y-4 border-l border-white/12 pl-5 sm:grid-cols-4 lg:grid-cols-2">

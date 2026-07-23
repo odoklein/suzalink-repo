@@ -405,7 +405,7 @@ export function ClientSupportPanel({
                             letterSpacing: "-0.01em",
                         }}
                     >
-                        Équipe support élan
+                        Équipe support Prospecto
                     </div>
                     <div
                         style={{
@@ -1047,7 +1047,7 @@ export function ClientSupportPanel({
                                 style={{ cursor: "pointer", accentColor: T.brand }}
                             />
                             <span style={{ fontSize: 10.5, color: T.ink3, fontWeight: 500, whiteSpace: "nowrap" }}>
-                                M'avertir par email
+                                M&apos;avertir par email
                             </span>
                         </label>
                     </div>

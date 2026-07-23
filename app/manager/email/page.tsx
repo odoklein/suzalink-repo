@@ -6,7 +6,7 @@
 import { InboxLayout } from "@/components/email/inbox";
 
 export const metadata = {
-    title: "Email | élan",
+    title: "Email | Prospecto",
     description: "Gérez vos emails et conversations",
 };
 
