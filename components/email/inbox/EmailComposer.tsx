@@ -498,6 +498,8 @@ export function EmailComposer({
                 {/* Content */}
                 {!isMinimized && !sendSuccess && (
                     <>
+                        {/* Keep the composer controls in view; long messages and signatures scroll here. */}
+                        <div className="min-h-0 flex-1 overflow-y-auto email-scrollbar">
                         {/* From */}
                         <div className="px-4 py-2.5 border-b border-slate-100 flex items-center gap-2">
                             <span className="text-[13px] text-slate-400 w-10 flex-shrink-0 font-medium">De</span>
@@ -834,8 +836,10 @@ export function EmailComposer({
                             </div>
                         )}
 
+                        </div>
+
                         {/* Footer */}
-                        <div className="px-4 py-2.5 border-t border-slate-100 flex items-center justify-between bg-white rounded-b-xl">
+                        <div className="flex-none px-4 py-2.5 border-t border-slate-100 flex items-center justify-between bg-white rounded-b-xl">
                             <div className="flex items-center gap-0.5">
                                 <input
                                     ref={fileInputRef}
