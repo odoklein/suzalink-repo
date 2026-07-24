@@ -19,6 +19,7 @@ export async function GET(req: NextRequest) {
         const status = searchParams.get("status");
         const clientId = searchParams.get("clientId");
         const ownerId = searchParams.get("ownerId");
+        const parentProjectId = searchParams.get("parentProjectId");
         const search = searchParams.get("search");
         const sortBy = searchParams.get("sortBy") || "updatedAt";
         const sortOrder = searchParams.get("sortOrder") || "desc";
@@ -55,6 +56,8 @@ export async function GET(req: NextRequest) {
         if (status) whereClause.status = status;
         if (clientId) whereClause.clientId = clientId;
         if (ownerId) whereClause.ownerId = ownerId;
+        // Root projects are the portfolio view; children are shown inside their parent.
+        whereClause.parentProjectId = parentProjectId || null;
         if (search) {
             whereClause.AND = [
                 ...(whereClause.AND || []),
@@ -88,7 +91,7 @@ export async function GET(req: NextRequest) {
                         },
                     },
                     _count: {
-                        select: { tasks: true },
+                        select: { tasks: true, childProjects: true },
                     },
                     tasks: {
                         select: { status: true, dueDate: true },
@@ -165,10 +168,24 @@ export async function POST(req: NextRequest) {
         }
 
         const body = await req.json();
-        const { name, description, clientId, members, startDate, endDate, color, icon, templateId } = body;
+        const { name, description, clientId, members, startDate, endDate, color, icon, templateId, parentProjectId, isGroup } = body;
 
         if (!name?.trim()) {
             return NextResponse.json({ success: false, error: "Nom requis" }, { status: 400 });
+        }
+
+        let parentProject: { id: string; isGroup: boolean; ownerId: string; members: { userId: string }[] } | null = null;
+        if (parentProjectId && !isGroup) {
+            parentProject = await prisma.project.findUnique({
+                where: { id: parentProjectId },
+                select: { id: true, isGroup: true, ownerId: true, members: { where: { userId: session.user.id }, select: { userId: true } } },
+            });
+            if (!parentProject?.isGroup) {
+                return NextResponse.json({ success: false, error: "Le projet principal sélectionné est invalide" }, { status: 400 });
+            }
+            if (role !== "MANAGER" && parentProject.ownerId !== session.user.id && parentProject.members.length === 0) {
+                return NextResponse.json({ success: false, error: "Accès refusé au projet principal" }, { status: 403 });
+            }
         }
 
         // If using a template, load it
@@ -191,6 +208,8 @@ export async function POST(req: NextRequest) {
                 endDate: endDate ? new Date(endDate) : null,
                 color: color || "#6366f1",
                 icon: icon || "folder",
+                isGroup: Boolean(isGroup),
+                parentProjectId: isGroup ? null : parentProject?.id || null,
                 members: {
                     create: [
                         { userId: session.user.id, role: "owner" },
@@ -211,12 +230,12 @@ export async function POST(req: NextRequest) {
                         user: { select: { id: true, name: true, email: true } },
                     },
                 },
-                _count: { select: { tasks: true } },
+                _count: { select: { tasks: true, childProjects: true } },
             },
         });
 
         // Create tasks from template
-        if (templateTasks.length > 0) {
+        if (!isGroup && templateTasks.length > 0) {
             for (let i = 0; i < templateTasks.length; i++) {
                 const t = templateTasks[i];
                 await prisma.task.create({

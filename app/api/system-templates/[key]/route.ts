@@ -14,11 +14,16 @@ import {
   DEFAULT_PASSWORD_OTP_HTML,
   DEFAULT_PASSWORD_OTP_SUBJECT,
 } from "@/lib/email/templates/security-auth";
+import {
+  DEFAULT_TASK_REMINDER_TEMPLATE_HTML,
+  DEFAULT_TASK_REMINDER_TEMPLATE_SUBJECT,
+} from "@/lib/email/templates/task-reminder";
 
 const ALLOWED_KEYS = [
   "rdv_notification",
   "password_recovery",
   "password_otp",
+  "task_reminder_digest",
 ] as const;
 type AllowedKey = (typeof ALLOWED_KEYS)[number];
 
@@ -37,6 +42,11 @@ const DEFAULT_TEMPLATES: Record<AllowedKey, { name: string; subject: string; bod
     name: "Code OTP recuperation mot de passe",
     subject: DEFAULT_PASSWORD_OTP_SUBJECT,
     bodyHtml: DEFAULT_PASSWORD_OTP_HTML,
+  },
+  task_reminder_digest: {
+    name: "Rappel quotidien des tâches",
+    subject: DEFAULT_TASK_REMINDER_TEMPLATE_SUBJECT,
+    bodyHtml: DEFAULT_TASK_REMINDER_TEMPLATE_HTML,
   },
 };
 

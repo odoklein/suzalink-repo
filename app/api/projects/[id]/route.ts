@@ -23,6 +23,15 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
                         user: { select: { id: true, name: true, email: true, role: true } },
                     },
                 },
+                childProjects: {
+                    include: {
+                        client: { select: { id: true, name: true } },
+                        members: { include: { user: { select: { id: true, name: true, email: true } } } },
+                        _count: { select: { tasks: true } },
+                        tasks: { select: { status: true, dueDate: true } },
+                    },
+                    orderBy: { updatedAt: "desc" },
+                },
                 tasks: {
                     include: {
                         assignee: { select: { id: true, name: true, email: true } },
@@ -88,11 +97,27 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
         const totalTasks = project.tasks.length;
         const completedTasks = tasksByStatus.DONE;
         const completionPercent = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+        const childProjects = project.childProjects.map((child) => {
+            const taskCount = child.tasks.length;
+            const doneCount = child.tasks.filter((task) => task.status === "DONE").length;
+            const overdue = child.tasks.filter((task) => task.dueDate && task.dueDate < now && task.status !== "DONE").length;
+            const { tasks, ...childData } = child;
+            return {
+                ...childData,
+                taskStats: {
+                    total: taskCount,
+                    completed: doneCount,
+                    overdue,
+                    completionPercent: taskCount ? Math.round((doneCount / taskCount) * 100) : 0,
+                },
+            };
+        });
 
         return NextResponse.json({
             success: true,
             data: {
                 ...project,
+                childProjects,
                 taskStats: {
                     byStatus: tasksByStatus,
                     byPriority: tasksByPriority,

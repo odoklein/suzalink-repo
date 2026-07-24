@@ -28,6 +28,7 @@ interface ProjectData {
     status: string;
     color: string | null;
     icon: string | null;
+    isGroup: boolean;
     startDate: string | null;
     endDate: string | null;
     owner: { id: string; name: string; email: string };
@@ -36,6 +37,15 @@ interface ProjectData {
     tasks: any[];
     milestones: any[];
     activities: any[];
+    childProjects: Array<{
+        id: string;
+        name: string;
+        description: string | null;
+        color: string | null;
+        status: string;
+        client: { id: string; name: string } | null;
+        taskStats: { total: number; completed: number; overdue: number; completionPercent: number };
+    }>;
     taskStats: any;
     createdAt: string;
     updatedAt: string;
@@ -250,6 +260,47 @@ export default function ManagerProjectDetailPage() {
                 <button onClick={() => router.back()} className="mt-4 text-sm font-semibold text-[#0B5A51] hover:underline">
                     Retour
                 </button>
+            </div>
+        );
+    }
+
+    if (project.isGroup) {
+        return (
+            <div className="elan-page mx-auto max-w-7xl">
+                <button onClick={() => router.push("/manager/projects")} className="mb-5 flex items-center gap-1.5 text-sm text-slate-500 transition-colors hover:text-[#0B5A51]">
+                    <ArrowLeft className="w-4 h-4" />Projets
+                </button>
+                <div className="flex flex-col gap-4 rounded-2xl border border-[#C9DED8] bg-[#F5FAF8] p-6 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-start gap-3">
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl" style={{ backgroundColor: (project.color || "#0c3b38") + "20" }}>
+                            <FolderKanban className="w-5 h-5" style={{ color: project.color || "#0c3b38" }} />
+                        </div>
+                        <div>
+                            <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#0B5A51]">Projet principal</p>
+                            <h1 className="mt-1 text-2xl font-bold text-slate-900">{project.name}</h1>
+                            <p className="mt-1 text-sm text-slate-600">{project.description || "Gérez séparément les projets et les tâches de chaque client."}</p>
+                        </div>
+                    </div>
+                    <button onClick={() => router.push(`/manager/projects?parentProjectId=${project.id}`)} className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#084C45] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#063E39]">
+                        <Plus className="h-4 w-4" />Nouveau sous-projet
+                    </button>
+                </div>
+                <div className="mt-7 flex items-end justify-between gap-4">
+                    <div><h2 className="text-lg font-bold text-slate-900">Projets gérés</h2><p className="mt-1 text-sm text-slate-500">Chaque carte ouvre son propre tableau de tâches.</p></div>
+                    <span className="rounded-full bg-[#EAF5F2] px-3 py-1 text-xs font-semibold text-[#0B5A51]">{project.childProjects?.length || 0} sous-projet{project.childProjects?.length !== 1 ? "s" : ""}</span>
+                </div>
+                {(project.childProjects?.length || 0) === 0 ? (
+                    <div className="mt-5 rounded-xl border border-dashed border-[#C9DED8] bg-white px-6 py-16 text-center"><FolderKanban className="mx-auto h-9 w-9 text-[#8DAAA3]" /><h3 className="mt-3 font-semibold text-slate-800">Aucun sous-projet</h3><p className="mt-1 text-sm text-slate-500">Créez un projet client pour commencer à organiser ses tâches.</p></div>
+                ) : (
+                    <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                        {project.childProjects.map((child) => <button key={child.id} onClick={() => router.push(`/manager/projects/${child.id}`)} className="group rounded-xl border border-slate-200 bg-white p-5 text-left transition-all hover:-translate-y-px hover:border-[#9DBDB5] hover:shadow-[0_10px_24px_rgba(19,52,47,0.08)]">
+                            <div className="h-1 rounded-full" style={{ backgroundColor: child.color || "#0c3b38" }} />
+                            <div className="mt-4 flex items-start justify-between gap-3"><div className="min-w-0"><h3 className="truncate font-bold text-slate-900 group-hover:text-[#0B5A51]">{child.name}</h3><p className="mt-1 truncate text-xs text-slate-500">{child.client?.name || "Client non associé"}</p></div><span className="text-xs font-bold text-[#0B5A51]">{child.taskStats.completionPercent}%</span></div>
+                            <div className="mt-5 h-1.5 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-[#149956]" style={{ width: `${child.taskStats.completionPercent}%` }} /></div>
+                            <div className="mt-3 flex items-center justify-between text-xs text-slate-500"><span>{child.taskStats.completed}/{child.taskStats.total} tâches</span>{child.taskStats.overdue > 0 && <span className="font-semibold text-red-600">{child.taskStats.overdue} en retard</span>}</div>
+                        </button>)}
+                    </div>
+                )}
             </div>
         );
     }

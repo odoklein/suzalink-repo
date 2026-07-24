@@ -379,6 +379,7 @@ model User {
   // Email Accounts (legacy)
   emailAccounts    EmailAccount[]
   notifications    Notification[]
+  taskReminderDeliveries TaskReminderDelivery[]
   
   // Email Hub - Mailboxes
   ownedMailboxes       Mailbox[]           @relation("MailboxOwner")
@@ -1209,6 +1210,10 @@ model Project {
   color       String?       @default("#6366f1")
   icon        String?       @default("folder")
   archivedAt  DateTime?
+  isGroup         Boolean   @default(false)
+  parentProjectId String?
+  parentProject   Project?  @relation("ProjectHierarchy", fields: [parentProjectId], references: [id], onDelete: SetNull)
+  childProjects   Project[] @relation("ProjectHierarchy")
   
   // Relations
   tasks       Task[]
@@ -1222,6 +1227,7 @@ model Project {
   @@index([ownerId])
   @@index([clientId])
   @@index([status])
+  @@index([parentProjectId])
 }
 
 model ProjectMember {
@@ -1806,6 +1812,21 @@ model Notification {
 
   @@index([userId])
   @@index([isRead])
+}
+
+// Records every task-reminder email attempt. The unique key makes cron retries safe.
+model TaskReminderDelivery {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reminderKey String   @unique
+  kind        String
+  status      String   @default("PENDING")
+  sentAt      DateTime?
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
 }
 
 // ============================================

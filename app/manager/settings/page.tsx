@@ -479,6 +479,20 @@ export default function ManagerSettingsPage() {
         </Link>
 
         <Link
+          href="/manager/settings/task-reminders"
+          className="group flex items-center gap-4 rounded-[12px] border border-slate-200 bg-white p-4 transition-colors hover:border-[#AFC5BF] hover:bg-[#F7F9F8]"
+        >
+          <div className="flex h-10 w-10 items-center justify-center rounded-[10px] bg-[#EEF3F1] transition-colors group-hover:bg-[#E2ECE9]">
+            <Mail className="w-5 h-5 text-[#1F4D47]" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-slate-900 group-hover:text-[#1F4D47]">Rappels email des tâches</p>
+            <p className="text-sm text-slate-500">Personnalisez le récapitulatif envoyé aux utilisateurs pour leurs tâches à venir et en retard.</p>
+          </div>
+          <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-[#1F4D47] shrink-0" />
+        </Link>
+
+        <Link
           href="/manager/settings/broadcast"
           className="group flex items-center gap-4 rounded-[12px] border border-slate-200 bg-white p-4 transition-colors hover:border-[#AFC5BF] hover:bg-[#F7F9F8]"
         >

@@ -46,6 +46,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
                 clientId: source.clientId,
                 color: source.color,
                 icon: source.icon,
+                isGroup: source.isGroup,
+                parentProjectId: source.isGroup ? null : source.parentProjectId,
                 members: {
                     create: [
                         { userId: session.user.id, role: "owner" },
@@ -53,6 +55,19 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
                 },
             },
         });
+
+        // A portfolio is duplicated empty; client projects keep their hierarchy and task structure.
+        if (source.isGroup) {
+            await prisma.projectActivity.create({
+                data: {
+                    projectId: duplicated.id,
+                    userId: session.user.id,
+                    action: "project_duplicated",
+                    details: { sourceProjectId: id, sourceProjectName: source.name },
+                },
+            });
+            return NextResponse.json({ success: true, data: duplicated });
+        }
 
         // Duplicate milestones and map old IDs to new
         const milestoneMap: Record<string, string> = {};

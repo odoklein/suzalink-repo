@@ -156,6 +156,10 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ success: false, error: "Projet non trouvé" }, { status: 404 });
         }
 
+        if (project.isGroup) {
+            return NextResponse.json({ success: false, error: "Ajoutez les tâches dans un sous-projet, pas dans le projet principal." }, { status: 400 });
+        }
+
         const isMember = project.members.some((m) => m.userId === session.user.id);
         const isOwner = project.ownerId === session.user.id;
         const isManager = session.user.role === "MANAGER";

@@ -9,6 +9,7 @@ import {
     Zap, RefreshCw,
 } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Modal, ModalFooter, ConfirmModal, useToast, DropdownMenu } from "@/components/ui";
@@ -24,12 +25,14 @@ interface Project {
     status: "ACTIVE" | "COMPLETED" | "ARCHIVED";
     color: string | null;
     icon: string | null;
+    isGroup: boolean;
+    parentProjectId: string | null;
     startDate: string | null;
     endDate: string | null;
     owner: { id: string; name: string; email: string };
     client: { id: string; name: string } | null;
     members: { user: { id: string; name: string; email: string }; role: string }[];
-    _count: { tasks: number };
+    _count: { tasks: number; childProjects: number };
     taskStats: {
         TODO: number;
         IN_PROGRESS: number;
@@ -66,6 +69,7 @@ const PRESET_COLORS = [
 // ============================================
 
 export default function ManagerProjectsPage() {
+    const searchParams = useSearchParams();
     const { success, error: showError } = useToast();
     const [projects, setProjects] = useState<Project[]>([]);
     const [loading, setLoading] = useState(true);
@@ -92,8 +96,18 @@ export default function ManagerProjectsPage() {
         startDate: "",
         endDate: "",
         memberIds: [] as string[],
+        isGroup: false,
+        parentProjectId: "",
     });
     const [creating, setCreating] = useState(false);
+
+    useEffect(() => {
+        const parentProjectId = searchParams.get("parentProjectId");
+        if (parentProjectId) {
+            setCreateForm((current) => ({ ...current, parentProjectId, isGroup: false }));
+            setShowCreate(true);
+        }
+    }, [searchParams]);
 
     useEffect(() => {
         const timeout = window.setTimeout(() => setDebouncedSearch(search.trim()), 250);
@@ -167,13 +181,15 @@ export default function ManagerProjectsPage() {
                     startDate: createForm.startDate || null,
                     endDate: createForm.endDate || null,
                     members: createForm.memberIds.map((id) => ({ userId: id })),
+                    isGroup: createForm.isGroup,
+                    parentProjectId: createForm.isGroup ? null : createForm.parentProjectId || null,
                 }),
             });
             const json = await res.json();
             if (res.ok && json.success) {
                 success("Projet créé", createForm.name);
                 setShowCreate(false);
-                setCreateForm({ name: "", description: "", clientId: "", color: "#0c3b38", startDate: "", endDate: "", memberIds: [] });
+                setCreateForm({ name: "", description: "", clientId: "", color: "#0c3b38", startDate: "", endDate: "", memberIds: [], isGroup: false, parentProjectId: "" });
                 fetchProjects();
             } else {
                 showError("Erreur", json.error || "Impossible de créer le projet");
@@ -425,6 +441,34 @@ export default function ManagerProjectsPage() {
                             placeholder="Décrivez l'objectif du projet..."
                         />
                     </div>
+                    <label className="flex items-start gap-3 rounded-xl border border-[#C9DED8] bg-[#F5FAF8] p-3.5 cursor-pointer">
+                        <input
+                            type="checkbox"
+                            checked={createForm.isGroup}
+                            onChange={(e) => setCreateForm({ ...createForm, isGroup: e.target.checked, parentProjectId: "" })}
+                            className="mt-0.5 h-4 w-4 rounded border-slate-300 text-[#0B5A51]"
+                        />
+                        <span>
+                            <span className="block text-sm font-semibold text-[#173A35]">Projet principal / portefeuille</span>
+                            <span className="mt-0.5 block text-xs text-slate-500">Ex. « Sous-traitance ». Il contiendra des sous-projets et n&apos;a pas de tâches directement.</span>
+                        </span>
+                    </label>
+                    {!createForm.isGroup && (
+                        <div>
+                            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Projet principal</label>
+                            <select
+                                value={createForm.parentProjectId}
+                                onChange={(e) => setCreateForm({ ...createForm, parentProjectId: e.target.value })}
+                                className="w-full rounded-lg border border-[#DDE4EA] bg-white px-3.5 py-2.5 text-sm outline-none transition-all focus:border-[#2A7B70] focus:ring-2 focus:ring-[#2A7B70]/15"
+                            >
+                                <option value="">Aucun — projet indépendant</option>
+                                {projects.filter((project) => project.isGroup).map((project) => (
+                                    <option key={project.id} value={project.id}>{project.name}</option>
+                                ))}
+                            </select>
+                            <p className="mt-1.5 text-xs text-slate-500">Pour un client, sélectionnez « Sous-traitance » puis nommez le sous-projet avec le nom du client.</p>
+                        </div>
+                    )}
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-semibold text-slate-700 mb-1.5">Client</label>
@@ -601,6 +645,9 @@ function ProjectCard({ project, onDuplicate, onArchive, onDelete }: {
                                 {project.client.name}
                             </p>
                         )}
+                        {project.isGroup && (
+                            <p className="mt-1 text-xs font-semibold text-[#0B5A51]">Portefeuille · {project._count.childProjects} sous-projet{project._count.childProjects !== 1 ? "s" : ""}</p>
+                        )}
                     </div>
                     <div className="flex items-center gap-2">
                         <span className={cn("inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-[10px] font-bold border", status.bg, status.color, status.border)}>
@@ -629,7 +676,7 @@ function ProjectCard({ project, onDuplicate, onArchive, onDelete }: {
                 )}
 
                 {/* Task status breakdown */}
-                <div className="flex items-center gap-1 mb-3">
+                {!project.isGroup && <div className="flex items-center gap-1 mb-3">
                     {stats && stats.total > 0 ? (
                         <>
                             {stats.DONE > 0 && <div className="h-2 rounded-full bg-emerald-500 transition-all" style={{ flex: stats.DONE }} />}
@@ -640,16 +687,18 @@ function ProjectCard({ project, onDuplicate, onArchive, onDelete }: {
                     ) : (
                         <div className="h-2 rounded-full bg-slate-100 w-full" />
                     )}
-                </div>
+                </div>}
 
                 {/* Stats row */}
                 <div className="flex items-center justify-between text-[11px] text-slate-500 mb-4">
                     <div className="flex items-center gap-3">
-                        <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3 text-emerald-500" />{stats?.DONE || 0}</span>
-                        <span className="flex items-center gap-1"><Clock className="w-3 h-3 text-blue-500" />{stats?.IN_PROGRESS || 0}</span>
-                        <span className="flex items-center gap-1"><ListTodo className="w-3 h-3 text-slate-400" />{stats?.TODO || 0}</span>
+                        {project.isGroup ? <span className="flex items-center gap-1"><FolderKanban className="w-3 h-3 text-[#0B5A51]" />{project._count.childProjects} projets gérés</span> : <>
+                            <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3 text-emerald-500" />{stats?.DONE || 0}</span>
+                            <span className="flex items-center gap-1"><Clock className="w-3 h-3 text-blue-500" />{stats?.IN_PROGRESS || 0}</span>
+                            <span className="flex items-center gap-1"><ListTodo className="w-3 h-3 text-slate-400" />{stats?.TODO || 0}</span>
+                        </>}
                     </div>
-                    <span className="font-bold text-slate-700">{progress}%</span>
+                    {!project.isGroup && <span className="font-bold text-slate-700">{progress}%</span>}
                 </div>
 
                 {/* Footer */}
