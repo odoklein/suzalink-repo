@@ -175,7 +175,7 @@ export async function POST(req: NextRequest) {
         }
 
         let parentProject: { id: string; isGroup: boolean; ownerId: string; members: { userId: string }[] } | null = null;
-        if (parentProjectId && !isGroup) {
+        if (parentProjectId) {
             parentProject = await prisma.project.findUnique({
                 where: { id: parentProjectId },
                 select: { id: true, isGroup: true, ownerId: true, members: { where: { userId: session.user.id }, select: { userId: true } } },
@@ -209,7 +209,7 @@ export async function POST(req: NextRequest) {
                 color: color || "#6366f1",
                 icon: icon || "folder",
                 isGroup: Boolean(isGroup),
-                parentProjectId: isGroup ? null : parentProject?.id || null,
+                parentProjectId: parentProject?.id || null,
                 members: {
                     create: [
                         { userId: session.user.id, role: "owner" },

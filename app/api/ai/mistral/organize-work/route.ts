@@ -5,7 +5,7 @@ import { errorResponse, requireAuth, successResponse, validateRequest, withError
 const requestSchema = z.object({
     kind: z.enum(["TASK", "PROJECT", "SUBTASK"]),
     title: z.string().trim().min(1).max(200),
-    description: z.string().max(2000).optional(),
+    description: z.string().max(12000).optional(),
     projectName: z.string().max(200).optional(),
     existingItems: z.array(z.string().max(200)).max(50).optional(),
 });
@@ -42,7 +42,10 @@ Réponds UNIQUEMENT avec du JSON valide selon ce schéma :
 }
 
 ${isProject
-    ? "Pour un projet, children contient 0 à 6 sous-projets cohérents."
+    ? `Pour un projet, children contient les sous-projets cohérents. Chaque child peut aussi contenir children pour un niveau supplémentaire de sous-projets, et un tableau tasks :
+"tasks": [{ "title": "Tâche actionnable", "description": "Critère de réalisation", "priority": "LOW" | "MEDIUM" | "HIGH" | "URGENT", "estimatedHours": number }].
+
+Si le texte fourni contient une liste de tâches, tu DOIS la répartir dans tasks, sous le bon sous-projet. Ne laisse pas de liste de tâches dans item.description. item.description doit être un résumé du projet de 300 caractères maximum, sans puces, sans emojis et sans répéter le texte source. Si le texte mentionne des phases, modules, lots ou catégories, utilise-les comme sous-projets. Si aucune catégorie n'est présente, crée des sous-projets logiques seulement si cela apporte de la clarté. Conserve les priorités, personnes et échéances lorsqu'elles sont présentes dans le texte.`
     : "Pour une tâche, children contient 0 à 8 sous-tâches indépendantes et vérifiables."}
 Réponds en français. Les children doivent éviter les doublons avec les éléments existants.`;
 
@@ -57,7 +60,7 @@ Réponds en français. Les children doivent éviter les doublons avec les élém
                     { role: "user", content: `À organiser (${input.kind}) : ${input.title}\n${input.description ? `Description : ${input.description}` : ""}` },
                 ],
                 temperature: 0.3,
-                max_tokens: 2000,
+                max_tokens: isProject ? 6000 : 2000,
                 response_format: { type: "json_object" },
             }),
         });

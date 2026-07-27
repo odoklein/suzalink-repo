@@ -172,31 +172,51 @@ export default function ManagerProjectsPage() {
         if (!createForm.name.trim()) return;
         setCreating(true);
         try {
+            const hasImportedStructure = (proposal?.children?.length ?? 0) > 0;
+            const rootIsGroup = createForm.isGroup || hasImportedStructure;
             const res = await fetch("/api/projects", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     name: proposal?.item?.title || createForm.name.trim(),
-                    description: proposal?.item?.description || createForm.description.trim() || null,
+                    // An AI import stores only Mistral's concise summary, never the pasted source list.
+                    description: proposal ? (proposal.summary || proposal.item?.description || null) : createForm.description.trim() || null,
                     clientId: createForm.clientId || null,
                     color: createForm.color,
                     startDate: createForm.startDate || null,
                     endDate: createForm.endDate || null,
                     members: createForm.memberIds.map((id) => ({ userId: id })),
-                    isGroup: createForm.isGroup,
-                    parentProjectId: createForm.isGroup ? null : createForm.parentProjectId || null,
+                    isGroup: rootIsGroup,
+                    parentProjectId: createForm.parentProjectId || null,
                 }),
             });
             const json = await res.json();
             if (res.ok && json.success) {
-                if (createForm.isGroup) {
-                    for (const child of proposal?.children || []) {
-                        await fetch("/api/projects", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ name: child.title, description: child.description || null, color: createForm.color, clientId: createForm.clientId || null, members: createForm.memberIds.map((id) => ({ userId: id })), parentProjectId: json.data.id, isGroup: false }),
-                        });
+                const createNode = async (node: NonNullable<OrganizationProposal["children"]>[number], parentProjectId: string) => {
+                    const nodeIsGroup = (node.children?.length ?? 0) > 0;
+                    const nodeResponse = await fetch("/api/projects", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ name: node.title, description: node.description || null, color: createForm.color, clientId: createForm.clientId || null, members: createForm.memberIds.map((id) => ({ userId: id })), parentProjectId, isGroup: nodeIsGroup }),
+                    });
+                    const nodeJson = await nodeResponse.json();
+                    if (!nodeResponse.ok || !nodeJson.success) throw new Error(nodeJson.error || `Impossible de créer ${node.title}`);
+
+                    for (const child of node.children || []) await createNode(child, nodeJson.data.id);
+                    if (!nodeIsGroup) {
+                        for (const task of node.tasks || []) {
+                            const taskResponse = await fetch("/api/tasks", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ projectId: nodeJson.data.id, title: task.title, description: task.description || null, priority: task.priority || "MEDIUM", estimatedHours: task.estimatedHours?.toString() || null }),
+                            });
+                            const taskJson = await taskResponse.json();
+                            if (!taskResponse.ok || !taskJson.success) throw new Error(taskJson.error || `Impossible de créer la tâche ${task.title}`);
+                        }
                     }
+                };
+                for (const child of proposal?.children || []) {
+                    await createNode(child, json.data.id);
                 }
                 success("Projet créé", createForm.name);
                 setShowCreate(false);

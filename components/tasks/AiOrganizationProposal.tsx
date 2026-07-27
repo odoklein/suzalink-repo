@@ -7,6 +7,8 @@ export interface OrganizationChild {
     description?: string;
     priority?: string;
     estimatedHours?: number;
+    tasks?: OrganizationChild[];
+    children?: OrganizationChild[];
 }
 
 export interface OrganizationProposal {
@@ -39,6 +41,10 @@ export function AiOrganizationProposal({ proposal, childLabel = "Sous-tâches", 
                     <span className="font-medium">{child.title}</span>
                     {child.estimatedHours != null && <span className="ml-2 text-xs text-slate-400">{child.estimatedHours} h</span>}
                     {child.description && <p className="mt-0.5 text-xs text-slate-500">{child.description}</p>}
+                    {(child.tasks?.length ?? 0) > 0 && <div className="mt-1.5 border-l-2 border-[#C9DED8] pl-2 text-xs text-slate-600">
+                        {child.tasks!.map((task, taskIndex) => <p key={`${task.title}-${taskIndex}`}>• {task.title}</p>)}
+                    </div>}
+                    {(child.children?.length ?? 0) > 0 && <p className="mt-1 text-xs font-medium text-[#0B5A51]">{child.children!.length} sous-projet{child.children!.length > 1 ? "s" : ""}</p>}
                 </li>)}
             </ul>
         </div>}
