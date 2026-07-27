@@ -5,6 +5,7 @@ import { Loader2, Sparkles, Plus, X, AlertTriangle, CheckCircle2, CalendarOff, C
 import { cn } from "@/lib/utils";
 import { Modal, ModalFooter } from "@/components/ui/Modal";
 import { useToast } from "@/components/ui/Toast";
+import { AiOrganizationProposal, type OrganizationProposal } from "@/components/tasks/AiOrganizationProposal";
 import type { AvailabilityCheck } from "@/lib/availability";
 
 interface NewTaskModalProps {
@@ -55,6 +56,7 @@ export function NewTaskModal({
     const [members, setMembers] = useState<{ id: string; name: string }[]>(propMembers || []);
     const [isLoading, setIsLoading] = useState(false);
     const [aiLoading, setAiLoading] = useState(false);
+    const [organizationProposal, setOrganizationProposal] = useState<OrganizationProposal | null>(null);
     const [showAdvanced, setShowAdvanced] = useState(false);
     const [labelInput, setLabelInput] = useState("");
     const [availCheck, setAvailCheck] = useState<(AvailabilityCheck & { userName?: string }) | null>(null);
@@ -89,6 +91,7 @@ export function NewTaskModal({
             }));
             setShowAdvanced(false);
             setLabelInput("");
+            setOrganizationProposal(null);
 
             if (!lockProject) {
                 fetch("/api/projects")
@@ -153,22 +156,23 @@ export function NewTaskModal({
 
     const isBlocked = availCheck && (availCheck.status === "off" || availCheck.status === "overbooked") && !overrideBooking;
 
-    const handleSubmit = async () => {
+    const handleSubmit = async (proposal?: OrganizationProposal) => {
         if (!form.title.trim() || !form.projectId) return;
         if (isBlocked) return;
 
         setIsLoading(true);
         try {
+            const proposedItem = proposal?.item;
             const payload: TaskCreatePayload = {
                 projectId: form.projectId,
-                title: form.title.trim(),
-                description: form.description.trim() || null,
-                priority: form.priority,
+                title: (proposedItem?.title || form.title).trim(),
+                description: (proposedItem?.description || form.description).trim() || null,
+                priority: proposedItem?.priority || form.priority,
                 dueDate: form.dueDate || null,
                 startDate: form.startDate || null,
                 assigneeId: form.assigneeId || null,
-                estimatedHours: form.estimatedHours || null,
-                labels: form.labels,
+                estimatedHours: proposedItem?.estimatedHours?.toString() || form.estimatedHours || null,
+                labels: proposedItem?.labels || form.labels,
             };
 
             if (defaultStatus) {
@@ -182,6 +186,13 @@ export function NewTaskModal({
             });
             const json = await res.json();
             if (!res.ok || !json.success) throw new Error(json.error || "Impossible de créer la tâche.");
+            for (const child of proposal?.children || []) {
+                await fetch(`/api/tasks/${json.data.id}/subtasks`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ title: child.title, description: child.description, priority: child.priority, estimatedHours: child.estimatedHours }),
+                });
+            }
             onSuccess(json.data);
             onClose();
         } catch (error) {
@@ -204,37 +215,37 @@ export function NewTaskModal({
         setForm({ ...form, labels: form.labels.filter((l) => l !== label) });
     };
 
-    const handleAiEnhance = async () => {
+    const requestOrganization = async () => {
         if (!form.title.trim()) return;
         setAiLoading(true);
         try {
             const project = projects.find((p) => p.id === form.projectId);
-            const res = await fetch("/api/ai/mistral/task-enhance", {
+            const res = await fetch("/api/ai/mistral/organize-work", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     title: form.title,
                     description: form.description,
-                    projectContext: project?.name || "",
+                    kind: "TASK",
+                    projectName: project?.name || "",
+                    existingItems: [],
                 }),
             });
             const json = await res.json();
-            if (json.success && json.data) {
-                setForm((prev) => ({
-                    ...prev,
-                    title: json.data.enhancedTitle || prev.title,
-                    description: json.data.enhancedDescription || prev.description,
-                    priority: json.data.suggestedPriority || prev.priority,
-                    labels: json.data.suggestedLabels || prev.labels,
-                    estimatedHours: json.data.estimatedHours?.toString() || prev.estimatedHours,
-                }));
-                setShowAdvanced(true);
-            }
-        } catch (e) {
-            console.error(e);
+            if (!res.ok || !json.success) throw new Error(json.error || "Organisation indisponible");
+            setOrganizationProposal(json.data);
+        } catch (error) {
+            showError("Organisation IA indisponible", error instanceof Error ? error.message : "Réessayez dans un instant.");
         } finally {
             setAiLoading(false);
         }
+    };
+
+    const applyProposalToForm = () => {
+        const item = organizationProposal?.item;
+        if (!item) return;
+        setForm((current) => ({ ...current, title: item.title || current.title, description: item.description || current.description, priority: item.priority || current.priority, labels: item.labels || current.labels, estimatedHours: item.estimatedHours?.toString() || current.estimatedHours }));
+        setShowAdvanced(true);
     };
 
     return (
@@ -253,20 +264,28 @@ export function NewTaskModal({
                             autoFocus
                         />
                         <button
-                            onClick={handleAiEnhance}
+                            onClick={requestOrganization}
                             disabled={!form.title.trim() || aiLoading}
                             className="flex h-10 items-center gap-1.5 whitespace-nowrap rounded-lg border border-[#B9D4CE] bg-[#EAF5F2] px-3 text-sm font-medium text-[#0B5A51] transition-colors hover:bg-[#DDEEEA] disabled:opacity-50"
-                            title="Améliorer avec IA"
+                            title="Organiser avec Mistral"
                         >
                             {aiLoading ? (
                                 <Loader2 className="w-4 h-4 animate-spin" />
                             ) : (
                                 <Sparkles className="w-4 h-4" />
                             )}
-                            IA
+                            Organiser
                         </button>
                     </div>
                 </div>
+
+                {organizationProposal && <AiOrganizationProposal
+                    proposal={organizationProposal}
+                    onAccept={() => { applyProposalToForm(); handleSubmit(organizationProposal); }}
+                    onEdit={() => { applyProposalToForm(); setOrganizationProposal(null); }}
+                    onReject={() => setOrganizationProposal(null)}
+                    accepting={isLoading}
+                />}
 
                 {/* Project selector */}
                 {!lockProject && (
@@ -437,7 +456,7 @@ export function NewTaskModal({
                     Annuler
                 </button>
                 <button
-                    onClick={handleSubmit}
+                    onClick={() => handleSubmit()}
                     disabled={!form.title.trim() || !form.projectId || isLoading || !!isBlocked}
                     title={isBlocked ? "Membre indisponible : confirmez la réservation forcée pour continuer" : undefined}
                     className="flex items-center gap-2 rounded-lg bg-[#084C45] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#063E39] disabled:cursor-not-allowed disabled:opacity-50"

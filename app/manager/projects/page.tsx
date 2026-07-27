@@ -13,6 +13,7 @@ import { useSearchParams } from "next/navigation";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Modal, ModalFooter, ConfirmModal, useToast, DropdownMenu } from "@/components/ui";
+import { AiOrganizationProposal, type OrganizationProposal } from "@/components/tasks/AiOrganizationProposal";
 
 // ============================================
 // TYPES
@@ -100,6 +101,7 @@ export default function ManagerProjectsPage() {
         parentProjectId: "",
     });
     const [creating, setCreating] = useState(false);
+    const [organizationProposal, setOrganizationProposal] = useState<OrganizationProposal | null>(null);
 
     useEffect(() => {
         const parentProjectId = searchParams.get("parentProjectId");
@@ -166,7 +168,7 @@ export default function ManagerProjectsPage() {
         }).catch(console.error);
     }, []);
 
-    const handleCreate = async () => {
+    const handleCreate = async (proposal?: OrganizationProposal) => {
         if (!createForm.name.trim()) return;
         setCreating(true);
         try {
@@ -174,8 +176,8 @@ export default function ManagerProjectsPage() {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    name: createForm.name.trim(),
-                    description: createForm.description.trim() || null,
+                    name: proposal?.item?.title || createForm.name.trim(),
+                    description: proposal?.item?.description || createForm.description.trim() || null,
                     clientId: createForm.clientId || null,
                     color: createForm.color,
                     startDate: createForm.startDate || null,
@@ -187,8 +189,18 @@ export default function ManagerProjectsPage() {
             });
             const json = await res.json();
             if (res.ok && json.success) {
+                if (createForm.isGroup) {
+                    for (const child of proposal?.children || []) {
+                        await fetch("/api/projects", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ name: child.title, description: child.description || null, color: createForm.color, clientId: createForm.clientId || null, members: createForm.memberIds.map((id) => ({ userId: id })), parentProjectId: json.data.id, isGroup: false }),
+                        });
+                    }
+                }
                 success("Projet créé", createForm.name);
                 setShowCreate(false);
+                setOrganizationProposal(null);
                 setCreateForm({ name: "", description: "", clientId: "", color: "#0c3b38", startDate: "", endDate: "", memberIds: [], isGroup: false, parentProjectId: "" });
                 fetchProjects();
             } else {
@@ -199,6 +211,29 @@ export default function ManagerProjectsPage() {
         } finally {
             setCreating(false);
         }
+    };
+
+    const requestOrganization = async () => {
+        if (!createForm.name.trim()) return;
+        setCreating(true);
+        try {
+            const res = await fetch("/api/ai/mistral/organize-work", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ kind: "PROJECT", title: createForm.name, description: createForm.description, existingItems: projects.map((project) => project.name) }),
+            });
+            const json = await res.json();
+            if (!res.ok || !json.success) throw new Error(json.error || "Organisation indisponible");
+            setOrganizationProposal(json.data);
+        } catch (error) {
+            showError("Organisation IA indisponible", error instanceof Error ? error.message : "Réessayez dans un instant.");
+        } finally { setCreating(false); }
+    };
+
+    const applyProposalToForm = () => {
+        const item = organizationProposal?.item;
+        if (!item) return;
+        setCreateForm((current) => ({ ...current, name: item.title || current.name, description: item.description || current.description }));
     };
 
     const handleDuplicate = async (projectId: string) => {
@@ -441,6 +476,17 @@ export default function ManagerProjectsPage() {
                             placeholder="Décrivez l'objectif du projet..."
                         />
                     </div>
+                    <button type="button" onClick={requestOrganization} disabled={!createForm.name.trim() || creating} className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#0B5A51] hover:text-[#063E39] disabled:opacity-50">
+                        <Zap className="h-4 w-4" /> Organiser avec Mistral
+                    </button>
+                    {organizationProposal && <AiOrganizationProposal
+                        proposal={organizationProposal}
+                        childLabel="Sous-projets proposés"
+                        onAccept={() => { applyProposalToForm(); handleCreate(organizationProposal); }}
+                        onEdit={() => { applyProposalToForm(); setOrganizationProposal(null); }}
+                        onReject={() => setOrganizationProposal(null)}
+                        accepting={creating}
+                    />}
                     <label className="flex items-start gap-3 rounded-xl border border-[#C9DED8] bg-[#F5FAF8] p-3.5 cursor-pointer">
                         <input
                             type="checkbox"

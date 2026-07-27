@@ -9,7 +9,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Drawer } from "@/components/ui/Drawer";
 import { Tabs } from "@/components/ui/Tabs";
-import { Badge } from "@/components/ui/Badge";
+import { AiOrganizationProposal, type OrganizationProposal } from "@/components/tasks/AiOrganizationProposal";
 
 // ============================================
 // TYPES
@@ -87,6 +87,7 @@ export function TaskDetailDrawer({
     const [newSubtask, setNewSubtask] = useState("");
     const [submitting, setSubmitting] = useState(false);
     const [aiLoading, setAiLoading] = useState(false);
+    const [organizationProposal, setOrganizationProposal] = useState<OrganizationProposal | null>(null);
 
     const fetchTask = useCallback(async () => {
         if (!taskId) return;
@@ -217,38 +218,37 @@ export function TaskDetailDrawer({
         if (!task) return;
         setAiLoading(true);
         try {
-            const res = await fetch("/api/ai/mistral/task-decompose", {
+            const res = await fetch("/api/ai/mistral/organize-work", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     title: task.title,
                     description: task.description,
+                    kind: "SUBTASK",
                     projectName: task.project.name,
+                    existingItems: task.subtasks.map((sub: { title: string }) => sub.title),
                 }),
             });
             const json = await res.json();
-            if (json.success && json.data?.subtasks) {
-                // Create subtasks from AI suggestions
-                for (const sub of json.data.subtasks) {
-                    await fetch(`/api/tasks/${task.id}/subtasks`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            title: sub.title,
-                            description: sub.description,
-                            priority: sub.priority,
-                            estimatedHours: sub.estimatedHours,
-                        }),
-                    });
-                }
-                fetchTask();
-                onUpdate();
-            }
+            if (json.success && json.data) setOrganizationProposal(json.data);
         } catch (e) {
             console.error(e);
         } finally {
             setAiLoading(false);
         }
+    };
+
+    const acceptOrganizationProposal = async () => {
+        if (!task || !organizationProposal) return;
+        setAiLoading(true);
+        try {
+            for (const sub of organizationProposal.children || []) {
+                await fetch(`/api/tasks/${task.id}/subtasks`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(sub) });
+            }
+            setOrganizationProposal(null);
+            fetchTask();
+            onUpdate();
+        } finally { setAiLoading(false); }
     };
 
     const aiEnhance = async () => {
@@ -577,6 +577,13 @@ export function TaskDetailDrawer({
                                 </div>
 
                                 {/* AI Decompose */}
+                                {organizationProposal && <AiOrganizationProposal
+                                    proposal={organizationProposal}
+                                    onAccept={acceptOrganizationProposal}
+                                    onEdit={() => setOrganizationProposal(null)}
+                                    onReject={() => setOrganizationProposal(null)}
+                                    accepting={aiLoading}
+                                />}
                                 <button
                                     onClick={aiDecompose}
                                     disabled={aiLoading}
@@ -592,7 +599,7 @@ export function TaskDetailDrawer({
                             </div>
                         )}
 
-                        {/* ---- COMMENTS TAB ---- */}
+                                {/* ---- COMMENTS TAB ---- */}
                         {activeTab === "comments" && (
                             <div className="space-y-4">
                                 {task.comments.length === 0 && (
