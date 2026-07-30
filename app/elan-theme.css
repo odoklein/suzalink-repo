@@ -270,7 +270,28 @@ body.elan-app :focus-visible {
     outline-offset: 1px;
 }
 
+.manager-command-center {
+    margin: calc(clamp(16px, 1.5vw, 28px) * -1);
+    width: auto;
+    padding: clamp(18px, 1.7vw, 30px);
+    background:
+        radial-gradient(circle at 76% 0%, rgba(225, 236, 231, 0.72), transparent 24rem),
+        linear-gradient(180deg, #fbfaf7 0%, #ffffff 34rem);
+}
+
+.manager-command-center > * {
+    animation: elanContentIn 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 /* SDR actions: one white canvas with compact, cool-neutral table chrome. */
+.sdr-actions-page {
+    margin: calc(clamp(16px, 1.5vw, 28px) * -1);
+    padding: clamp(16px, 1.5vw, 28px);
+    background:
+        radial-gradient(circle at 90% 0%, rgba(225, 236, 231, 0.68), transparent 22rem),
+        var(--elan-paper) !important;
+}
+
 .sdr-actions-page :where(input, select):focus {
     border-color: var(--elan-petrol) !important;
     box-shadow: 0 0 0 3px rgba(12, 59, 56, 0.12) !important;
@@ -290,6 +311,20 @@ body.elan-app :focus-visible {
 
 .sdr-actions-page .bg-indigo-600 {
     background-color: var(--elan-petrol) !important;
+}
+
+.sdr-actions-page table tbody tr {
+    transition: background-color 150ms ease, box-shadow 150ms ease;
+}
+
+.sdr-actions-page table tbody tr:hover {
+    background: #f8fbfa !important;
+    box-shadow: inset 3px 0 0 var(--elan-petrol);
+}
+
+.sdr-actions-page table :where(button, a):focus-visible {
+    outline: 2px solid rgba(12, 59, 56, 0.42);
+    outline-offset: 2px;
 }
 
 .cp-content > * {

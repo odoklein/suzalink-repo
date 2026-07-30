@@ -87,6 +87,7 @@ interface Contact {
 interface Company {
     id: string;
     name: string;
+    email?: string | null;
     industry: string | null;
     country: string | null;
     website: string | null;
@@ -1279,7 +1280,7 @@ export function UnifiedActionDrawer({
         (!textFieldRequiredForResult || newActionNote.trim().length > 0) &&
         !addActionMutation.isPending;
 
-    const sortedHistoryActions = useMemo(() => {
+    const sortedHistoryActions = (() => {
         const copy = [...actions];
         copy.sort((a, b) => {
             const aCb = isCallbackResult(a.result) ? 1 : 0;
@@ -1288,7 +1289,7 @@ export function UnifiedActionDrawer({
             return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         });
         return copy;
-    }, [actions, isCallbackResult]);
+    })();
     const visibleActions = historyExpanded ? sortedHistoryActions : sortedHistoryActions.slice(0, 5);
 
     // ── Render ─────────────────────────────────────────────────────────────────
@@ -1385,10 +1386,101 @@ export function UnifiedActionDrawer({
             ) : (
                 <div className="flex flex-col gap-3 pb-3" role="main" aria-label="Actions sur le contact">
 
+                    <section className="overflow-hidden rounded-[18px] border border-[#dfe7e3] bg-white shadow-[0_16px_40px_-32px_rgba(12,59,56,0.65)]">
+                        <div className="bg-gradient-to-br from-[#f8fbfa] via-white to-[#fff9ef] p-4">
+                            <div className="flex items-start gap-3.5">
+                                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] bg-[#0c3b38] text-sm font-bold text-white shadow-[0_8px_20px_-10px_rgba(12,59,56,0.65)]">
+                                    {displayName.split(" ").map((part) => part[0]).join("").slice(0, 2).toUpperCase()}
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        <h2 className="truncate text-[18px] font-semibold tracking-[-0.025em] text-[#15201e]">{displayName}</h2>
+                                        <StatusPill status={contact?.status ?? company?.status ?? ""} />
+                                    </div>
+                                    <p className="mt-0.5 truncate text-xs text-slate-500">
+                                        {contact?.title ? `${contact.title} · ` : ""}{company?.name ?? "Société non renseignée"}
+                                    </p>
+                                    {missionName && <p className="mt-1 text-[11px] font-medium text-[#637875]">Mission · {missionName}</p>}
+                                </div>
+                            </div>
+
+                            <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
+                                {(contact?.phone || company?.phone) && (
+                                    <a
+                                        href={`tel:${contact?.phone || company?.phone}`}
+                                        className="inline-flex h-9 shrink-0 items-center gap-2 rounded-[10px] bg-[#0c3b38] px-3 text-xs font-semibold text-white shadow-sm transition-transform active:scale-[0.98]"
+                                    >
+                                        <PhoneCall className="h-3.5 w-3.5" /> Appeler
+                                    </a>
+                                )}
+                                {contact?.email && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setNewActionResult("ENVOIE_MAIL")}
+                                        className="inline-flex h-9 shrink-0 items-center gap-2 rounded-[10px] border border-[#d7e3df] bg-white px-3 text-xs font-semibold text-[#1f4d47] hover:bg-[#eef4f2] active:scale-[0.98]"
+                                    >
+                                        <Mail className="h-3.5 w-3.5" /> Envoyer un email
+                                    </button>
+                                )}
+                                {contact?.linkedin && (
+                                    <a
+                                        href={contact.linkedin}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="inline-flex h-9 shrink-0 items-center gap-2 rounded-[10px] border border-[#d7e3df] bg-white px-3 text-xs font-semibold text-[#1f4d47] hover:bg-[#eef4f2] active:scale-[0.98]"
+                                    >
+                                        <Linkedin className="h-3.5 w-3.5" /> LinkedIn
+                                    </a>
+                                )}
+                                {canOpenBookingFlow && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowBookingDrawer(true)}
+                                        className="inline-flex h-9 shrink-0 items-center gap-2 rounded-[10px] border border-amber-200 bg-amber-50 px-3 text-xs font-semibold text-amber-800 hover:bg-amber-100 active:scale-[0.98]"
+                                    >
+                                        <Calendar className="h-3.5 w-3.5" /> Planifier un RDV
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 border-t border-[#e5ebe8] md:grid-cols-4">
+                            {[
+                                {
+                                    label: "Dernière action",
+                                    value: sortedHistoryActions[0] ? (statusLabels[sortedHistoryActions[0].result] ?? sortedHistoryActions[0].result) : "Jamais contacté",
+                                    tone: sortedHistoryActions[0] ? "text-[#1f4d47]" : "text-slate-500",
+                                },
+                                {
+                                    label: "Rappel",
+                                    value: sortedHistoryActions[0]?.callbackDate
+                                        ? new Date(sortedHistoryActions[0].callbackDate).toLocaleDateString("fr-FR", { day: "2-digit", month: "short" })
+                                        : "Non planifié",
+                                    tone: sortedHistoryActions[0]?.callbackDate ? "text-amber-700" : "text-slate-500",
+                                },
+                                {
+                                    label: "Qualification",
+                                    value: STATUS_CONFIG[contact?.status === "ACTIONABLE" ? "ACTIONABLE" : "PARTIAL"]?.label ?? "À qualifier",
+                                    tone: contact?.status === "ACTIONABLE" ? "text-emerald-700" : "text-amber-700",
+                                },
+                                {
+                                    label: "Canal",
+                                    value: campaigns[0]?.mission?.channel === "EMAIL" ? "Email" : campaigns[0]?.mission?.channel === "LINKEDIN" ? "LinkedIn" : "Appel",
+                                    tone: "text-[#1f4d47]",
+                                },
+                            ].map((item) => (
+                                <div key={item.label} className="border-b border-r border-[#edf1ef] px-3 py-2.5 last:border-r-0 md:border-b-0">
+                                    <p className="text-[9px] font-semibold uppercase tracking-[0.08em] text-slate-400">{item.label}</p>
+                                    <p className={cn("mt-1 truncate text-[11px] font-semibold", item.tone)}>{item.value}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+
                     {/* ── Unified history section (moved to top) ── */}
                     <section
                         aria-label="Historique des actions"
-                        className="overflow-hidden rounded-xl border border-[#dfe7e3] bg-white"
+                        className="overflow-hidden rounded-[18px] border border-[#dfe7e3] bg-white"
                         style={{ animation: "uadSectionIn 250ms cubic-bezier(0.16, 1, 0.3, 1)" }}
                     >
                         <button
@@ -1468,7 +1560,7 @@ export function UnifiedActionDrawer({
                             {actionsLoading ? (
                                 <div role="status" aria-label="Chargement de l'historique">
                                     <ListSkeleton items={3} hasAvatar={false} className="py-1" />
-                                    <span className="sr-only">Chargement de l'historique...</span>
+                                    <span className="sr-only">Chargement de l&apos;historique...</span>
                                 </div>
                             ) : actions.length === 0 ? (
                                 <div className="flex flex-col items-center py-10 text-slate-400">
@@ -2699,7 +2791,7 @@ export function UnifiedActionDrawer({
                     {/* ── Record Action Section ── */}
                     <section
                         aria-label="Enregistrer une action"
-                        className="overflow-hidden rounded-xl border border-[#dfe7e3] bg-white"
+                        className="overflow-hidden rounded-[18px] border border-[#dfe7e3] bg-white shadow-[0_16px_40px_-34px_rgba(12,59,56,0.6)]"
                         style={{ animation: "uadSectionIn 250ms 150ms cubic-bezier(0.16, 1, 0.3, 1) both" }}
                     >
                         <div className="flex items-center gap-2.5 border-b border-[#e7ecea] bg-[#fafcfb] px-3.5 py-3">
@@ -3226,7 +3318,7 @@ export function UnifiedActionDrawer({
                                     )}
 
                                     {newActionResult !== "ENVOIE_MAIL" && (
-                                    <div className="flex flex-col sm:flex-row gap-2 pt-3 mt-1 border-t border-indigo-100">
+                                    <div className="sticky -bottom-4 z-10 -mx-4 flex flex-col gap-2 border-t border-[#dfe7e3] bg-white/95 px-4 pb-1 pt-3 shadow-[0_-12px_28px_-24px_rgba(12,59,56,0.45)] backdrop-blur sm:flex-row">
                                         <Button
                                             type="button"
                                             variant="primary"

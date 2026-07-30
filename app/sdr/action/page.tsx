@@ -36,6 +36,7 @@ import {
     BarChart2,
     Trash2,
     Send,
+    ChevronDown,
 } from "lucide-react";
 import { Card, Badge, Button, LoadingState, EmptyState, Tabs, Drawer, DataTable, useToast, TableSkeleton, CardSkeleton, Modal, DateTimePicker } from "@/components/ui";
 import type { Column } from "@/components/ui/DataTable";
@@ -44,6 +45,7 @@ import { CompanyDrawer, ContactDrawer } from "@/components/drawers";
 import { BookingDrawer } from "@/components/sdr/BookingDrawer";
 import { AlloCallPickerModal } from "@/components/sdr/AlloCallPickerModal";
 import { ScriptCompanionDrawer } from "@/components/sdr/ScriptCompanionDrawer";
+import { QueueSummary } from "@/components/sdr/QueueSummary";
 import { useSidebar } from "@/components/layout/SidebarProvider";
 
 import { trackActionCreated, trackEvent, UMAMI_EVENTS } from "@/lib/analytics/umami";
@@ -546,6 +548,7 @@ export default function SDRActionPage() {
     const [tableFilterPriority, setTableFilterPriority] = useState<string>("");
     const [tableFilterChannel, setTableFilterChannel] = useState<string>("");
     const [tableFilterType, setTableFilterType] = useState<string>("contact"); // "" | "contact" | "company" — default to contacts in table view
+    const [advancedFiltersOpen, setAdvancedFiltersOpen] = useState(false);
 
     // Stats modal (table + card view): view stats and list of contacts with status
     const [showStatsModal, setShowStatsModal] = useState(false);
@@ -873,6 +876,15 @@ export default function SDRActionPage() {
     }, [queueItems, tableFilterResult, tableFilterPriority, tableFilterChannel, tableFilterType]);
 
     const hasTableFiltersActive = !!(tableFilterResult || tableFilterPriority || tableFilterChannel || tableFilterType);
+    const urgentCallbackCount = useMemo(() => {
+        const withinOneDay = Date.now() + 24 * 60 * 60 * 1000;
+        return queueItems.filter((row) => {
+            if (!row.lastAction || !isCallbackResult(row.lastAction.result) || !row.lastAction.callbackDate) return false;
+            const timestamp = new Date(row.lastAction.callbackDate).getTime();
+            return Number.isFinite(timestamp) && timestamp <= withinOneDay;
+        }).length;
+    }, [queueItems, isCallbackResult]);
+    const untouchedCount = useMemo(() => queueItems.filter((row) => !row.lastAction).length, [queueItems]);
     const clearTableFilters = () => {
         setTableFilterResult("");
         setTableFilterPriority("");
@@ -1159,7 +1171,7 @@ export default function SDRActionPage() {
         queryFn: async () => {
             const res = await fetch(`/api/missions/${unifiedDrawerMissionId}/client-booking`);
             const json = await res.json();
-            if (!json.success) return { bookingUrl: "", interlocuteurs: [] as any[] };
+            if (!json.success) return { bookingUrl: "", interlocuteurs: [] };
             return {
                 bookingUrl: json.data?.bookingUrl ?? "",
                 interlocuteurs: Array.isArray(json.data?.interlocuteurs) ? json.data.interlocuteurs : [],
@@ -1641,7 +1653,7 @@ export default function SDRActionPage() {
                     showError("Appel non enregistré", "Erreur réseau lors de l'enrichissement.");
                 }
             }
-            trackActionCreated({ channel: currentAction.channel, result: selectedResult, hasContact: !!currentAction.contact, hasCompany: !!currentAction.company });
+            trackActionCreated({ channel: currentAction.channel ?? "CALL", result: selectedResult, hasContact: !!currentAction.contact, hasCompany: !!currentAction.company });
             setShowSuccess(true);
             setActionsCompleted((prev) => prev + 1);
             await loadNextAction();
@@ -2063,7 +2075,7 @@ export default function SDRActionPage() {
         ];
 
         return (
-            <div className="sdr-actions-page min-h-full space-y-3 bg-white">
+            <div className="sdr-actions-page min-h-full space-y-3 bg-[var(--elan-paper)]">
                 {/* Header — Table View */}
                 <div className="border-b border-[#e3e9e6] pb-3">
 
@@ -2094,8 +2106,15 @@ export default function SDRActionPage() {
                     </div>
                 </div>
 
+                <QueueSummary
+                    completed={actionsCompleted}
+                    remaining={filteredQueueItems.length}
+                    urgentCallbacks={urgentCallbackCount}
+                    untouched={untouchedCount}
+                />
+
                 {/* Filter Card */}
-                <div className="overflow-hidden rounded-xl border border-[#e1e7e4] bg-white">
+                <div className="overflow-hidden rounded-2xl border border-[#dfe7e3] bg-white shadow-[0_10px_30px_-26px_rgba(12,59,56,0.55)]">
                     <div className="px-4 pt-3">
                         <div className="flex items-center justify-between gap-4">
                             <div className="flex items-center gap-2.5">
@@ -2109,17 +2128,30 @@ export default function SDRActionPage() {
                                     )}
                                 </div>
                             </div>
-                            {hasTableFiltersActive && (
-                                <Button variant="ghost" size="sm" onClick={clearTableFilters} className="text-slate-400 hover:text-red-500 hover:bg-red-50 gap-1.5 text-[12px] h-7">
-                                    <RotateCcw className="w-3 h-3" />
-                                    Réinitialiser
+                            <div className="flex items-center gap-1.5">
+                                {hasTableFiltersActive && (
+                                    <Button variant="ghost" size="sm" onClick={clearTableFilters} className="text-slate-400 hover:text-red-500 hover:bg-red-50 gap-1.5 text-[12px] h-7">
+                                        <RotateCcw className="w-3 h-3" />
+                                        Réinitialiser
+                                    </Button>
+                                )}
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setAdvancedFiltersOpen((open) => !open)}
+                                    aria-expanded={advancedFiltersOpen}
+                                    className="h-7 gap-1.5 text-[12px] text-[var(--elan-petrol)] hover:bg-[#eef4f2]"
+                                >
+                                    Filtres avancés
+                                    <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", advancedFiltersOpen && "rotate-180")} />
                                 </Button>
-                            )}
+                            </div>
                         </div>
                     </div>
 
                     <div className="p-3 pt-2.5">
-                        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-[minmax(150px,1.7fr)_minmax(130px,1.35fr)_minmax(220px,2.3fr)_repeat(4,minmax(100px,1fr))]">
+                        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 xl:grid-cols-[minmax(180px,1.15fr)_minmax(160px,1fr)_minmax(280px,2fr)]">
                             {/* Mission */}
                             <div className="space-y-1">
                                 <label className="text-[11px] font-[500] text-slate-400 uppercase tracking-wide block">Mission</label>
@@ -2140,6 +2172,10 @@ export default function SDRActionPage() {
                                 <label className="text-[11px] font-[500] text-slate-400 uppercase tracking-wide block">Rechercher</label>
                                 <input type="text" value={tableSearchInput} onChange={(e) => setTableSearchInput(e.target.value)} placeholder="Contact ou société…" className="w-full h-9 px-3 text-[13px] border border-[#e5e5e5] rounded-lg bg-white text-[#1a1a1a] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[rgba(255,158,27,0.28)] focus:border-[var(--elan-amber-deep)] transition-shadow" />
                             </div>
+                        </div>
+
+                        {advancedFiltersOpen && (
+                        <div className="mt-3 grid grid-cols-1 gap-2.5 border-t border-[#edf1ef] pt-3 sm:grid-cols-2 xl:grid-cols-4">
                             {/* Statut */}
                             <div className="space-y-1">
                                 <label className="text-[11px] font-[500] text-slate-400 uppercase tracking-wide block">Statut</label>
@@ -2175,6 +2211,16 @@ export default function SDRActionPage() {
                                 </select>
                             </div>
                         </div>
+                        )}
+
+                        {hasTableFiltersActive && (
+                            <div className="mt-3 flex flex-wrap items-center gap-1.5" aria-label="Filtres actifs">
+                                {tableFilterResult && <button type="button" onClick={() => setTableFilterResult("")} className="rounded-full border border-[#d7e3df] bg-[#eef4f2] px-2.5 py-1 text-[10px] font-semibold text-[#1f4d47]">Statut: {tableFilterResult === "NONE" ? "Jamais contacté" : statusLabels[tableFilterResult] ?? tableFilterResult} ×</button>}
+                                {tableFilterPriority && <button type="button" onClick={() => setTableFilterPriority("")} className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[10px] font-semibold text-amber-700">Priorité: {PRIORITY_LABELS[tableFilterPriority]?.label ?? tableFilterPriority} ×</button>}
+                                {tableFilterChannel && <button type="button" onClick={() => setTableFilterChannel("")} className="rounded-full border border-[#d7e3df] bg-white px-2.5 py-1 text-[10px] font-semibold text-slate-600">Canal: {CHANNEL_LABELS[tableFilterChannel as Channel] ?? tableFilterChannel} ×</button>}
+                                {tableFilterType && <button type="button" onClick={() => setTableFilterType("")} className="rounded-full border border-[#d7e3df] bg-white px-2.5 py-1 text-[10px] font-semibold text-slate-600">Type: {tableFilterType === "contact" ? "Contacts" : "Sociétés"} ×</button>}
+                            </div>
+                        )}
 
                         {/* Results summary */}
                         <div className="mt-2 flex items-center justify-between">

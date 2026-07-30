@@ -336,7 +336,7 @@ export default function ManagerDashboard() {
     }
 
     return (
-        <div className="elan-page">
+        <div className="elan-page manager-command-center">
 
             {/* ── Page Header ── */}
             <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
@@ -402,314 +402,171 @@ export default function ManagerDashboard() {
                 </div>
             </div>
 
-            {/* ROW 1: Hero KPIs */}
-            <div className="flex flex-col lg:flex-row gap-4 mb-4">
-                <HeroKpiCard
-                    label="RDV décrochés"
-                    value={stats?.meetingsBooked ?? 0}
-                    sub={`sur ${RDV_WEEKLY_GOAL} hebdomadaire`}
-                    pct={stats?.conversionRate ?? 0}
-                    icon={Trophy}
-                    sparkData={sparklineData}
-                />
-                <div className="flex-[1.2] flex flex-col gap-3">
-                    <MiniKpi label="Appels effectués" value={stats?.totalActions ?? 0} icon={Phone} bgColor="bg-[#F0F5F3]" iconColor="text-[#1F4D47]" trend="up" />
-                    <MiniKpi label="Leads chauds" value={hotLeads} icon={Flame} bgColor="bg-amber-50" iconColor="text-amber-500" />
-                    <MiniKpi label="Taux de conversion" value={Math.round((stats?.conversionRate ?? 0) * 10) / 10} suffix="%" icon={TrendingUp} bgColor="bg-emerald-50" iconColor="text-emerald-500" trend="up" />
-                </div>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+                {[
+                    { href: "/manager/prospection", label: "Appels réalisés", value: stats?.totalActions ?? 0, note: "Actions sur la période", icon: Phone, tone: "eucalyptus" },
+                    { href: "/manager/rdv", label: "RDV obtenus", value: stats?.meetingsBooked ?? 0, note: `${Math.round(rdvGoalPct)}% de l'objectif`, icon: Trophy, tone: "petrol" },
+                    { href: "/manager/prospection", label: "Leads chauds", value: hotLeads, note: `${callbackCount} rappels à traiter`, icon: Flame, tone: "amber" },
+                    { href: "/manager/analytics", label: "Taux de conversion", value: `${Math.round((stats?.conversionRate ?? 0) * 10) / 10}%`, note: "Performance commerciale", icon: TrendingUp, tone: "success" },
+                ].map((item) => {
+                    const Icon = item.icon;
+                    const dark = item.tone === "petrol";
+                    return (
+                        <Link
+                            key={item.label}
+                            href={item.href}
+                            className={cn(
+                                "group relative min-h-[176px] overflow-hidden rounded-2xl border p-5 shadow-[0_12px_34px_-24px_rgba(12,59,56,0.45)] transition-all duration-150 hover:-translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0c3b38]/35",
+                                dark ? "border-[#173f3b] bg-[#0c3b38] text-white" : "border-[#dfe7e3] bg-white text-[#15201e]"
+                            )}
+                        >
+                            <div className="flex items-start justify-between">
+                                <span className={cn(
+                                    "flex h-10 w-10 items-center justify-center rounded-xl",
+                                    item.tone === "amber" && "bg-amber-50 text-amber-700",
+                                    item.tone === "success" && "bg-emerald-50 text-emerald-700",
+                                    item.tone === "eucalyptus" && "bg-[#e8f1ee] text-[#1f4d47]",
+                                    dark && "bg-white/10 text-[#ffb64f]"
+                                )}><Icon className="h-4.5 w-4.5" /></span>
+                                <ArrowUpRight className={cn("h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5", dark ? "text-white/45" : "text-slate-300")} />
+                            </div>
+                            <p className={cn("mt-5 text-[11px] font-semibold uppercase tracking-[0.08em]", dark ? "text-white/55" : "text-slate-500")}>{item.label}</p>
+                            <p className="mt-1 text-[38px] font-bold leading-none tracking-[-0.04em] tabular-nums">{item.value}</p>
+                            <p className={cn("mt-3 text-xs", dark ? "text-white/50" : "text-slate-500")}>{item.note}</p>
+                        </Link>
+                    );
+                })}
             </div>
 
-            {/* ROW 2: Charts and insights */}
-            <div className="flex flex-col xl:flex-row gap-4 mb-4">
+            <div className="grid grid-cols-1 gap-4 xl:grid-cols-12">
+                <section className="rounded-2xl border border-[#dfe7e3] bg-white p-5 shadow-[0_14px_38px_-28px_rgba(12,59,56,0.5)] xl:col-span-7">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                            <h2 className="text-[15px] font-semibold text-[#15201e]">Performance de l&apos;équipe</h2>
+                            <p className="mt-1 text-xs text-slate-500">Progression cumulée des rendez-vous</p>
+                        </div>
+                        <div className="flex items-center gap-4 text-[11px] font-medium text-slate-500">
+                            <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-[#0c3b38]" />Réalisé</span>
+                            <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-[#ed7f00]" />Objectif</span>
+                        </div>
+                    </div>
+                    <div className="mt-5 h-[245px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart data={weeklyGoalData}>
+                                <defs>
+                                    <linearGradient id="manager-performance-fill" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stopColor="#76a79a" stopOpacity={0.28} />
+                                        <stop offset="100%" stopColor="#76a79a" stopOpacity={0} />
+                                    </linearGradient>
+                                </defs>
+                                <XAxis dataKey="jour" tick={{ fontSize: 11, fill: "#71817c" }} axisLine={false} tickLine={false} />
+                                <YAxis hide />
+                                <Tooltip content={<CustomTooltip />} />
+                                <Line type="monotone" dataKey="objectif" stroke="#ed7f00" strokeWidth={1.5} strokeDasharray="4 4" dot={false} name="Objectif" />
+                                <Area type="monotone" dataKey="cumul" stroke="#0c3b38" strokeWidth={2.5} fill="url(#manager-performance-fill)" name="Réalisé" />
+                            </AreaChart>
+                        </ResponsiveContainer>
+                    </div>
+                    <div className="grid grid-cols-3 divide-x divide-[#e5ebe8] border-t border-[#e5ebe8] pt-4">
+                        <div><p className="text-[10px] uppercase tracking-wide text-slate-400">Actions</p><p className="mt-1 text-lg font-semibold tabular-nums">{stats?.totalActions ?? 0}</p></div>
+                        <div className="pl-4"><p className="text-[10px] uppercase tracking-wide text-slate-400">RDV</p><p className="mt-1 text-lg font-semibold tabular-nums">{stats?.meetingsBooked ?? 0}</p></div>
+                        <div className="pl-4"><p className="text-[10px] uppercase tracking-wide text-slate-400">Conversion</p><p className="mt-1 text-lg font-semibold tabular-nums">{Math.round((stats?.conversionRate ?? 0) * 10) / 10}%</p></div>
+                    </div>
+                </section>
 
-                {/* LEFT COL (60%) */}
-                <div className="flex-[3] flex flex-col gap-4">
+                <section className="rounded-2xl border border-[#dfe7e3] bg-white p-5 shadow-[0_14px_38px_-28px_rgba(12,59,56,0.5)] xl:col-span-5">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h2 className="text-[15px] font-semibold text-[#15201e]">À traiter maintenant</h2>
+                            <p className="mt-1 text-xs text-slate-500">Les priorités commerciales de l&apos;équipe</p>
+                        </div>
+                        <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-700">{callbackCount + (stats?.resultBreakdown?.INTERESTED ?? 0)} signaux</span>
+                    </div>
+                    <div className="mt-5 divide-y divide-[#edf1ef]">
+                        {[
+                            { href: "/manager/prospection", icon: Clock, label: "Rappels planifiés", help: "À recontacter en priorité", value: callbackCount, cls: "bg-amber-50 text-amber-700" },
+                            { href: "/manager/prospection", icon: Star, label: "Contacts intéressés", help: "Signal de conversion élevé", value: stats?.resultBreakdown?.INTERESTED ?? 0, cls: "bg-emerald-50 text-emerald-700" },
+                            { href: "/manager/rdv", icon: CheckCircle2, label: "Rendez-vous obtenus", help: "À préparer avec les SDR", value: stats?.meetingsBooked ?? 0, cls: "bg-[#e8f1ee] text-[#1f4d47]" },
+                        ].map((row) => {
+                            const Icon = row.icon;
+                            return (
+                                <Link key={row.label} href={row.href} className="group flex items-center gap-3 rounded-xl px-1 py-3.5 hover:bg-[#fbfaf7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0c3b38]/25">
+                                    <span className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-xl", row.cls)}><Icon className="h-4 w-4" /></span>
+                                    <span className="min-w-0 flex-1"><span className="block text-[13px] font-semibold text-[#263735]">{row.label}</span><span className="block text-[11px] text-slate-500">{row.help}</span></span>
+                                    <span className="text-xl font-semibold tabular-nums text-[#15201e]">{row.value}</span>
+                                    <ArrowRight className="h-4 w-4 text-slate-300 transition-transform group-hover:translate-x-0.5 group-hover:text-[#1f4d47]" />
+                                </Link>
+                            );
+                        })}
+                    </div>
+                </section>
 
-                    {/* Charts row */}
-                    <div className="flex flex-col lg:flex-row gap-4">
-
-                        {/* Résultats appels: donut */}
-                        <div className="flex-1 bg-white rounded-2xl border border-slate-100 p-5 shadow-sm hover:shadow-md transition-shadow duration-200">
-                            <div className="flex items-center justify-between mb-5">
-                                <h3 className="text-[14px] font-bold text-slate-800">Résultats des appels</h3>
-                                <span className="text-[11px] font-semibold text-slate-400">{totalResults} total</span>
-                            </div>
-                            {callResultsPieData.length > 0 ? (
-                                <div className="flex items-center gap-5">
-                                    {/* Donut */}
-                                    <div className="relative flex-shrink-0" style={{ width: 120, height: 120 }}>
-                                        <ResponsiveContainer width="100%" height="100%">
-                                            <PieChart>
-                                                <Pie data={callResultsPieData} cx="50%" cy="50%"
-                                                    innerRadius={36} outerRadius={54}
-                                                    dataKey="value" strokeWidth={2} stroke="#fff">
-                                                    {callResultsPieData.map((entry, i) => (
-                                                        <Cell key={i} fill={entry.color} />
-                                                    ))}
-                                                </Pie>
-                                            </PieChart>
-                                        </ResponsiveContainer>
-                                        {/* Center label */}
-                                        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                                            <span className="text-[16px] font-black text-slate-800">{stats?.meetingsBooked ?? 0}</span>
-                                            <span className="text-[9px] text-slate-400 font-medium">RDV</span>
+                <section className="rounded-2xl border border-[#dfe7e3] bg-white p-5 shadow-[0_14px_38px_-28px_rgba(12,59,56,0.5)] xl:col-span-7">
+                    <div className="flex items-center justify-between gap-3">
+                        <div><h2 className="text-[15px] font-semibold text-[#15201e]">Progression des missions</h2><p className="mt-1 text-xs text-slate-500">Classement par rendez-vous obtenus</p></div>
+                        <Link href="/manager/missions" className="text-xs font-semibold text-[#1f4d47] hover:text-[#c96600]">Voir toutes</Link>
+                    </div>
+                    {missionsNearGoal.length === 0 ? (
+                        <div className="py-10 text-center"><Target className="mx-auto h-7 w-7 text-slate-300" /><p className="mt-2 text-sm text-slate-500">Aucune mission active sur cette période.</p><Link href="/manager/missions/new" className="mt-3 inline-flex text-xs font-semibold text-[#1f4d47]">Créer une mission</Link></div>
+                    ) : (
+                        <div className="mt-5 divide-y divide-[#edf1ef]">
+                            {missionsNearGoal.map((m) => {
+                                const goal = 20;
+                                const pct = Math.min(100, Math.round((m.meetingsThisPeriod / goal) * 100));
+                                const fill = pct >= 100 ? "#237d63" : pct >= 80 ? "#c96600" : pct >= 40 ? "#ed7f00" : "#9eb6ae";
+                                return (
+                                    <Link key={m.id} href={`/manager/missions/${m.id}`} className="group block py-4 first:pt-0 last:pb-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0c3b38]/25">
+                                        <div className="flex items-start justify-between gap-4">
+                                            <div className="min-w-0"><p className="truncate text-[13px] font-semibold text-[#263735] group-hover:text-[#1f4d47]">{m.name} <span className="font-normal text-slate-400">· {m.client.name}</span></p><p className="mt-1 text-[11px] text-slate-500">{m.sdrCount} SDR · {m.actionsThisPeriod} actions</p></div>
+                                            <div className="flex items-center gap-2"><span className="text-xs font-semibold tabular-nums">{m.meetingsThisPeriod}/{goal}</span><ArrowRight className="h-3.5 w-3.5 text-slate-300 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100" /></div>
                                         </div>
-                                    </div>
-                                    {/* Legend */}
-                                    <div className="flex-1 space-y-2 min-w-0">
-                                        {callResultsPieData.map((item, i) => (
-                                            <div key={i} className="flex items-center justify-between">
-                                                <div className="flex items-center gap-2 min-w-0">
-                                                    <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: item.color }} />
-                                                    <span className="text-[11px] text-slate-500 truncate">{item.name}</span>
-                                                </div>
-                                                <div className="flex items-center gap-1.5 flex-shrink-0 ml-2">
-                                                    <span className="text-[11px] font-bold text-slate-700">{item.value}</span>
-                                                    <span className="text-[10px] text-slate-300 w-7 text-right">{item.pct}%</span>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="py-8 text-center">
-                                    <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center mx-auto mb-2">
-                                        <Activity className="w-6 h-6 text-slate-300" />
-                                    </div>
-                                    <p className="text-[13px] text-slate-400">Aucun résultat sur cette période</p>
-                                </div>
-                            )}
+                                        <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-[#edf1ef]"><div className="h-full rounded-full transition-[width] duration-500" style={{ width: `${pct}%`, background: fill }} /></div>
+                                    </Link>
+                                );
+                            })}
                         </div>
+                    )}
+                </section>
 
-                        {/* Leads à relancer */}
-                        <div className="flex-1 bg-white rounded-2xl border border-slate-100 p-5 shadow-sm hover:shadow-md transition-shadow duration-200">
-                            <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-[14px] font-bold text-slate-800">Leads à relancer</h3>
-                                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#E5EFEC] text-[#1F4D47]">
-                                    {callbackCount} en attente
-                                </span>
-                            </div>
-
-                            <div className="space-y-3">
-                                {/* Callbacks */}
-                                <div className="flex items-center gap-3 p-3 rounded-xl bg-amber-50 border border-amber-100">
-                                    <div className="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
-                                        <Clock className="w-4 h-4 text-amber-600" />
-                                    </div>
-                                    <div>
-                                        <p className="text-[12px] font-bold text-slate-800">{callbackCount} rappels planifiés</p>
-                                        <p className="text-[11px] text-slate-400">À contacter en priorité</p>
-                                    </div>
-                                </div>
-                                {/* Interested */}
-                                <div className="flex items-center gap-3 p-3 rounded-xl bg-[#F0F5F3] border border-[#D7E3DF]">
-                                    <div className="w-9 h-9 rounded-xl bg-[#E5EFEC] flex items-center justify-center flex-shrink-0">
-                                        <Star className="w-4 h-4 text-[#1F4D47]" />
-                                    </div>
-                                    <div>
-                                        <p className="text-[12px] font-bold text-slate-800">{stats?.resultBreakdown?.INTERESTED ?? 0} contacts intéressés</p>
-                                        <p className="text-[11px] text-slate-400">Haute probabilité de conversion</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <Link href="/manager/prospection"
-                                className="mt-4 flex items-center gap-1.5 text-[12px] font-bold text-[#1F4D47] hover:text-[#143C37] transition-colors">
-                                Voir la file de prospection <ArrowRight className="w-3.5 h-3.5" />
-                            </Link>
-                        </div>
+                <section className="rounded-2xl border border-[#dfe7e3] bg-white p-5 shadow-[0_14px_38px_-28px_rgba(12,59,56,0.5)] xl:col-span-5">
+                    <div className="flex items-center justify-between gap-3">
+                        <div><h2 className="text-[15px] font-semibold text-[#15201e]">Performance SDR</h2><p className="mt-1 text-xs text-slate-500">Rendez-vous et activité commerciale</p></div>
+                        <span className={cn("rounded-full px-2.5 py-1 text-[11px] font-semibold", rdvGoalPct >= 80 ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700")}>{Math.round(rdvGoalPct)}% objectif</span>
                     </div>
-
-                    {/* Missions near goal */}
-                    <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm hover:shadow-md transition-shadow duration-200">
-                        <div className="flex items-center justify-between mb-5">
-                            <div className="flex items-center gap-2">
-                                <Target className="w-4 h-4 text-[#2F6B62]" />
-                                <h3 className="text-[14px] font-bold text-slate-800">Missions proches de l&apos;objectif</h3>
-                            </div>
-                            <Link href="/manager/missions" className="text-[12px] font-bold text-[#1F4D47] hover:text-[#143C37] transition-colors">
-                                Voir toutes →
-                            </Link>
-                        </div>
-                        {missionsNearGoal.length === 0 ? (
-                            <p className="text-[13px] text-slate-400 py-4 text-center">Aucune mission active avec des RDV</p>
-                        ) : (
-                            <div className="space-y-4">
-                                {missionsNearGoal.map((m) => {
-                                    const goal = 20;
-                                    const pct = Math.min(100, Math.round((m.meetingsThisPeriod / goal) * 100));
-                                    const isHot = pct >= 80;
-                                    return (
-                                        <Link key={m.id} href={`/manager/missions/${m.id}`} className="block group">
-                                            <div className="flex items-center justify-between mb-2">
-                                                <div className="flex items-center gap-2">
-                                                    {isHot && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" aria-label="Objectif proche" />}
-                                                    <span className="text-[13px] font-semibold text-slate-700 group-hover:text-[#1F4D47] transition-colors">{m.name}</span>
-                                                    <span className="text-[10px] text-slate-400">- {m.client.name}</span>
-                                                </div>
-                                                <span className="text-[12px] font-bold text-slate-600">{m.meetingsThisPeriod}<span className="font-normal text-slate-300">/{goal}</span></span>
-                                            </div>
-                                            <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                                                <div className="h-full rounded-full transition-all duration-700"
-                                                    style={{
-                                                        width: `${pct}%`,
-                                                        background: isHot
-                                                            ? "linear-gradient(90deg, #ff9e1b, #ffb64f)"
-                                                            : pct >= 60 ? "#e07c00" : "#e4dbca",
-                                                    }} />
-                                            </div>
-                                        </Link>
-                                    );
-                                })}
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                {/* RIGHT COL (40%) */}
-                <div className="flex-[2] flex flex-col gap-4">
-
-                    {/* Leaderboard RDV */}
-                    <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm hover:shadow-md transition-shadow duration-200">
-                        <div className="flex items-center justify-between mb-5">
-                            <div className="flex items-center gap-2">
-                                <Trophy className="w-4 h-4 text-amber-500" />
-                                <h3 className="text-[14px] font-bold text-slate-800">Leaderboard RDV</h3>
-                            </div>
-                            <div className={cn(
-                                "flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full",
-                                rdvGoalPct >= 100 ? "bg-emerald-50 text-emerald-600"
-                                    : rdvGoalPct >= 80 ? "bg-emerald-50 text-emerald-600"
-                                        : "bg-amber-50 text-amber-600"
-                            )}>
-                                <Zap className="w-3 h-3" />
-                                {rdvGoalPct >= 100 ? "Objectif atteint"
-                                    : rdvGoalPct >= 80 ? "En avance"
-                                        : `${Math.round(100 - rdvGoalPct)}% restant`}
-                            </div>
-                        </div>
-
-                        {stats?.rdvLeaderboard?.length ? (
-                            <div className="space-y-1.5">
-                                {stats.rdvLeaderboard.map((person, i) => {
-                                    const isFirst = i === 0;
-                                    const maxRdv = stats.rdvLeaderboard[0]?.rdv || 1;
-                                    const barPct = Math.round((person.rdv / maxRdv) * 100);
-                                    const callStats = stats.leaderboard.find((entry) => entry.id === person.id);
-                                    return (
-                                        <div key={person.id}
-                                            className={cn(
-                                                "flex items-center gap-3 p-2.5 rounded-xl transition-all duration-150",
-                                                isFirst
-                                                    ? "bg-gradient-to-r from-[#F0F5F3] to-[#FFF4E2] border border-[#D7E3DF]"
-                                                    : "hover:bg-slate-50"
-                                            )}>
-                                            {/* Rank */}
-                                            <span className={cn("w-5 text-[12px] font-black text-center flex-shrink-0",
-                                                i === 0 ? "text-amber-400" : i === 1 ? "text-slate-400" : i === 2 ? "text-amber-600" : "text-slate-300"
-                                            )}>
-                                                {i + 1}
-                                            </span>
-                                            {/* Avatar */}
-                                            <div className={cn(
-                                                "w-8 h-8 rounded-xl flex items-center justify-center text-[11px] font-black text-white flex-shrink-0",
-                                                isFirst
-                                                    ? "bg-gradient-to-br from-[#2F6B62] to-[#1F4D47] shadow-md shadow-[#1F4D47]/15"
-                                                    : "bg-slate-200 text-slate-600"
-                                            )}>
-                                                {getInitials(person.name)}
-                                            </div>
-                                            {/* Info */}
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-center justify-between mb-1">
-                                                    <span className={cn("text-[12px] font-bold truncate",
-                                                        isFirst ? "text-[#1A5149]" : "text-slate-700"
-                                                    )}>{person.name}</span>
-                                                    <span className="text-[13px] font-black text-slate-800 flex-shrink-0 ml-2">{person.rdv}<span className="text-[10px] font-normal text-slate-400 ml-0.5">RDV</span></span>
-                                                </div>
-                                                <div className="flex items-center gap-2 mb-1.5">
-                                                    <span className="text-[10px] font-semibold text-[#1F4D47] bg-[#EEF3F1] px-1.5 py-0.5 rounded">
-                                                        Appels {callStats?.calls ?? 0}
-                                                    </span>
-                                                    <span className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">
-                                                        Connectés {callStats?.connectedCalls ?? 0}
-                                                    </span>
-                                                    <span className="text-[10px] font-semibold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded">
-                                                        Actions CRM {person.actions}
-                                                    </span>
-                                                </div>
-                                                <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                                    <div className="h-full rounded-full transition-all duration-700"
-                                                        style={{
-                                                            width: `${barPct}%`,
-                                                            background: isFirst ? "linear-gradient(90deg,#FF9E1B,#E07C00)" : "#B8C2BD"
-                                                        }} />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        ) : (
-                            <div className="py-6 text-center">
-                                <Users className="w-8 h-8 text-slate-200 mx-auto mb-2" />
-                                <p className="text-[13px] text-slate-400">Pas encore de RDV sur cette période</p>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Weekly goal chart */}
-                    <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm hover:shadow-md transition-shadow duration-200">
-                        <div className="flex items-center justify-between mb-1">
-                            <h3 className="text-[14px] font-bold text-slate-800">Progression hebdo</h3>
-                            <span className="text-[11px] font-semibold text-slate-400">
-                                {stats?.meetingsBooked ?? 0} / {RDV_WEEKLY_GOAL} RDV
-                            </span>
-                        </div>
-                        <div className="h-[100px] mt-3">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <LineChart data={weeklyGoalData}>
-                                    <XAxis dataKey="jour" tick={{ fontSize: 10, fill: "#94A3B8" }} axisLine={false} tickLine={false} />
-                                    <YAxis hide domain={[0, Math.max(35, (stats?.meetingsBooked ?? 0) + 5)]} />
-                                    <Tooltip content={<CustomTooltip />} />
-                                    <Line type="monotone" dataKey="objectif" stroke="#E2E8F0" strokeWidth={1.5} strokeDasharray="4 3" dot={false} name="Objectif" />
-                                    <Line type="monotone" dataKey="cumul" stroke="#0c3b38" strokeWidth={2.5} dot={false} name="Réalisé" />
-                                </LineChart>
-                            </ResponsiveContainer>
-                        </div>
-                    </div>
-
-                    {/* Recent RDV activity */}
-                    <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm hover:shadow-md transition-shadow duration-200">
-                        <div className="flex items-center gap-2 mb-4">
-                            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                            <h3 className="text-[14px] font-bold text-slate-800">Activité récente</h3>
-                        </div>
-                        {rdvActivity.length === 0 ? (
-                            <p className="text-[13px] text-slate-400 py-3 text-center">Aucun RDV sur cette période</p>
-                        ) : (
-                            <div className="space-y-3 max-h-[220px] overflow-y-auto pr-1"
-                                style={{ scrollbarWidth: "thin", scrollbarColor: "#E2E8F0 transparent" }}>
-                                {rdvActivity.slice(0, 10).map((item) => (
-                                    <div key={item.id} className="flex items-start gap-3">
-                                        <div className="w-7 h-7 rounded-xl bg-emerald-50 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-[12px] text-slate-600 leading-relaxed">
-                                                <span className="font-bold text-slate-800">{item.user}</span>
-                                                {" "}a décroché un RDV{item.contactOrCompanyName && (
-                                                    <> avec <span className="font-bold text-[#1F4D47]">{item.contactOrCompanyName}</span></>
-                                                )}
-                                            </p>
-                                            <span className="text-[10px] text-slate-300">{item.time}</span>
-                                        </div>
+                    {stats?.rdvLeaderboard?.length ? (
+                        <div className="mt-4 space-y-1">
+                            {stats.rdvLeaderboard.slice(0, 6).map((person, i) => {
+                                const callStats = stats.leaderboard.find((entry) => entry.id === person.id);
+                                const maxRdv = stats.rdvLeaderboard[0]?.rdv || 1;
+                                return (
+                                    <div key={person.id} className={cn("flex items-center gap-3 rounded-xl p-2.5 transition-colors hover:bg-[#fbfaf7]", i === 0 && "border border-[#e1e9e5] bg-gradient-to-r from-[#edf5f2] to-[#fff7ea]")}>
+                                        <span className={cn("w-5 text-center text-xs font-bold", i === 0 ? "text-[#c96600]" : "text-slate-400")}>{i + 1}</span>
+                                        <span className={cn("flex h-8 w-8 items-center justify-center rounded-xl text-[11px] font-bold", i === 0 ? "bg-[#0c3b38] text-white" : "bg-[#edf1ef] text-[#526762]")}>{getInitials(person.name)}</span>
+                                        <div className="min-w-0 flex-1"><div className="flex items-center justify-between"><span className="truncate text-xs font-semibold text-[#263735]">{person.name}</span><span className="text-xs font-bold tabular-nums">{person.rdv} RDV</span></div><div className="mt-1.5 h-1 overflow-hidden rounded-full bg-[#edf1ef]"><div className="h-full rounded-full bg-[#ed7f00]" style={{ width: `${Math.round((person.rdv / maxRdv) * 100)}%` }} /></div><p className="mt-1 text-[10px] text-slate-400">{callStats?.calls ?? 0} appels · {person.actions} actions</p></div>
                                     </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                </div>
+                                );
+                            })}
+                        </div>
+                    ) : (
+                        <div className="py-10 text-center"><Users className="mx-auto h-7 w-7 text-slate-300" /><p className="mt-2 text-sm text-slate-500">Pas encore de performance sur cette période.</p></div>
+                    )}
+                </section>
+
+                <section className="rounded-2xl border border-[#dfe7e3] bg-white p-5 shadow-[0_14px_38px_-28px_rgba(12,59,56,0.5)] xl:col-span-12">
+                    <div><h2 className="text-[15px] font-semibold text-[#15201e]">Activité récente</h2><p className="mt-1 text-xs text-slate-500">Dernières interactions de l&apos;équipe</p></div>
+                    {recentActivity.length === 0 ? (
+                        <div className="py-10 text-center"><Activity className="mx-auto h-7 w-7 text-slate-300" /><p className="mt-2 text-sm text-slate-500">Aucune activité récente.</p></div>
+                    ) : (
+                        <ol className="mt-5 grid grid-cols-1 gap-x-8 md:grid-cols-2">
+                            {recentActivity.slice(0, 10).map((item) => (
+                                <li key={item.id} className="relative flex gap-3 border-b border-[#edf1ef] py-3 first:pt-0">
+                                    <span className={cn("mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl", item.type === "meeting" ? "bg-amber-50 text-amber-700" : item.type === "call" ? "bg-[#e8f1ee] text-[#1f4d47]" : "bg-slate-100 text-slate-600")}>{item.type === "meeting" ? <CheckCircle2 className="h-4 w-4" /> : item.type === "call" ? <Phone className="h-4 w-4" /> : <Activity className="h-4 w-4" />}</span>
+                                    <div className="min-w-0 flex-1"><p className="text-[12px] leading-relaxed text-slate-600"><span className="font-semibold text-[#263735]">{item.user}</span> {item.action}{item.contactOrCompanyName ? <> avec <span className="font-semibold text-[#1f4d47]">{item.contactOrCompanyName}</span></> : null}</p><p className="mt-1 text-[10px] text-slate-400">{item.campaignName ?? "Activité commerciale"} · {item.time}</p></div>
+                                </li>
+                            ))}
+                        </ol>
+                    )}
+                </section>
             </div>
 
         </div>

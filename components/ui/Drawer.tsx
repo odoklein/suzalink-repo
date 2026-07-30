@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback, useRef, useState } from "react";
+import { useEffect, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -77,11 +77,8 @@ export function Drawer({
     modal = true,
 }: DrawerProps) {
     const drawerRef = useRef<HTMLDivElement>(null);
-    const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
-
-    useEffect(() => {
-        setPortalContainer(document.body);
-    }, []);
+    const returnFocusRef = useRef<HTMLElement | null>(null);
+    const portalContainer = typeof document !== "undefined" ? document.body : null;
 
     // Handle ESC key
     const handleKeyDown = useCallback(
@@ -97,6 +94,9 @@ export function Drawer({
     // paired, so one drawer closing must not unlock the page behind another.
     useEffect(() => {
         if (isOpen && modal) {
+            returnFocusRef.current = document.activeElement instanceof HTMLElement
+                ? document.activeElement
+                : null;
             lockBodyScroll();
         }
 
@@ -105,6 +105,9 @@ export function Drawer({
         return () => {
             if (isOpen && modal) unlockBodyScroll();
             document.removeEventListener("keydown", handleKeyDown);
+            if (isOpen && modal) {
+                window.requestAnimationFrame(() => returnFocusRef.current?.focus());
+            }
         };
     }, [isOpen, modal, handleKeyDown]);
 
